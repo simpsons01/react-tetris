@@ -20,9 +20,14 @@ export enum POLYOMINO_TYPE {
   Z,
 }
 
-export const DEFAULT_POLYOMINO_SHAPE = POLYOMINO_SHAPE.FIRST;
+export enum DIRECTION {
+  TOP = "top",
+  RIGHT = "right",
+  DOWN = "down",
+  LEFT = "left",
+}
 
-export const DEFAULT_POLYOMINO_TYPE = POLYOMINO_TYPE.I;
+export const DEFAULT_POLYOMINO_SHAPE = POLYOMINO_SHAPE.FIRST;
 
 export interface ICoordinate {
   x: number;

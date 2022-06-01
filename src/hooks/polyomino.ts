@@ -6,7 +6,6 @@ import {
   POLYOMINO_SHAPE,
   POLYOMINO_TYPE,
   DEFAULT_POLYOMINO_SHAPE,
-  DEFAULT_POLYOMINO_TYPE,
 } from "../common/polyomino";
 
 export interface IPolyominoState {
@@ -19,7 +18,7 @@ const usePolyomino = function () {
   const [polyomino, setPolyomino] = React.useState<IPolyominoState>({
     anchor: { x: -1, y: -1 },
     shape: DEFAULT_POLYOMINO_SHAPE,
-    type: DEFAULT_POLYOMINO_TYPE,
+    type: null,
   });
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {

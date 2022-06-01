@@ -14,9 +14,9 @@ const Tetris: React.FC<ITetris> = function (props) {
   const { backgroundColor, blockDistance, row, col, data, polyomino } = props;
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
-  const width = React.useMemo<number>(() => blockDistance * row, [blockDistance, row]);
+  const height = React.useMemo<number>(() => blockDistance * row, [blockDistance, row]);
 
-  const height = React.useMemo<number>(() => blockDistance * col, [blockDistance, col]);
+  const width = React.useMemo<number>(() => blockDistance * col, [blockDistance, col]);
 
   React.useEffect(() => {
     if (canvasRef.current == null) return;
