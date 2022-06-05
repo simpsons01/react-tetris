@@ -4,47 +4,96 @@ import {
   CUBE_STATE,
   DEFAULT_POLYOMINO_SHAPE,
   DIRECTION,
+  getNewAnchorByAnchorAndShapeAndType,
+  getNewCoordinateByAnchorAndShapeAndType,
   getPolyominoConfig,
-  getRamdomPolyominoType,
+  getPolyominoNextShape,
+  getRandomPolyominoType,
   getRangeByCoordinate,
   ICoordinate,
   ICube,
+  POLYOMINO_SHAPE,
+  POLYOMINO_TYPE,
 } from "../common/polyomino";
 import usePolyomino from "./polyomino";
 import { getKeys } from "../common/utils";
 
 const useTetris = function (col: number, row: number) {
-  const { polyomino, setPolyomino, polyominoInfo, polyominoCoordinate } = usePolyomino();
+  const { polyomino, setPolyomino, resetPolyomino, polyominoInfo, polyominoCoordinate } = usePolyomino();
   const [tetrisData, setTetrisData] = React.useState<ITetris["data"]>(
-    new Array(row).fill(null).map((_, rowIndex) => {
-      return new Array(col).fill(null).map((_, colIndex) => {
-        return {
-          x: colIndex,
-          y: rowIndex,
-          strokeColor: "",
-          fillColor: "",
-          state: CUBE_STATE.UNFILLED,
-        };
-      });
+    new Array(row * col).fill(null).map((_, index) => {
+      return {
+        x: index % col,
+        y: Math.floor(index / col),
+        strokeColor: "",
+        fillColor: "",
+        state: CUBE_STATE.UNFILLED,
+      };
     })
   );
 
   const findCube = React.useCallback(
-    (coordinate: ICoordinate): (ICube & { state: CUBE_STATE }) | null => {
-      let cube = null;
-      try {
-        cube = tetrisData[coordinate.y][coordinate.x];
-        return cube;
-      } catch (error) {
+    (coordinate: ICoordinate): ICube | null => {
+      if (coordinate.x < 0 || coordinate.x >= col || coordinate.y < 0 || coordinate.y >= row) {
         console.warn(`x: ${coordinate.x} and y: ${coordinate.y} is not in tetrisData`);
-        return cube;
+        return null;
       }
+      const index = coordinate.x + coordinate.y * col;
+      return tetrisData[index] ? tetrisData[index] : null;
     },
-    [tetrisData]
+    [tetrisData, col, row]
   );
 
-  const createPolyomino = React.useCallback(() => {
-    const type = getRamdomPolyominoType();
+  const getAnchorNearbyCube = React.useCallback(
+    function (anchor: ICoordinate, rangeX: number = 4, rangeY: number = 4): Array<ICube> {
+      let leftX = Math.floor(rangeX / 2);
+      let rightX = Math.floor(rangeX / 2);
+      let topY = Math.floor(rangeY / 2);
+      let bottomY = Math.floor(rangeY / 2);
+      if (anchor.x - leftX < 0) {
+        leftX = anchor.x - 0;
+        rightX = rangeX - leftX;
+      } else if (anchor.x + rightX >= col) {
+        rightX = col - anchor.x - 1;
+        leftX = rangeX - leftX;
+      }
+      if (anchor.y - topY < 0) {
+        topY = anchor.y - 0;
+        bottomY = rangeY - topY;
+      } else if (anchor.y + bottomY >= row) {
+        bottomY = row - anchor.y - 1;
+        topY = rangeY - bottomY;
+      }
+      const topLeftAnchor = { x: anchor.x - leftX, y: anchor.y - topY };
+      const bottomRightAnchor = { x: anchor.x + rightX, y: anchor.y + bottomY };
+      let traverseX = 0,
+        traverseY = 0,
+        cubes: Array<ICube> = [];
+      while (bottomRightAnchor.y - topLeftAnchor.y >= traverseY) {
+        while (bottomRightAnchor.x - topLeftAnchor.x >= traverseX) {
+          const coordinate = {
+            x: topLeftAnchor.x + traverseX,
+            y: topLeftAnchor.y + traverseY,
+          };
+          if (coordinate.x !== anchor.x || coordinate.y !== anchor.y) {
+            const cube = findCube({
+              x: topLeftAnchor.x + traverseX,
+              y: topLeftAnchor.y + traverseY,
+            }) as ICube;
+            cubes.push(cube);
+          }
+          traverseX = traverseX + 1;
+        }
+        traverseX = 0;
+        traverseY = traverseY + 1;
+      }
+      return cubes;
+    },
+    [col, row, findCube]
+  );
+
+  const createPolyomino = React.useCallback((): void => {
+    const type = getRandomPolyominoType();
     const config = getPolyominoConfig(type);
     const { coordinate, anchorIndex } = config.coordinate[DEFAULT_POLYOMINO_SHAPE];
     const range = getRangeByCoordinate(coordinate);
@@ -58,7 +107,21 @@ const useTetris = function (col: number, row: number) {
     });
   }, [col, setPolyomino]);
 
-  const getPolyominIsCollideWithNearbyCube = React.useCallback(
+  const getCoordinateIsCollide = React.useCallback(
+    (coordinate: Array<ICoordinate>): boolean => {
+      let isCollide = false;
+      coordinate.forEach(({ x, y }) => {
+        const cube = findCube({ x, y });
+        if (cube == null || cube.state === CUBE_STATE.FILLED) {
+          isCollide = true;
+        }
+      });
+      return isCollide;
+    },
+    [findCube]
+  );
+
+  const getPolyominoIsCollideWithNearbyCube = React.useCallback(
     (coordinate?: Array<ICoordinate>) => {
       const status = { isLeftCollide: false, isRightCollide: false, isBottomCollide: false, isTopCollide: false };
       const _coordinate = coordinate ? coordinate : polyominoCoordinate;
@@ -105,7 +168,7 @@ const useTetris = function (col: number, row: number) {
       let isMoveable = false,
         x = 0,
         y = 0;
-      const { isLeftCollide, isRightCollide, isBottomCollide, isTopCollide } = getPolyominIsCollideWithNearbyCube();
+      const { isLeftCollide, isRightCollide, isBottomCollide, isTopCollide } = getPolyominoIsCollideWithNearbyCube();
       // console.log("-------------------------------------------------------------");
       // console.log("isLeftCollide: " + isLeftCollide);
       // console.log("isTopCollide: " + isTopCollide);
@@ -146,15 +209,92 @@ const useTetris = function (col: number, row: number) {
       }
       return isMoveable;
     },
-    [setPolyomino, getPolyominIsCollideWithNearbyCube]
+    [setPolyomino, getPolyominoIsCollideWithNearbyCube]
   );
 
+  const changePolyominoShape = React.useCallback(
+    (shape?: POLYOMINO_SHAPE): boolean => {
+      let isChangeSuccess = false;
+      if (polyomino.type == null) return isChangeSuccess;
+      const nextShape = shape !== undefined ? shape : getPolyominoNextShape(polyomino.shape);
+      const nextAnchor = getNewAnchorByAnchorAndShapeAndType(
+        polyomino.type,
+        polyomino.shape,
+        nextShape,
+        polyomino.anchor
+      );
+      const nextCoordinate = getNewCoordinateByAnchorAndShapeAndType(polyomino.type, nextShape, nextAnchor);
+      // console.log(nextCoordinate);
+      const isNextCoordinateCollide = getCoordinateIsCollide(nextCoordinate);
+      if (!isNextCoordinateCollide) {
+        setPolyomino((prevPolyomino) => ({
+          ...prevPolyomino,
+          shape: nextShape,
+          anchor: nextAnchor,
+        }));
+        isChangeSuccess = true;
+        return isChangeSuccess;
+      }
+      const nextAnchorNearbyCubes = getAnchorNearbyCube(nextAnchor);
+      const notCollideAnchor = nextAnchorNearbyCubes.filter((cube) => {
+        const _coordinate = getNewCoordinateByAnchorAndShapeAndType(polyomino.type as POLYOMINO_TYPE, nextShape, {
+          x: cube.x,
+          y: cube.y,
+        });
+        return !getCoordinateIsCollide(_coordinate);
+      });
+      // console.log(notCollideAnchor);
+      if (notCollideAnchor.length === 0) return isChangeSuccess;
+      const nearestAnchor = notCollideAnchor.reduce(
+        (acc, cube) => {
+          if (
+            Math.abs(cube.x - nextAnchor.x) + Math.abs(cube.y - nextAnchor.y) <
+            Math.abs(acc.x - nextAnchor.x) + Math.abs(acc.y - nextAnchor.y)
+          ) {
+            return { x: cube.x, y: cube.y };
+          }
+          return acc;
+        },
+        { x: notCollideAnchor[0].x, y: notCollideAnchor[0].y } as ICoordinate
+      );
+      setPolyomino((prevPolyomino) => ({
+        ...prevPolyomino,
+        shape: nextShape,
+        anchor: nearestAnchor,
+      }));
+      isChangeSuccess = true;
+      return isChangeSuccess;
+    },
+    [polyomino, setPolyomino, getCoordinateIsCollide, getAnchorNearbyCube]
+  );
+
+  const setPolyominoToTetrisData = React.useCallback((): void => {
+    if (polyominoInfo == null) return;
+    setTetrisData((prevTetrisData) =>
+      prevTetrisData.map((cube) => {
+        const cubeInPolyomino = polyominoInfo.find(({ x, y }) => cube.x === x && cube.y === y);
+        if (cubeInPolyomino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
+          return {
+            ...cubeInPolyomino,
+            state: CUBE_STATE.FILLED,
+          };
+        }
+        return cube;
+      })
+    );
+    resetPolyomino();
+  }, [polyominoInfo, resetPolyomino]);
+
   return {
+    polyomino,
     polyominoData: polyominoInfo,
     tetrisData,
+    setPolyominoToTetrisData,
     createPolyomino,
-    getPolyominIsCollideWithNearbyCube,
+    getPolyominoIsCollideWithNearbyCube,
     movePolyomino,
+    getAnchorNearbyCube,
+    changePolyominoShape,
   };
 };
 

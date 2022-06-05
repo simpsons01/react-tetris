@@ -37,6 +37,7 @@ export interface ICoordinate {
 export interface ICube extends ICoordinate {
   strokeColor: string;
   fillColor: string;
+  state?: CUBE_STATE;
 }
 
 export interface IPolyominoConfig<T = { anchorIndex: number; coordinate: Array<ICoordinate> }> {
@@ -364,7 +365,7 @@ export const getPolyominoConfig = function (type?: POLYOMINO_TYPE): Readonly<IPo
   return type !== undefined ? _[type] : I;
 };
 
-export const getRamdomPolyominoType = function (): POLYOMINO_TYPE {
+export const getRandomPolyominoType = function (): POLYOMINO_TYPE {
   const list = [
     POLYOMINO_TYPE.I,
     POLYOMINO_TYPE.J,
@@ -392,4 +393,49 @@ export const getRangeByCoordinate = function (coordinate: Array<ICoordinate>): {
     maxY: Math.max(..._y),
     minY: Math.min(..._y),
   };
+};
+
+export const getNewCoordinateByAnchorAndShapeAndType = function (
+  type: POLYOMINO_TYPE,
+  shape: POLYOMINO_SHAPE,
+  anchor: ICoordinate
+): Array<ICoordinate> {
+  const coordinateConfig = getPolyominoConfig(type);
+  return coordinateConfig.coordinate[shape].coordinate.map(({ x, y }) => {
+    return {
+      x: x + anchor.x,
+      y: y + anchor.y,
+    };
+  });
+};
+
+export const getNewAnchorByAnchorAndShapeAndType = function (
+  type: POLYOMINO_TYPE,
+  shape: POLYOMINO_SHAPE,
+  nextShape: POLYOMINO_SHAPE,
+  anchor: ICoordinate
+): ICoordinate {
+  const coordinateConfig = getPolyominoConfig(type);
+  const { x: currentX, y: currentY } =
+    coordinateConfig.coordinate[shape].coordinate[coordinateConfig.coordinate[shape].anchorIndex];
+  const { x: nextX, y: nextY } =
+    coordinateConfig.coordinate[shape].coordinate[coordinateConfig.coordinate[nextShape].anchorIndex];
+  return {
+    x: anchor.x + (nextX - currentX),
+    y: anchor.y + (nextY - currentY),
+  };
+};
+
+export const getPolyominoNextShape = function (shape: POLYOMINO_SHAPE) {
+  if (shape === POLYOMINO_SHAPE.FIRST) {
+    return POLYOMINO_SHAPE.SECOND;
+  } else if (shape === POLYOMINO_SHAPE.SECOND) {
+    return POLYOMINO_SHAPE.THIRD;
+  } else if (shape === POLYOMINO_SHAPE.THIRD) {
+    return POLYOMINO_SHAPE.FOURTH;
+  } else if (shape === POLYOMINO_SHAPE.FOURTH) {
+    return POLYOMINO_SHAPE.FIRST;
+  } else {
+    return POLYOMINO_SHAPE.FIRST;
+  }
 };

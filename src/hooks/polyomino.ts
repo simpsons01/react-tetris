@@ -8,6 +8,12 @@ import {
   DEFAULT_POLYOMINO_SHAPE,
 } from "../common/polyomino";
 
+const createInitialPolyominoState = () => ({
+  anchor: { x: -1, y: -1 },
+  shape: DEFAULT_POLYOMINO_SHAPE,
+  type: null,
+});
+
 export interface IPolyominoState {
   anchor: ICoordinate;
   shape: POLYOMINO_SHAPE;
@@ -15,11 +21,7 @@ export interface IPolyominoState {
 }
 
 const usePolyomino = function () {
-  const [polyomino, setPolyomino] = React.useState<IPolyominoState>({
-    anchor: { x: -1, y: -1 },
-    shape: DEFAULT_POLYOMINO_SHAPE,
-    type: null,
-  });
+  const [polyomino, setPolyomino] = React.useState<IPolyominoState>(createInitialPolyominoState());
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
     if (polyomino.type == null) return null;
@@ -43,11 +45,16 @@ const usePolyomino = function () {
     })) as Array<ICube>;
   }, [polyomino, polyominoCoordinate]);
 
+  const resetPolyomino = React.useCallback((): void => {
+    setPolyomino(createInitialPolyominoState());
+  }, [setPolyomino]);
+
   return {
     polyomino,
-    setPolyomino,
     polyominoCoordinate,
     polyominoInfo,
+    setPolyomino,
+    resetPolyomino,
   };
 };
 

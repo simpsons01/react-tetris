@@ -9,10 +9,20 @@ const {
 } = setting;
 
 const Single: React.FC = function () {
-  const { polyominoData, tetrisData, createPolyomino, movePolyomino } = useTetris(col, row);
+  const {
+    getAnchorNearbyCube,
+    polyomino,
+    setPolyominoToTetrisData,
+    polyominoData,
+    tetrisData,
+    createPolyomino,
+    movePolyomino,
+    changePolyominoShape,
+  } = useTetris(col, row);
 
   React.useEffect(() => {
     function keydownHandler(e: KeyboardEvent) {
+      // console.log(e.keyCode);
       if (e.keyCode === 37) {
         movePolyomino(DIRECTION.LEFT);
       } else if (e.keyCode === 39) {
@@ -20,7 +30,10 @@ const Single: React.FC = function () {
       } else if (e.keyCode === 40) {
         movePolyomino(DIRECTION.DOWN);
       } else if (e.keyCode === 38) {
-        movePolyomino(DIRECTION.TOP);
+        changePolyominoShape();
+      } else if (e.keyCode === 32) {
+        setPolyominoToTetrisData();
+        createPolyomino();
       }
     }
     window.addEventListener("keydown", keydownHandler);
