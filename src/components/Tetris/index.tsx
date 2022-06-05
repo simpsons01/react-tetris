@@ -36,11 +36,11 @@ const Tetris: React.FC<ITetris> = function (props) {
         : state === CUBE_STATE.FILLED
         ? fillColor
         : backgroundColor;
-      const globalAlpha = polyominoCube ? 0.3 : 1;
+      // const globalAlpha = polyominoCube ? 0.3 : 1;
       context.strokeStyle = _strokeColor;
       context.fillStyle = _fillColor;
       context.save();
-      context.globalAlpha = globalAlpha;
+      // context.globalAlpha = globalAlpha;
       context.fillRect(x * blockDistance, y * blockDistance, blockDistance - 2, blockDistance - 2);
       context.strokeRect(x * blockDistance, y * blockDistance, blockDistance, blockDistance);
       context.restore();
