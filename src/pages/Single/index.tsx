@@ -18,6 +18,8 @@ const Single: React.FC = function () {
     createPolyomino,
     movePolyomino,
     changePolyominoShape,
+    clearRowFilledWithCube,
+    getRowFilledWithCube,
   } = useTetris(col, row);
 
   React.useEffect(() => {
@@ -45,6 +47,13 @@ const Single: React.FC = function () {
       createPolyomino();
     }
   }, [createPolyomino, polyominoData]);
+
+  React.useEffect(() => {
+    const filledRow = getRowFilledWithCube();
+    if (filledRow.length > 0) {
+      clearRowFilledWithCube(filledRow);
+    }
+  });
   return (
     <Tetris
       backgroundColor={backgroundColor}

@@ -16,7 +16,7 @@ import {
   POLYOMINO_TYPE,
 } from "../common/polyomino";
 import usePolyomino from "./polyomino";
-import { getKeys } from "../common/utils";
+import { createAnimation, getKeys } from "../common/utils";
 
 const useTetris = function (col: number, row: number) {
   const { polyomino, setPolyomino, resetPolyomino, polyominoInfo, polyominoCoordinate } = usePolyomino();
@@ -92,6 +92,39 @@ const useTetris = function (col: number, row: number) {
     [col, row, findCube]
   );
 
+  const getCoordinateIsCollide = React.useCallback(
+    (coordinate: Array<ICoordinate>): boolean => {
+      let isCollide = false;
+      coordinate.forEach(({ x, y }) => {
+        const cube = findCube({ x, y });
+        if (cube == null || cube.state === CUBE_STATE.FILLED) {
+          isCollide = true;
+        }
+      });
+      return isCollide;
+    },
+    [findCube]
+  );
+
+  const getRowFilledWithCube = React.useCallback((): Array<number> => {
+    let _row = 0,
+      filledRow = [];
+    while (_row < row) {
+      let _col = 0,
+        isAllFilled = true;
+      while (_col < col) {
+        const cube = findCube({ x: _col, y: _row });
+        if (cube !== null && cube.state === CUBE_STATE.UNFILLED) {
+          isAllFilled = false;
+        }
+        _col += 1;
+      }
+      if (isAllFilled) filledRow.push(_row);
+      _row += 1;
+    }
+    return filledRow;
+  }, [col, row, findCube]);
+
   const createPolyomino = React.useCallback((): void => {
     const type = getRandomPolyominoType();
     const config = getPolyominoConfig(type);
@@ -106,20 +139,6 @@ const useTetris = function (col: number, row: number) {
       },
     });
   }, [col, setPolyomino]);
-
-  const getCoordinateIsCollide = React.useCallback(
-    (coordinate: Array<ICoordinate>): boolean => {
-      let isCollide = false;
-      coordinate.forEach(({ x, y }) => {
-        const cube = findCube({ x, y });
-        if (cube == null || cube.state === CUBE_STATE.FILLED) {
-          isCollide = true;
-        }
-      });
-      return isCollide;
-    },
-    [findCube]
-  );
 
   const getPolyominoIsCollideWithNearbyCube = React.useCallback(
     (coordinate?: Array<ICoordinate>) => {
@@ -285,16 +304,71 @@ const useTetris = function (col: number, row: number) {
     resetPolyomino();
   }, [polyominoInfo, resetPolyomino]);
 
+  const clearRowFilledWithCube = React.useCallback(
+    (filledRow?: Array<number>): Promise<void> => {
+      return new Promise((resolve) => {
+        filledRow = filledRow ? filledRow : getRowFilledWithCube();
+        if (filledRow.length === 0) {
+          resolve();
+          return;
+        }
+        const removeCubePerUpdate = 2;
+        const removeIndex = [
+          [4, 5],
+          [3, 6],
+          [2, 7],
+          [1, 8],
+          [0, 9],
+        ];
+        let executedTime = 0;
+        const times = col / removeCubePerUpdate;
+        const duration = 0.2;
+        const perUpdateTime = duration / times;
+        const _ = createAnimation(
+          (elapse) => {
+            if (elapse > executedTime * perUpdateTime && executedTime < times) {
+              ((executedTime) => {
+                setTetrisData((prevTetrisData) => {
+                  return prevTetrisData.map((cube) => {
+                    if (
+                      (filledRow as Array<number>).indexOf(cube.y) > -1 &&
+                      removeIndex[executedTime].indexOf(cube.x) > -1
+                    ) {
+                      return {
+                        ...cube,
+                        strokeColor: "",
+                        fillColor: "",
+                        state: CUBE_STATE.UNFILLED,
+                      };
+                    }
+                    return cube;
+                  });
+                });
+              })(executedTime);
+              executedTime += 1;
+            }
+          },
+          () => resolve(),
+          duration
+        );
+        _.start();
+      });
+    },
+    [col, getRowFilledWithCube]
+  );
+
   return {
     polyomino,
     polyominoData: polyominoInfo,
     tetrisData,
-    setPolyominoToTetrisData,
-    createPolyomino,
     getPolyominoIsCollideWithNearbyCube,
-    movePolyomino,
     getAnchorNearbyCube,
+    getRowFilledWithCube,
+    createPolyomino,
+    movePolyomino,
     changePolyominoShape,
+    clearRowFilledWithCube,
+    setPolyominoToTetrisData,
   };
 };
 

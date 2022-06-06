@@ -6,8 +6,8 @@ export enum POLYOMINO_SHAPE {
 }
 
 export enum CUBE_STATE {
-  FILLED,
   UNFILLED,
+  FILLED,
 }
 
 export enum POLYOMINO_TYPE {
