@@ -16,7 +16,14 @@ import {
   POLYOMINO_TYPE,
 } from "../common/polyomino";
 import usePolyomino from "./polyomino";
-import { createAnimation, getKeys } from "../common/utils";
+import { createAnimation, getKeys, minMax } from "../common/utils";
+
+const condition = (index: number, col: number) =>
+  (Math.floor(index / col) === 13 && (index % col) % 2 !== 0) ||
+  (Math.floor(index / col) === 15 && (index % col) % 2 !== 0) ||
+  (Math.floor(index / col) === 18 && (index % col) % 2 === 0) ||
+  (Math.floor(index / col) === 17 && (index % col) % 2 !== 0);
+//const condition = (index: number, col: number) => false;
 
 const useTetris = function (col: number, row: number) {
   const { polyomino, setPolyomino, resetPolyomino, polyominoInfo, polyominoCoordinate } = usePolyomino();
@@ -25,12 +32,13 @@ const useTetris = function (col: number, row: number) {
       return {
         x: index % col,
         y: Math.floor(index / col),
-        strokeColor: "",
-        fillColor: "",
-        state: CUBE_STATE.UNFILLED,
+        strokeColor: condition(index, col) ? "#292929" : "",
+        fillColor: condition(index, col) ? "#A6A6A6" : "",
+        state: condition(index, col) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
       };
     })
   );
+  const [isPending, setIsPending] = React.useState<boolean>(false);
 
   const findCube = React.useCallback(
     (coordinate: ICoordinate): ICube | null => {
@@ -45,7 +53,7 @@ const useTetris = function (col: number, row: number) {
   );
 
   const getAnchorNearbyCube = React.useCallback(
-    function (anchor: ICoordinate, rangeX: number = 4, rangeY: number = 4): Array<ICube> {
+    (anchor: ICoordinate, rangeX: number = 4, rangeY: number = 4): Array<ICube> => {
       let leftX = Math.floor(rangeX / 2);
       let rightX = Math.floor(rangeX / 2);
       let topY = Math.floor(rangeY / 2);
@@ -348,13 +356,123 @@ const useTetris = function (col: number, row: number) {
               executedTime += 1;
             }
           },
-          () => resolve(),
+          () => {
+            resolve();
+          },
           duration
         );
-        _.start();
+        window.requestAnimationFrame(_.start);
       });
     },
     [col, getRowFilledWithCube]
+  );
+
+  const getRowGapInfo = React.useCallback((): Array<{ not_empty: Array<number>; empty: Array<number> }> => {
+    let _row = 0,
+      start = false,
+      count = -1,
+      isLastRowAllEmpty = false,
+      ary: Array<{ not_empty: Array<number>; empty: Array<number> }> = [];
+    while (_row < row) {
+      let _col = 0,
+        isAllEmpty = true;
+      while (_col < col && isAllEmpty) {
+        isAllEmpty = (findCube({ x: _col, y: _row }) as ICube).state === CUBE_STATE.UNFILLED;
+        _col += 1;
+      }
+      if (!isAllEmpty) {
+        if (!start) start = true;
+      }
+      if (!isAllEmpty && (isLastRowAllEmpty || _row === 0)) {
+        count += 1;
+      }
+      if (start) {
+        if (ary[count] === undefined) ary[count] = { not_empty: [], empty: [] };
+        if (isAllEmpty) {
+          ary[count].empty.push(_row);
+        } else {
+          ary[count].not_empty.push(_row);
+        }
+      }
+      isLastRowAllEmpty = isAllEmpty;
+      _row += 1;
+    }
+    ary = ary.filter(({ empty }) => empty.length !== 0);
+    return ary;
+  }, [findCube, row, col]);
+
+  // TODO: 想更好的變數命名
+  const fillEmptyRow = React.useCallback(
+    (rowGapInfo: Array<{ not_empty: Array<number>; empty: Array<number> }>): Promise<void> => {
+      return new Promise((resolve) => {
+        const zzzzzzzzz = rowGapInfo.reduce((acc, { empty, not_empty }) => {
+          const bottommostEmptyRow = Math.max(...empty);
+          const bottommostNotEmptyRow = Math.max(...not_empty);
+          const distance = bottommostEmptyRow - bottommostNotEmptyRow;
+          not_empty.forEach((row) => {
+            acc.push({
+              start: row,
+              end: row + distance,
+            });
+          });
+          return acc;
+        }, [] as Array<{ start: number; end: number }>);
+        const duration = 0.1;
+        const _ = createAnimation(
+          (elapse) => {
+            // console.log("animation start!");
+            const start = 0;
+            const end = 1;
+            const progress = minMax(elapse / duration, start, end);
+            // console.log("progress is " + progress);
+            setTetrisData((prevTetrisData) =>
+              prevTetrisData.map((cube, cubeIndex) => {
+                const cubeRow = Math.floor(cubeIndex / col);
+                if (progress === end) {
+                  const eeeeeeee = zzzzzzzzz.find(({ end }) => end === cubeRow);
+                  const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+                  if (eeeeeeee !== undefined) {
+                    const index = eeeeeeee.start * col + (cubeIndex % col);
+                    return {
+                      ...cube,
+                      state: prevTetrisData[index].state,
+                      strokeColor: prevTetrisData[index].strokeColor,
+                      fillColor: prevTetrisData[index].fillColor,
+                      y: cubeRow,
+                    };
+                  } else if (ddddddd !== undefined) {
+                    return {
+                      ...cube,
+                      state: CUBE_STATE.UNFILLED,
+                      strokeColor: "",
+                      fillColor: "",
+                      y: cubeRow,
+                    };
+                  }
+                } else {
+                  const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+                  if (ddddddd !== undefined) {
+                    const y = cubeRow + (ddddddd.end - ddddddd.start) * progress;
+                    return {
+                      ...cube,
+                      y,
+                    };
+                  }
+                }
+                return cube;
+              })
+            );
+          },
+          () => {
+            console.log("animation end!");
+            resolve();
+          },
+          duration
+        );
+        window.requestAnimationFrame(_.start);
+      });
+    },
+    [col]
   );
 
   return {
@@ -369,6 +487,10 @@ const useTetris = function (col: number, row: number) {
     changePolyominoShape,
     clearRowFilledWithCube,
     setPolyominoToTetrisData,
+    getRowGapInfo,
+    fillEmptyRow,
+    isPending,
+    setIsPending,
   };
 };
 

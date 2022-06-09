@@ -375,8 +375,8 @@ export const getRandomPolyominoType = function (): POLYOMINO_TYPE {
     POLYOMINO_TYPE.T,
     POLYOMINO_TYPE.Z,
   ];
-  const ramdom = Math.floor(Math.random() * list.length);
-  return list[ramdom];
+  const random = Math.floor(Math.random() * list.length);
+  return list[random];
 };
 
 export const getRangeByCoordinate = function (coordinate: Array<ICoordinate>): {

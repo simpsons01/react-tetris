@@ -14,9 +14,8 @@ export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, 
     id: number | undefined,
     _duration: number = duration;
   return {
-    start: function startAnimation(timestamp?: number) {
-      initialTimestamp = initialTimestamp === undefined ? performance.now() : initialTimestamp;
-      timestamp = timestamp === undefined ? performance.now() : timestamp;
+    start: function startAnimation(timestamp: number) {
+      initialTimestamp = initialTimestamp === undefined ? timestamp : initialTimestamp;
       elapse = (timestamp - initialTimestamp) / 1000;
       fn(elapse);
       if (elapse < _duration) {
@@ -44,3 +43,7 @@ export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, 
     },
   };
 };
+
+export function minMax(val: number, min: number, max: number): number {
+  return Math.min(Math.max(val, min), max);
+}

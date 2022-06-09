@@ -26,24 +26,18 @@ const Tetris: React.FC<ITetris> = function (props) {
     context.fillRect(0, 0, width, height);
     data.forEach(({ x, y, strokeColor, fillColor, state }) => {
       const [polyominoCube] = (polyomino || []).filter((cube) => cube.x === x && cube.y === y) || [];
-      const _strokeColor = polyominoCube
-        ? polyominoCube.strokeColor
-        : state === CUBE_STATE.FILLED
-        ? strokeColor
-        : backgroundColor;
-      const _fillColor = polyominoCube
-        ? polyominoCube.fillColor
-        : state === CUBE_STATE.FILLED
-        ? fillColor
-        : backgroundColor;
-      // const globalAlpha = polyominoCube ? 0.3 : 1;
-      context.strokeStyle = _strokeColor;
-      context.fillStyle = _fillColor;
-      context.save();
-      // context.globalAlpha = globalAlpha;
-      context.fillRect(x * blockDistance, y * blockDistance, blockDistance - 2, blockDistance - 2);
-      context.strokeRect(x * blockDistance, y * blockDistance, blockDistance, blockDistance);
-      context.restore();
+      const _strokeColor = polyominoCube ? polyominoCube.strokeColor : state === CUBE_STATE.FILLED ? strokeColor : "";
+      const _fillColor = polyominoCube ? polyominoCube.fillColor : state === CUBE_STATE.FILLED ? fillColor : "";
+      if (_strokeColor && _fillColor) {
+        // const globalAlpha = polyominoCube ? 0.3 : 1;
+        context.strokeStyle = _strokeColor;
+        context.fillStyle = _fillColor;
+        context.save();
+        // context.globalAlpha = globalAlpha;
+        context.fillRect(x * blockDistance, y * blockDistance, blockDistance - 2, blockDistance - 2);
+        context.strokeRect(x * blockDistance, y * blockDistance, blockDistance, blockDistance);
+        context.restore();
+      }
     });
   }, [width, height, data, polyomino, backgroundColor, blockDistance]);
 
