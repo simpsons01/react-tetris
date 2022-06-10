@@ -22,9 +22,18 @@ const Single: React.FC = function () {
     getRowFilledWithCube,
     getRowGapInfo,
     fillEmptyRow,
-    isPending,
-    setIsPending,
   } = useTetris(col, row);
+
+  const [isPending, setIsPending] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    console.log("--------- next render start! ---------------");
+    // tetrisData.forEach((cube) => {
+    //   if (cube.state === CUBE_STATE.FILLED) console.log(cube);
+    // });
+    // console.log(" ---------------next render end ---------------");
+    //console.log(getRowGapInfo());
+  });
 
   React.useEffect(() => {
     function keydownHandler(e: KeyboardEvent) {
@@ -43,15 +52,6 @@ const Single: React.FC = function () {
     }
     window.addEventListener("keydown", keydownHandler);
     return () => window.removeEventListener("keydown", keydownHandler);
-  });
-
-  React.useEffect(() => {
-    // console.log("--------- next render start! ---------------");
-    // tetrisData.forEach((cube) => {
-    //   if (cube.state === CUBE_STATE.FILLED) console.log(cube);
-    // });
-    // console.log(" ---------------next render end ---------------");
-    //console.log(getRowGapInfo());
   });
 
   React.useEffect(() => {
@@ -87,8 +87,8 @@ const Single: React.FC = function () {
 
   React.useEffect(() => {
     if (!isPending && polyominoData == null) {
-      console.log("create polyomino!");
-      createPolyomino();
+      // console.log("create polyomino!");
+      // createPolyomino();
     }
   }, [isPending, polyominoData, createPolyomino]);
 

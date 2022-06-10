@@ -19,10 +19,16 @@ import usePolyomino from "./polyomino";
 import { createAnimation, getKeys, minMax } from "../common/utils";
 
 const condition = (index: number, col: number) =>
-  (Math.floor(index / col) === 13 && (index % col) % 2 !== 0) ||
-  (Math.floor(index / col) === 15 && (index % col) % 2 !== 0) ||
-  (Math.floor(index / col) === 18 && (index % col) % 2 === 0) ||
-  (Math.floor(index / col) === 17 && (index % col) % 2 !== 0);
+  // (Math.floor(index / col) === 1 && (index % col) % 2 === 0) ||
+  // (Math.floor(index / col) === 3 && (index % col) % 2 !== 0) ||
+  // (Math.floor(index / col) === 5 && (index % col) % 2 === 0) ||
+  // (Math.floor(index / col) === 7 && (index % col) % 2 !== 0) ||
+  // (Math.floor(index / col) === 9 && (index % col) % 2 === 0) ||
+  // (Math.floor(index / col) === 11 && (index % col) % 2 !== 0) ||
+  // (Math.floor(index / col) === 13 && (index % col) % 2 === 0) ||
+  // (Math.floor(index / col) === 15 && (index % col) % 2 !== 0) ||
+  Math.floor(index / col) === 17 && (index % col) % 2 === 0;
+//Math.floor(index / col) === 19 && (index % col) % 2 !== 0;
 //const condition = (index: number, col: number) => false;
 
 const useTetris = function (col: number, row: number) {
@@ -38,7 +44,6 @@ const useTetris = function (col: number, row: number) {
       };
     })
   );
-  const [isPending, setIsPending] = React.useState<boolean>(false);
 
   const findCube = React.useCallback(
     (coordinate: ICoordinate): ICube | null => {
@@ -417,10 +422,10 @@ const useTetris = function (col: number, row: number) {
           });
           return acc;
         }, [] as Array<{ start: number; end: number }>);
-        const duration = 0.1;
+        const duration = 0.2;
         const _ = createAnimation(
           (elapse) => {
-            // console.log("animation start!");
+            console.log("animation start!");
             const start = 0;
             const end = 1;
             const progress = minMax(elapse / duration, start, end);
@@ -489,8 +494,6 @@ const useTetris = function (col: number, row: number) {
     setPolyominoToTetrisData,
     getRowGapInfo,
     fillEmptyRow,
-    isPending,
-    setIsPending,
   };
 };
 
