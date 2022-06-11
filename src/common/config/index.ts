@@ -5,4 +5,8 @@ export const setting = {
     row: 20,
     col: 10,
   },
+  game: {
+    leftsecWhenPolyominoCollideBottom: 0.5,
+    frequencyPolyominoFalling: 1,
+  },
 };

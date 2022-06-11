@@ -47,3 +47,99 @@ export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, 
 export function minMax(val: number, min: number, max: number): number {
   return Math.min(Math.max(val, min), max);
 }
+
+abstract class Timer {
+  sec: number;
+  timer: null | number = null;
+  action: null | Function = null;
+  autoClear: boolean = false;
+
+  constructor(sec: number, autoClear?: boolean) {
+    this.sec = sec;
+    if (autoClear !== undefined) {
+      this.autoClear = autoClear;
+    }
+  }
+
+  abstract create(): void;
+
+  abstract start(cb: Function): void;
+
+  abstract continue(): void;
+
+  abstract pause(): void;
+
+  abstract clear(): void;
+}
+
+export class IntervalTimer extends Timer {
+  create() {
+    if (this.timer == null) {
+      this.timer = window.setInterval(() => {
+        if (this.action !== null) this.action();
+      }, this.sec * 1000);
+    }
+  }
+
+  start(cb: Function) {
+    if (this.autoClear) {
+      this.clear();
+    }
+    this.action = () => cb();
+    this.create();
+  }
+
+  continue() {}
+
+  pause() {}
+
+  clear() {
+    if (this.timer !== null) {
+      window.clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+}
+
+export class CountDownTimer extends Timer {
+  leftsec: number = 0;
+
+  create() {
+    if (this.timer == null) {
+      this.leftsec = this.sec;
+      this.timer = window.setInterval(() => {
+        this.leftsec -= 0.1;
+        if (this.leftsec <= 0) {
+          if (this.action !== null) this.action();
+          this.leftsec = this.sec;
+          this.clear();
+        }
+      }, 100);
+    }
+  }
+
+  start(cb: Function) {
+    if (this.autoClear) {
+      this.clear();
+    }
+    this.action = () => cb();
+    this.create();
+  }
+
+  continue() {
+    if (this.action !== null) {
+      this.create();
+    }
+  }
+
+  pause() {
+    this.clear();
+  }
+
+  clear() {
+    if (this.timer) {
+      window.clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+}
