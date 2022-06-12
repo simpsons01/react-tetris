@@ -101,20 +101,26 @@ export class IntervalTimer extends Timer {
   }
 }
 
+const ms = 1000;
 export class CountDownTimer extends Timer {
   leftsec: number = 0;
+
+  constructor(sec: number, autoClear?: boolean) {
+    super(sec * ms, autoClear);
+  }
 
   create() {
     if (this.timer == null) {
       this.leftsec = this.sec;
       this.timer = window.setInterval(() => {
-        this.leftsec -= 0.1;
-        if (this.leftsec <= 0) {
+        this.leftsec -= ms * 0.1;
+        //console.log("leftsec is left " + this.leftsec + " ms");
+        if (this.leftsec === 0) {
           if (this.action !== null) this.action();
           this.leftsec = this.sec;
           this.clear();
         }
-      }, 100);
+      }, ms * 0.1);
     }
   }
 

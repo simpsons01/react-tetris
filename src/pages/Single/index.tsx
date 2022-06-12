@@ -10,7 +10,7 @@ const {
   game: { frequencyPolyominoFalling, leftsecWhenPolyominoCollideBottom },
 } = setting;
 
-const countDownTimer = new CountDownTimer(leftsecWhenPolyominoCollideBottom);
+const countDownTimer = new CountDownTimer(leftsecWhenPolyominoCollideBottom, true);
 const intervalTimer = new IntervalTimer(frequencyPolyominoFalling);
 
 const Single: React.FC = function () {
