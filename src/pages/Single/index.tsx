@@ -30,6 +30,7 @@ const Single: React.FC = function () {
     fillEmptyRow,
     getPolyominoIsCollideWithNearbyCube,
     getCoordinateIsCollide,
+    previewPolyomino,
   } = useTetris(col, row);
 
   const { gameState, setGameState } = useGame();
@@ -168,6 +169,7 @@ const Single: React.FC = function () {
       row={row}
       col={col}
       polyomino={polyominoData}
+      previewPolyomino={previewPolyomino}
       data={tetrisData}
     />
   );

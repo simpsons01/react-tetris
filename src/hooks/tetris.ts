@@ -472,15 +472,52 @@ const useTetris = function (col: number, row: number) {
     [col]
   );
 
+  const getPolyominoPreviewCoordinate = React.useCallback((): null | Array<ICoordinate> => {
+    let previewCollideCoordinate: null | Array<ICoordinate> = null;
+    if (polyomino.type !== null) {
+      for (let nextY = polyomino.anchor.y + 1; nextY < row; nextY++) {
+        const nextCoordinate = getNewCoordinateByAnchorAndShapeAndType(polyomino.type, polyomino.shape, {
+          y: nextY,
+          x: polyomino.anchor.x,
+        });
+        const isNextCoordinateCollide = getCoordinateIsCollide(nextCoordinate);
+        const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube(nextCoordinate);
+        if (isNextCoordinateCollide) {
+          break;
+        }
+        if (isBottomCollide) {
+          previewCollideCoordinate = nextCoordinate;
+        }
+      }
+    }
+    return previewCollideCoordinate;
+  }, [getCoordinateIsCollide, getPolyominoIsCollideWithNearbyCube, polyomino, row]);
+
+  const previewPolyomino = React.useMemo((): Array<ICube> | null => {
+    const previewCoordinate = getPolyominoPreviewCoordinate();
+    if (previewCoordinate !== null && polyomino.type !== null) {
+      const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
+      return previewCoordinate.map(({ x, y }) => ({
+        x,
+        y,
+        strokeColor,
+        fillColor,
+      })) as Array<ICube>;
+    }
+    return null;
+  }, [getPolyominoPreviewCoordinate, polyomino]);
+
   return {
     polyomino,
     polyominoData: polyominoInfo,
     polyominoCoordinate,
     tetrisData,
+    previewPolyomino,
     getCoordinateIsCollide,
     getPolyominoIsCollideWithNearbyCube,
     getAnchorNearbyCube,
     getRowFilledWithCube,
+    getPolyominoPreviewCoordinate,
     createPolyomino,
     movePolyomino,
     changePolyominoShape,
