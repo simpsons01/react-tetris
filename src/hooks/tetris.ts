@@ -16,7 +16,7 @@ import {
   POLYOMINO_TYPE,
 } from "../common/polyomino";
 import usePolyomino from "./polyomino";
-import { createAnimation, getKeys, minMax } from "../common/utils";
+import { createAnimation, getKeys, IAnimation, minMax, setRef } from "../common/utils";
 
 // const condition = (index: number, col: number) =>
 //   (Math.floor(index / col) === 17 && (index % col) % 2 === 0) ||
@@ -36,11 +36,13 @@ const useTetris = function (col: number, row: number) {
       };
     })
   );
+  const clearRowAnimationRef = React.useRef<IAnimation | null>(null);
+  const fillRowAnimationRef = React.useRef<IAnimation | null>(null);
 
   const findCube = React.useCallback(
     (coordinate: ICoordinate): ICube | null => {
       if (coordinate.x < 0 || coordinate.x >= col || coordinate.y < 0 || coordinate.y >= row) {
-        console.warn(`x: ${coordinate.x} and y: ${coordinate.y} is not in tetrisData`);
+        // console.warn(`x: ${coordinate.x} and y: ${coordinate.y} is not in tetrisData`);
         return null;
       }
       const index = coordinate.x + coordinate.y * col;
@@ -100,12 +102,13 @@ const useTetris = function (col: number, row: number) {
   const getCoordinateIsCollide = React.useCallback(
     (coordinate: Array<ICoordinate>): boolean => {
       let isCollide = false;
-      coordinate.forEach(({ x, y }) => {
-        const cube = findCube({ x, y });
+      for (let i = 0; i < coordinate.length; i++) {
+        const cube = findCube(coordinate[i]);
         if (cube == null || cube.state === CUBE_STATE.FILLED) {
           isCollide = true;
         }
-      });
+        if (isCollide) break;
+      }
       return isCollide;
     },
     [findCube]
@@ -322,38 +325,42 @@ const useTetris = function (col: number, row: number) {
         ];
         let executedTime = 0;
         const times = col / removeCubePerUpdate;
-        const duration = 0.1;
+        const duration = 1;
         const perUpdateTime = duration / times;
-        const _ = createAnimation(
-          (elapse) => {
-            if (elapse > executedTime * perUpdateTime && executedTime < times) {
-              ((executedTime) => {
-                setTetrisData((prevTetrisData) => {
-                  return prevTetrisData.map((cube) => {
-                    if (
-                      (filledRow as Array<number>).indexOf(cube.y) > -1 &&
-                      removeIndex[executedTime].indexOf(cube.x) > -1
-                    ) {
-                      return {
-                        ...cube,
-                        strokeColor: "",
-                        fillColor: "",
-                        state: CUBE_STATE.UNFILLED,
-                      };
-                    }
-                    return cube;
+        setRef(
+          clearRowAnimationRef,
+          createAnimation(
+            (elapse) => {
+              if (elapse > executedTime * perUpdateTime && executedTime < times) {
+                ((executedTime) => {
+                  setTetrisData((prevTetrisData) => {
+                    return prevTetrisData.map((cube) => {
+                      if (
+                        (filledRow as Array<number>).indexOf(cube.y) > -1 &&
+                        removeIndex[executedTime].indexOf(cube.x) > -1
+                      ) {
+                        return {
+                          ...cube,
+                          strokeColor: "",
+                          fillColor: "",
+                          state: CUBE_STATE.UNFILLED,
+                        };
+                      }
+                      return cube;
+                    });
                   });
-                });
-              })(executedTime);
-              executedTime += 1;
-            }
-          },
-          () => {
-            resolve();
-          },
-          duration
+                })(executedTime);
+                executedTime += 1;
+              }
+            },
+            () => {
+              setRef(clearRowAnimationRef, null);
+              resolve();
+            },
+            duration
+          )
         );
-        window.requestAnimationFrame(_.start);
+        window.requestAnimationFrame((clearRowAnimationRef.current as IAnimation).start);
       });
     },
     [col, getRowFilledWithCube]
@@ -409,59 +416,63 @@ const useTetris = function (col: number, row: number) {
           });
           return acc;
         }, [] as Array<{ start: number; end: number }>);
-        const duration = 0.1;
-        const _ = createAnimation(
-          (elapse) => {
-            console.log("animation start!");
-            const start = 0;
-            const end = 1;
-            const progress = minMax(elapse / duration, start, end);
-            // console.log("progress is " + progress);
-            setTetrisData((prevTetrisData) =>
-              prevTetrisData.map((cube, cubeIndex) => {
-                const cubeRow = Math.floor(cubeIndex / col);
-                if (progress === end) {
-                  const eeeeeeee = zzzzzzzzz.find(({ end }) => end === cubeRow);
-                  const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
-                  if (eeeeeeee !== undefined) {
-                    const index = eeeeeeee.start * col + (cubeIndex % col);
-                    return {
-                      ...cube,
-                      state: prevTetrisData[index].state,
-                      strokeColor: prevTetrisData[index].strokeColor,
-                      fillColor: prevTetrisData[index].fillColor,
-                      y: cubeRow,
-                    };
-                  } else if (ddddddd !== undefined) {
-                    return {
-                      ...cube,
-                      state: CUBE_STATE.UNFILLED,
-                      strokeColor: "",
-                      fillColor: "",
-                      y: cubeRow,
-                    };
+        const duration = 1;
+        setRef(
+          fillRowAnimationRef,
+          createAnimation(
+            (elapse) => {
+              console.log("animation start!");
+              const start = 0;
+              const end = 1;
+              const progress = minMax(elapse / duration, start, end);
+              // console.log("progress is " + progress);
+              setTetrisData((prevTetrisData) =>
+                prevTetrisData.map((cube, cubeIndex) => {
+                  const cubeRow = Math.floor(cubeIndex / col);
+                  if (progress === end) {
+                    const eeeeeeee = zzzzzzzzz.find(({ end }) => end === cubeRow);
+                    const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+                    if (eeeeeeee !== undefined) {
+                      const index = eeeeeeee.start * col + (cubeIndex % col);
+                      return {
+                        ...cube,
+                        state: prevTetrisData[index].state,
+                        strokeColor: prevTetrisData[index].strokeColor,
+                        fillColor: prevTetrisData[index].fillColor,
+                        y: cubeRow,
+                      };
+                    } else if (ddddddd !== undefined) {
+                      return {
+                        ...cube,
+                        state: CUBE_STATE.UNFILLED,
+                        strokeColor: "",
+                        fillColor: "",
+                        y: cubeRow,
+                      };
+                    }
+                  } else {
+                    const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+                    if (ddddddd !== undefined) {
+                      const y = cubeRow + (ddddddd.end - ddddddd.start) * progress;
+                      return {
+                        ...cube,
+                        y,
+                      };
+                    }
                   }
-                } else {
-                  const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
-                  if (ddddddd !== undefined) {
-                    const y = cubeRow + (ddddddd.end - ddddddd.start) * progress;
-                    return {
-                      ...cube,
-                      y,
-                    };
-                  }
-                }
-                return cube;
-              })
-            );
-          },
-          () => {
-            console.log("animation end!");
-            resolve();
-          },
-          duration
+                  return cube;
+                })
+              );
+            },
+            () => {
+              // console.log("animation end!");
+              setRef(fillRowAnimationRef, null);
+              resolve();
+            },
+            duration
+          )
         );
-        window.requestAnimationFrame(_.start);
+        window.requestAnimationFrame((fillRowAnimationRef.current as IAnimation).start);
       });
     },
     [col]
@@ -476,10 +487,10 @@ const useTetris = function (col: number, row: number) {
           x: polyomino.anchor.x,
         });
         const isNextCoordinateCollide = getCoordinateIsCollide(nextCoordinate);
-        const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube(nextCoordinate);
         if (isNextCoordinateCollide) {
           break;
         }
+        const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube(nextCoordinate);
         if (isBottomCollide) {
           previewCollideCoordinate = nextCoordinate;
         }
@@ -502,6 +513,30 @@ const useTetris = function (col: number, row: number) {
     return null;
   }, [getPolyominoPreviewCoordinate, polyomino]);
 
+  const pauseClearRowAnimation = React.useCallback(() => {
+    if (clearRowAnimationRef.current !== null && clearRowAnimationRef.current.isStart()) {
+      clearRowAnimationRef.current.pause();
+    }
+  }, []);
+
+  const continueClearRowAnimation = React.useCallback(() => {
+    if (clearRowAnimationRef.current !== null && !clearRowAnimationRef.current.isStart()) {
+      window.requestAnimationFrame(clearRowAnimationRef.current.start);
+    }
+  }, []);
+
+  const pauseFillRowAnimationRef = React.useCallback(() => {
+    if (fillRowAnimationRef.current !== null && fillRowAnimationRef.current.isStart()) {
+      fillRowAnimationRef.current.pause();
+    }
+  }, []);
+
+  const continueFillRowAnimationRef = React.useCallback(() => {
+    if (fillRowAnimationRef.current !== null && !fillRowAnimationRef.current.isStart()) {
+      window.requestAnimationFrame(fillRowAnimationRef.current.start);
+    }
+  }, []);
+
   return {
     polyomino,
     polyominoData: polyominoInfo,
@@ -520,6 +555,10 @@ const useTetris = function (col: number, row: number) {
     setPolyominoToTetrisData,
     getRowGapInfo,
     fillEmptyRow,
+    pauseClearRowAnimation,
+    continueClearRowAnimation,
+    pauseFillRowAnimationRef,
+    continueFillRowAnimationRef,
   };
 };
 

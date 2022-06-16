@@ -8,16 +8,25 @@ export const getKeys = <T extends object, K extends keyof T>(obj: T): Array<K> =
   return Object.keys(obj) as Array<K>;
 };
 
-export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, duration: number = 1) => {
+export interface IAnimation {
+  start: (timestamp: number) => void;
+  pause: () => void;
+  reset: () => void;
+  isStart: () => boolean;
+}
+
+export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, duration: number = 1): IAnimation => {
   let initialTimestamp: number | undefined,
     elapse: number | undefined,
     id: number | undefined,
-    _duration: number = duration;
+    _duration: number = duration,
+    _passed = 0;
   return {
     start: function startAnimation(timestamp: number) {
       initialTimestamp = initialTimestamp === undefined ? timestamp : initialTimestamp;
-      elapse = (timestamp - initialTimestamp) / 1000;
+      elapse = (timestamp - initialTimestamp) / 1000 + _passed;
       fn(elapse);
+      // console.log("elapse is " + elapse + "s");
       if (elapse < _duration) {
         id = window.requestAnimationFrame(startAnimation);
       } else {
@@ -28,9 +37,8 @@ export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, 
     },
     pause: function pauseAnimation() {
       if (id === undefined) return;
-      _duration = duration - (elapse as number);
+      _passed = elapse as number;
       initialTimestamp = undefined;
-      elapse = undefined;
       window.cancelAnimationFrame(id);
       id = undefined;
     },
@@ -38,8 +46,12 @@ export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, 
       _duration = duration;
       initialTimestamp = undefined;
       elapse = undefined;
-      if (id !== undefined) window.cancelAnimationFrame(id);
+      _passed = 0;
+      if (id !== undefined) window.cancelAnimationFrame(id as number);
       id = undefined;
+    },
+    isStart: function isAnimationStart() {
+      return id !== undefined;
     },
   };
 };
@@ -65,33 +77,22 @@ abstract class Timer {
 
   abstract start(cb: Function): void;
 
-  abstract continue(): void;
+  abstract clear(): void;
 
   abstract pause(): void;
 
-  abstract clear(): void;
+  abstract continue(): void;
 }
 
+const ms = 1000;
 export class IntervalTimer extends Timer {
   create() {
     if (this.timer == null) {
       this.timer = window.setInterval(() => {
         if (this.action !== null) this.action();
-      }, this.sec * 1000);
+      }, this.sec * ms);
     }
   }
-
-  start(cb: Function) {
-    if (this.autoClear) {
-      this.clear();
-    }
-    this.action = () => cb();
-    this.create();
-  }
-
-  continue() {}
-
-  pause() {}
 
   clear() {
     if (this.timer !== null) {
@@ -99,9 +100,24 @@ export class IntervalTimer extends Timer {
       this.timer = null;
     }
   }
+
+  start(cb: Function) {
+    if (this.autoClear) {
+      this.clear();
+    }
+    this.action = cb;
+    this.create();
+  }
+
+  pause() {
+    this.clear();
+  }
+
+  continue() {
+    this.create();
+  }
 }
 
-const ms = 1000;
 export class CountDownTimer extends Timer {
   leftsec: number = 0;
 
@@ -109,9 +125,17 @@ export class CountDownTimer extends Timer {
     super(sec * ms, autoClear);
   }
 
+  start(cb: Function) {
+    if (this.autoClear) {
+      this.clear();
+    }
+    this.action = cb;
+    this.leftsec = this.sec;
+    this.create();
+  }
+
   create() {
     if (this.timer == null) {
-      this.leftsec = this.sec;
       this.timer = window.setInterval(() => {
         this.leftsec -= ms * 0.1;
         //console.log("leftsec is left " + this.leftsec + " ms");
@@ -124,17 +148,10 @@ export class CountDownTimer extends Timer {
     }
   }
 
-  start(cb: Function) {
-    if (this.autoClear) {
-      this.clear();
-    }
-    this.action = () => cb();
-    this.create();
-  }
-
-  continue() {
-    if (this.action !== null) {
-      this.create();
+  clear() {
+    if (this.timer) {
+      window.clearInterval(this.timer);
+      this.timer = null;
     }
   }
 
@@ -142,10 +159,7 @@ export class CountDownTimer extends Timer {
     this.clear();
   }
 
-  clear() {
-    if (this.timer) {
-      window.clearInterval(this.timer);
-      this.timer = null;
-    }
+  continue() {
+    this.create();
   }
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { setRef } from "../common/utils";
 
 export enum GAME_STATE {
   INITIAL,
@@ -13,8 +14,17 @@ export enum GAME_STATE {
 
 const useGame = function () {
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.INITIAL);
+  const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.INITIAL);
+
+  React.useEffect(() => {
+    if (prevGameState.current !== gameState) {
+      setRef(prevGameState, gameState);
+    }
+  }, [gameState]);
+
   return {
     gameState,
+    prevGameState: prevGameState.current,
     setGameState,
   };
 };

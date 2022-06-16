@@ -31,9 +31,31 @@ const Single: React.FC = function () {
     getPolyominoIsCollideWithNearbyCube,
     getCoordinateIsCollide,
     previewPolyomino,
+    pauseClearRowAnimation,
+    continueClearRowAnimation,
+    pauseFillRowAnimationRef,
+    continueFillRowAnimationRef,
   } = useTetris(col, row);
 
-  const { gameState, setGameState } = useGame();
+  const { gameState, prevGameState, setGameState } = useGame();
+
+  const pauseGame = React.useCallback(() => {
+    console.log("pause game!");
+    pauseClearRowAnimation();
+    pauseFillRowAnimationRef();
+    countDownTimer.pause();
+    intervalTimer.pause();
+    setGameState(GAME_STATE.PAUSE);
+  }, [pauseClearRowAnimation, pauseFillRowAnimationRef, setGameState]);
+
+  const continueGame = React.useCallback(() => {
+    console.log("continue game!");
+    continueClearRowAnimation();
+    continueFillRowAnimationRef();
+    countDownTimer.continue();
+    intervalTimer.continue();
+    setGameState(prevGameState);
+  }, [continueClearRowAnimation, continueFillRowAnimationRef, prevGameState, setGameState]);
 
   React.useEffect(() => {
     //console.log("--------- next render start! ---------------");
@@ -47,7 +69,7 @@ const Single: React.FC = function () {
   React.useEffect(
     function handleKeyDown() {
       function keydownHandler(e: KeyboardEvent) {
-        //console.log(e.keyCode);
+        // console.log("keyCode is " + e.keyCode);
         if (e.keyCode === 37) {
           movePolyomino(DIRECTION.LEFT);
         } else if (e.keyCode === 39) {
@@ -56,12 +78,14 @@ const Single: React.FC = function () {
           movePolyomino(DIRECTION.DOWN);
         } else if (e.keyCode === 38) {
           changePolyominoShape();
+        } else if (e.keyCode === 32) {
+          gameState === GAME_STATE.PAUSE ? continueGame() : pauseGame();
         }
       }
       window.addEventListener("keydown", keydownHandler);
       return () => window.removeEventListener("keydown", keydownHandler);
     },
-    [movePolyomino, changePolyominoShape]
+    [movePolyomino, changePolyominoShape, gameState, continueGame, pauseGame]
   );
 
   // React.useEffect(() => {
