@@ -4,8 +4,8 @@ import {
   CUBE_STATE,
   DEFAULT_POLYOMINO_SHAPE,
   DIRECTION,
-  getNewAnchorByAnchorAndShapeAndType,
-  getNewCoordinateByAnchorAndShapeAndType,
+  getAnchorByAnchorAndShapeAndType,
+  getCoordinateByAnchorAndShapeAndType,
   getPolyominoConfig,
   getPolyominoNextShape,
   getRandomPolyominoType,
@@ -241,13 +241,8 @@ const useTetris = function (col: number, row: number) {
       let isChangeSuccess = false;
       if (polyomino.type == null) return isChangeSuccess;
       const nextShape = shape !== undefined ? shape : getPolyominoNextShape(polyomino.shape);
-      const nextAnchor = getNewAnchorByAnchorAndShapeAndType(
-        polyomino.type,
-        polyomino.shape,
-        nextShape,
-        polyomino.anchor
-      );
-      const nextCoordinate = getNewCoordinateByAnchorAndShapeAndType(polyomino.type, nextShape, nextAnchor);
+      const nextAnchor = getAnchorByAnchorAndShapeAndType(polyomino.type, polyomino.shape, nextShape, polyomino.anchor);
+      const nextCoordinate = getCoordinateByAnchorAndShapeAndType(polyomino.type, nextShape, nextAnchor);
       // console.log(nextCoordinate);
       const isNextCoordinateCollide = getCoordinateIsCollide(nextCoordinate);
       if (!isNextCoordinateCollide) {
@@ -261,7 +256,7 @@ const useTetris = function (col: number, row: number) {
       }
       const nextAnchorNearbyCubes = getAnchorNearbyCube(nextAnchor);
       const notCollideAnchor = nextAnchorNearbyCubes.filter((cube) => {
-        const _coordinate = getNewCoordinateByAnchorAndShapeAndType(polyomino.type as POLYOMINO_TYPE, nextShape, {
+        const _coordinate = getCoordinateByAnchorAndShapeAndType(polyomino.type as POLYOMINO_TYPE, nextShape, {
           x: cube.x,
           y: cube.y,
         });
@@ -476,7 +471,7 @@ const useTetris = function (col: number, row: number) {
     let previewCollideCoordinate: null | Array<ICoordinate> = null;
     if (polyomino.type !== null) {
       for (let nextY = polyomino.anchor.y + 1; nextY < row; nextY++) {
-        const nextCoordinate = getNewCoordinateByAnchorAndShapeAndType(polyomino.type, polyomino.shape, {
+        const nextCoordinate = getCoordinateByAnchorAndShapeAndType(polyomino.type, polyomino.shape, {
           y: nextY,
           x: polyomino.anchor.x,
         });

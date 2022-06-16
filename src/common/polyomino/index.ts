@@ -395,7 +395,7 @@ export const getRangeByCoordinate = function (coordinate: Array<ICoordinate>): {
   };
 };
 
-export const getNewCoordinateByAnchorAndShapeAndType = function (
+export const getCoordinateByAnchorAndShapeAndType = function (
   type: POLYOMINO_TYPE,
   shape: POLYOMINO_SHAPE,
   anchor: ICoordinate
@@ -409,7 +409,7 @@ export const getNewCoordinateByAnchorAndShapeAndType = function (
   });
 };
 
-export const getNewAnchorByAnchorAndShapeAndType = function (
+export const getAnchorByAnchorAndShapeAndType = function (
   type: POLYOMINO_TYPE,
   shape: POLYOMINO_SHAPE,
   nextShape: POLYOMINO_SHAPE,
