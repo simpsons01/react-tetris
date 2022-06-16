@@ -20,7 +20,7 @@ const useGame = function () {
     if (prevGameState.current !== gameState) {
       setRef(prevGameState, gameState);
     }
-  }, [gameState]);
+  });
 
   return {
     gameState,
