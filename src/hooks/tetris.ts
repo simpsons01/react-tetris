@@ -325,7 +325,7 @@ const useTetris = function (col: number, row: number) {
         ];
         let executedTime = 0;
         const times = col / removeCubePerUpdate;
-        const duration = 1;
+        const duration = 0.3;
         const perUpdateTime = duration / times;
         setRef(
           clearRowAnimationRef,
@@ -416,7 +416,7 @@ const useTetris = function (col: number, row: number) {
           });
           return acc;
         }, [] as Array<{ start: number; end: number }>);
-        const duration = 1;
+        const duration = 0.2;
         setRef(
           fillRowAnimationRef,
           createAnimation(
