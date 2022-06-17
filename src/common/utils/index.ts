@@ -15,6 +15,7 @@ export interface IAnimation {
   isStart: () => boolean;
 }
 
+const ms = 1000;
 export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, duration: number = 1): IAnimation => {
   let initialTimestamp: number | undefined,
     elapse: number | undefined,
@@ -24,10 +25,10 @@ export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, 
   return {
     start: function startAnimation(timestamp: number) {
       initialTimestamp = initialTimestamp === undefined ? timestamp : initialTimestamp;
-      elapse = (timestamp - initialTimestamp) / 1000 + _passed;
+      elapse = minMax((timestamp - initialTimestamp) / ms + _passed, 0, _duration);
       fn(elapse);
-      // console.log("elapse is " + elapse + "s");
-      if (elapse < _duration) {
+      //console.log("elapse is " + elapse + "s");
+      if (elapse !== _duration) {
         id = window.requestAnimationFrame(startAnimation);
       } else {
         if (typeof onEnd == "function") {
@@ -84,7 +85,6 @@ abstract class Timer {
   abstract continue(): void;
 }
 
-const ms = 1000;
 export class IntervalTimer extends Timer {
   create() {
     if (this.timer == null) {
@@ -125,15 +125,6 @@ export class CountDownTimer extends Timer {
     super(sec * ms, autoClear);
   }
 
-  start(cb: Function) {
-    if (this.autoClear) {
-      this.clear();
-    }
-    this.action = cb;
-    this.leftsec = this.sec;
-    this.create();
-  }
-
   create() {
     if (this.timer == null) {
       this.timer = window.setInterval(() => {
@@ -153,6 +144,15 @@ export class CountDownTimer extends Timer {
       window.clearInterval(this.timer);
       this.timer = null;
     }
+  }
+
+  start(cb: Function) {
+    if (this.autoClear) {
+      this.clear();
+    }
+    this.action = cb;
+    this.leftsec = this.sec;
+    this.create();
   }
 
   pause() {

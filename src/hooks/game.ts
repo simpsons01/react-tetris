@@ -16,16 +16,13 @@ const useGame = function () {
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.INITIAL);
   const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.INITIAL);
 
-  React.useEffect(() => {
-    if (prevGameState.current !== gameState) {
-      setRef(prevGameState, gameState);
-    }
-  });
+  const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
   return {
     gameState,
     prevGameState: prevGameState.current,
     setGameState,
+    setPrevGameStateRef,
   };
 };
 

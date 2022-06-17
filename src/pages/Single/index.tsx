@@ -37,7 +37,7 @@ const Single: React.FC = function () {
     continueFillRowAnimationRef,
   } = useTetris(col, row);
 
-  const { gameState, prevGameState, setGameState } = useGame();
+  const { gameState, prevGameState, setGameState, setPrevGameStateRef } = useGame();
 
   const pauseGame = React.useCallback(() => {
     console.log("pause game!");
@@ -45,8 +45,9 @@ const Single: React.FC = function () {
     pauseFillRowAnimationRef();
     countDownTimer.pause();
     intervalTimer.pause();
+    setPrevGameStateRef(gameState);
     setGameState(GAME_STATE.PAUSE);
-  }, [pauseClearRowAnimation, pauseFillRowAnimationRef, setGameState]);
+  }, [pauseClearRowAnimation, pauseFillRowAnimationRef, setGameState, gameState, setPrevGameStateRef]);
 
   const continueGame = React.useCallback(() => {
     console.log("continue game!");
@@ -54,8 +55,10 @@ const Single: React.FC = function () {
     continueFillRowAnimationRef();
     countDownTimer.continue();
     intervalTimer.continue();
+    console.log("gameState is " + gameState);
+    console.log("prevGameState state is " + prevGameState);
     setGameState(prevGameState);
-  }, [continueClearRowAnimation, continueFillRowAnimationRef, prevGameState, setGameState]);
+  }, [continueClearRowAnimation, continueFillRowAnimationRef, prevGameState, setGameState, gameState]);
 
   React.useEffect(() => {
     //console.log("--------- next render start! ---------------");
