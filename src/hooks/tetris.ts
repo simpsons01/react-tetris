@@ -366,7 +366,7 @@ const useTetris = function (col: number, row: number) {
     [col, getRowFilledWithCube]
   );
 
-  const getRowGapInfo = React.useCallback((): Array<{ not_empty: Array<number>; empty: Array<number> }> => {
+  const getEmptyRow = React.useCallback((): Array<{ not_empty: Array<number>; empty: Array<number> }> => {
     let _row = 0,
       start = false,
       count = -1,
@@ -525,13 +525,13 @@ const useTetris = function (col: number, row: number) {
     }
   }, []);
 
-  const pauseFillRowAnimationRef = React.useCallback(() => {
+  const pauseFillRowAnimation = React.useCallback(() => {
     if (fillRowAnimationRef.current !== null && fillRowAnimationRef.current.isStart()) {
       fillRowAnimationRef.current.pause();
     }
   }, []);
 
-  const continueFillRowAnimationRef = React.useCallback(() => {
+  const continueFillRowAnimation = React.useCallback(() => {
     if (fillRowAnimationRef.current !== null && !fillRowAnimationRef.current.isStart()) {
       window.requestAnimationFrame(fillRowAnimationRef.current.start);
     }
@@ -553,12 +553,12 @@ const useTetris = function (col: number, row: number) {
     changePolyominoShape,
     clearRowFilledWithCube,
     setPolyominoToTetrisData,
-    getRowGapInfo,
+    getEmptyRow,
     fillEmptyRow,
     pauseClearRowAnimation,
     continueClearRowAnimation,
-    pauseFillRowAnimationRef,
-    continueFillRowAnimationRef,
+    pauseFillRowAnimation,
+    continueFillRowAnimation,
   };
 };
 

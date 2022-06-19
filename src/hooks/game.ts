@@ -7,8 +7,8 @@ export enum GAME_STATE {
   GAME_OVER,
   POLYOMINO_FALLING,
   CHECK_IS_ROW_FILLED,
-  FILLED_ROW_CLEARING,
-  CHECK_EMPTY_ROW_GAP,
+  ROW_FILLED_CLEARING,
+  ROW_FILLED_CLEARING_GAP,
   EMPTY_ROW_FILLING,
 }
 
@@ -18,9 +18,12 @@ const useGame = function () {
 
   const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
+  const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
+
   return {
     gameState,
     prevGameState: prevGameState.current,
+    isPausing,
     setGameState,
     setPrevGameStateRef,
   };
