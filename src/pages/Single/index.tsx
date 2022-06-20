@@ -39,35 +39,86 @@ const Single: React.FC = function () {
 
   const { gameState, prevGameState, setGameState, setPrevGameStateRef, isPausing } = useGame();
 
+  const isGameOver = React.useMemo(() => {
+    let isGameOver = false;
+    if (polyominoCoordinate !== null && getCoordinateIsCollide(polyominoCoordinate)) {
+      isGameOver = true;
+    }
+    return isGameOver;
+  }, [polyominoCoordinate, getCoordinateIsCollide]);
+
+  const rowGapInfo = React.useMemo(() => {
+    return getEmptyRow();
+  }, [getEmptyRow]);
+
+  const filledRow = React.useMemo(() => {
+    return getRowFilledWithCube();
+  }, [getRowFilledWithCube]);
+
   const pauseGame = React.useCallback(() => {
-    console.log("pause game!");
+    // console.log("pause game!");
     pauseClearRowAnimation();
     pauseFillRowAnimation();
     countDownTimer.pause();
     intervalTimer.pause();
     setPrevGameStateRef(gameState);
     setGameState(GAME_STATE.PAUSE);
-  }, [pauseClearRowAnimation, pauseFillRowAnimation, setGameState]);
+  }, [gameState, pauseClearRowAnimation, pauseFillRowAnimation, setGameState, setPrevGameStateRef]);
 
   const continueGame = React.useCallback(() => {
-    console.log("continue game!");
+    // console.log("continue game!");
     continueClearRowAnimation();
     continueFillRowAnimation();
     countDownTimer.continue();
     intervalTimer.continue();
-    console.log("gameState is " + gameState);
-    console.log("prevGameState state is " + prevGameState);
+    // console.log("gameState is " + gameState);
+    // console.log("prevGameState state is " + prevGameState);
     setGameState(prevGameState);
-  }, [continueClearRowAnimation, continueFillRowAnimation, prevGameState, setGameState, countDownTimer, intervalTimer]);
+  }, [continueClearRowAnimation, continueFillRowAnimation, prevGameState, setGameState]);
 
-  React.useEffect(() => {
-    //console.log("--------- next render start! ---------------");
-    // tetrisData.forEach((cube) => {
-    //   if (cube.state === CUBE_STATE.FILLED) console.log(cube);
-    // });
-    // console.log(" ---------------next render end ---------------");
-    //console.log(getEmptyRow());
-  });
+  const handlePolyominoCreate = React.useCallback(() => {
+    if (polyominoData == null) {
+      console.log("create polyomino!");
+      createPolyomino();
+      setGameState(GAME_STATE.CHECK_IS_GAME_OVER);
+    }
+  }, [polyominoData, createPolyomino, setGameState]);
+
+  const handleGameOver = React.useCallback(() => {
+    alert("game over");
+    window.location.reload();
+  }, []);
+
+  const handlePolyominoFalling = React.useCallback(() => {
+    const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
+    // console.log("isBottomCollide " + isBottomCollide);
+    if (isBottomCollide) {
+      intervalTimer.clear();
+      countDownTimer.start(() => {
+        countDownTimer.clear();
+        setPolyominoToTetrisData();
+        setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+      });
+    } else {
+      countDownTimer.clear();
+      intervalTimer.start(() => {
+        intervalTimer.clear();
+        movePolyomino(DIRECTION.DOWN);
+      });
+    }
+  }, [setGameState, setPolyominoToTetrisData, getPolyominoIsCollideWithNearbyCube, movePolyomino]);
+
+  const handleClearFillRow = React.useCallback(() => {
+    clearRowFilledWithCube(filledRow).then(() => {
+      setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
+    });
+  }, [clearRowFilledWithCube, filledRow, setGameState]);
+
+  const handleFillEmptyRow = React.useCallback(() => {
+    fillEmptyRow(rowGapInfo).then(() => {
+      setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
+    });
+  }, [fillEmptyRow, rowGapInfo, setGameState]);
 
   React.useEffect(
     function handleKeyDown() {
@@ -91,102 +142,69 @@ const Single: React.FC = function () {
     [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame]
   );
 
-  // React.useEffect(() => {
-  //   if (gameState === GAME_STATE.GAME_OVER) {
-  //     alert("game over");
-  //     window.location.reload();
-  //   }
-  // }, [gameState, setGameState]);
-
   React.useEffect(
-    function handlePolyominoCreate() {
-      if (gameState === GAME_STATE.INITIAL && polyominoData == null) {
-        console.log("create polyomino!");
-        createPolyomino();
+    function handleGameChange() {
+      switch (gameState) {
+        case GAME_STATE.INITIAL:
+          handlePolyominoCreate();
+          break;
+        case GAME_STATE.PAUSE:
+          break;
+        case GAME_STATE.CHECK_IS_GAME_OVER:
+          if (!isGameOver) {
+            setGameState(GAME_STATE.POLYOMINO_FALLING);
+          } else {
+            setGameState(GAME_STATE.GAME_OVER);
+          }
+          break;
+        case GAME_STATE.GAME_OVER:
+          handleGameOver();
+          break;
+        case GAME_STATE.POLYOMINO_FALLING:
+          handlePolyominoFalling();
+          break;
+        case GAME_STATE.CHECK_IS_ROW_FILLED:
+          if (filledRow) {
+            setGameState(GAME_STATE.ROW_FILLED_CLEARING);
+            handleClearFillRow();
+          } else {
+            setGameState(GAME_STATE.INITIAL);
+          }
+          break;
+        case GAME_STATE.ROW_FILLED_CLEARING:
+          break;
+        case GAME_STATE.CHECK_IS_ROW_EMPTY:
+          const isGapNotExist =
+            rowGapInfo.length === 0 || (rowGapInfo.length === 1 && rowGapInfo[0].empty.length === 0);
+          if (!isGapNotExist) {
+            //console.log("fill empty row!");
+            setGameState(GAME_STATE.EMPTY_ROW_FILLING);
+            fillEmptyRow(rowGapInfo).then(() => {
+              setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
+            });
+          } else {
+            setGameState(GAME_STATE.INITIAL);
+          }
+          break;
+        case GAME_STATE.EMPTY_ROW_FILLING:
+          break;
+        default:
+          break;
       }
     },
-    [gameState, polyominoData, createPolyomino]
-  );
-
-  React.useEffect(
-    function handleIsGameOver() {
-      if (gameState === GAME_STATE.INITIAL && polyominoCoordinate !== null) {
-        if (getCoordinateIsCollide(polyominoCoordinate)) {
-          alert("game over");
-          window.location.reload();
-        } else {
-          setGameState(GAME_STATE.POLYOMINO_FALLING);
-        }
-      }
-    },
-    [polyominoCoordinate, getCoordinateIsCollide, gameState, setGameState]
-  );
-
-  React.useEffect(
-    function handlePolyominoFalling() {
-      if (gameState === GAME_STATE.POLYOMINO_FALLING) {
-        const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
-        // console.log("isBottomCollide " + isBottomCollide);
-        if (isBottomCollide) {
-          intervalTimer.clear();
-          countDownTimer.start(() => {
-            setPolyominoToTetrisData();
-            setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
-          });
-        } else {
-          countDownTimer.clear();
-          intervalTimer.start(() => {
-            movePolyomino(DIRECTION.DOWN);
-          });
-        }
-      } else {
-        intervalTimer.clear();
-        countDownTimer.clear();
-      }
-      return () => {};
-    },
-    [gameState, setGameState, setPolyominoToTetrisData, getPolyominoIsCollideWithNearbyCube, movePolyomino]
-  );
-
-  React.useEffect(
-    function handleClearFillRow() {
-      if (gameState === GAME_STATE.CHECK_IS_ROW_FILLED) {
-        const filledRow = getRowFilledWithCube();
-        // console.log("filledRow is ");
-        // console.log(filledRow);
-        if (filledRow.length > 0) {
-          console.log("clear fill row!");
-          setGameState(GAME_STATE.ROW_FILLED_CLEARING);
-          clearRowFilledWithCube(filledRow).then(() => {
-            setGameState(GAME_STATE.ROW_FILLED_CLEARING_GAP);
-          });
-        } else {
-          setGameState(GAME_STATE.INITIAL);
-        }
-      }
-    },
-    [tetrisData, clearRowFilledWithCube, getRowFilledWithCube, gameState, setGameState]
-  );
-
-  React.useEffect(
-    function handleFillEmptyRow() {
-      if (gameState === GAME_STATE.ROW_FILLED_CLEARING_GAP) {
-        const rowGapInfo = getEmptyRow();
-        // console.log("rowGapInfo is ");
-        // console.log(rowGapInfo);
-        const isGapNotExist = rowGapInfo.length === 0 || (rowGapInfo.length === 1 && rowGapInfo[0].empty.length === 0);
-        if (!isGapNotExist) {
-          console.log("fill empty row!");
-          setGameState(GAME_STATE.EMPTY_ROW_FILLING);
-          fillEmptyRow(rowGapInfo).then(() => {
-            setGameState(GAME_STATE.ROW_FILLED_CLEARING_GAP);
-          });
-        } else {
-          setGameState(GAME_STATE.INITIAL);
-        }
-      }
-    },
-    [tetrisData, fillEmptyRow, getEmptyRow, gameState, setGameState]
+    [
+      fillEmptyRow,
+      filledRow,
+      gameState,
+      handleClearFillRow,
+      handleFillEmptyRow,
+      handlePolyominoCreate,
+      handlePolyominoFalling,
+      handleGameOver,
+      isGameOver,
+      rowGapInfo,
+      setGameState,
+    ]
   );
 
   return (
