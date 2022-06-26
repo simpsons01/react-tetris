@@ -1,8 +1,10 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { ScreenSizeContext } from "../../hooks/screenSize";
+import { ITetris } from "../Tetris";
 
 export interface IGame {
   single: boolean;
+  tetris: (width: number, height: number, cubeDistance: number) => ReactElement;
 }
 
 const Game: React.FC<IGame> = function (props) {
@@ -115,13 +117,7 @@ const Game: React.FC<IGame> = function (props) {
           borderWidth: `${size.tetrisBorderWidth}px`,
         }}
       >
-        {/* <div
-          style={{
-            width: `${size.tetrisWidth}px`,
-            height: `${size.tetrisHeight}px`,
-          }}
-          className="bg-slate-300"
-        ></div> */}
+        {props.tetris(size.tetrisWidth, size.tetrisHeight, size.cubeDistance)}
       </div>
     </div>
   );

@@ -1,62 +1,45 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { ICube, CUBE_STATE } from "../../common/polyomino";
 
 export interface ITetris {
-  row: number;
-  col: number;
-  blockDistance: number;
-  backgroundColor: string;
+  width: number;
+  height: number;
+  cubeDistance: number;
   data: Array<ICube>;
   polyomino: Array<ICube> | null;
   previewPolyomino: Array<ICube> | null;
 }
 
+const makeCube = (left: number, top: number, cubeDistance: number, isPreview: boolean = false): ReactElement => {
+  let className = "absolute border-2 border-gray-50 bg-gray-900";
+  if (isPreview) {
+    className += " opacity-30";
+  }
+  return (
+    <div
+      className={className}
+      style={{
+        left: `${left * cubeDistance}px`,
+        top: `${top * cubeDistance}px`,
+        width: `${cubeDistance}px`,
+        height: `${cubeDistance}px`,
+      }}
+    />
+  );
+};
+
 const Tetris: React.FC<ITetris> = function (props) {
-  const { backgroundColor, blockDistance, row, col, data, polyomino, previewPolyomino } = props;
-  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const { data, polyomino, previewPolyomino, width, height, cubeDistance } = props;
 
-  const height = React.useMemo<number>(() => blockDistance * row, [blockDistance, row]);
-
-  const width = React.useMemo<number>(() => blockDistance * col, [blockDistance, col]);
-
-  React.useEffect(() => {
-    if (canvasRef.current == null) return;
-    const context = canvasRef.current.getContext("2d") as CanvasRenderingContext2D;
-    context.clearRect(0, 0, width, height);
-    context.fillStyle = backgroundColor;
-    context.fillRect(0, 0, width, height);
-    data.forEach(({ x, y, strokeColor, fillColor, state }) => {
-      const [polyominoCube] = (polyomino || []).filter((cube) => cube.x === x && cube.y === y) || [];
-      const [previewPolyominoCube] = (previewPolyomino || []).filter((cube) => cube.x === x && cube.y === y) || [];
-      const _strokeColor =
-        polyominoCube !== undefined
-          ? polyominoCube.strokeColor
-          : previewPolyominoCube !== undefined
-          ? previewPolyominoCube.strokeColor
-          : state === CUBE_STATE.FILLED
-          ? strokeColor
-          : "";
-      const _fillColor =
-        polyominoCube !== undefined
-          ? polyominoCube.fillColor
-          : previewPolyominoCube !== undefined
-          ? previewPolyominoCube.fillColor
-          : state === CUBE_STATE.FILLED
-          ? fillColor
-          : "";
-      if (_strokeColor && _fillColor) {
-        context.strokeStyle = _strokeColor;
-        context.fillStyle = _fillColor;
-        context.save();
-        context.globalAlpha = polyominoCube === undefined && previewPolyominoCube !== undefined ? 0.3 : 1;
-        context.fillRect(x * blockDistance, y * blockDistance, blockDistance - 2, blockDistance - 2);
-        context.strokeRect(x * blockDistance, y * blockDistance, blockDistance, blockDistance);
-        context.restore();
-      }
-    });
-  }, [width, height, data, polyomino, backgroundColor, blockDistance, previewPolyomino]);
-
-  return <canvas width={width} height={height} ref={canvasRef} />;
+  return (
+    <div className="relative" style={{ width: `${width}px`, height: `${height}px` }}>
+      {previewPolyomino !== null && previewPolyomino.map((cube) => makeCube(cube.x, cube.y, cubeDistance, true))}
+      {polyomino !== null && polyomino.map((cube) => makeCube(cube.x, cube.y, cubeDistance))}
+      {data
+        .map((cube) => (cube.state === CUBE_STATE.FILLED ? makeCube(cube.x, cube.y, cubeDistance) : null))
+        .filter((cube) => cube !== null)}
+    </div>
+  );
 };
 
 export default Tetris;
