@@ -1,11 +1,15 @@
 import React from "react";
 import Single from "./pages/Single";
+import useScreenSize, { ScreenSizeContext } from "./hooks/screenSize";
 
 function App() {
+  const { width, height } = useScreenSize();
   return (
-    <div className="app">
-      <Single />
-    </div>
+    <ScreenSizeContext.Provider value={{ width, height }}>
+      <div className="app bg-gray-200 w-screen h-screen">
+        <Single />
+      </div>
+    </ScreenSizeContext.Provider>
   );
 }
 
