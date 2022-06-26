@@ -2,7 +2,6 @@ import React from "react";
 import {
   getPolyominoConfig,
   ICoordinate,
-  ICube,
   POLYOMINO_SHAPE,
   POLYOMINO_TYPE,
   DEFAULT_POLYOMINO_SHAPE,

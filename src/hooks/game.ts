@@ -1,10 +1,8 @@
 import React from "react";
-import Tetris from "../components/Tetris";
 import useTetris from "../hooks/tetris";
 import { setting } from "../common/config";
-import { CUBE_STATE, DIRECTION } from "../common/polyomino";
+import { DIRECTION } from "../common/polyomino";
 import { setRef, CountDownTimer, IntervalTimer } from "../common/utils";
-import Game from "../components/Game/Index";
 
 export enum GAME_STATE {
   INITIAL,
@@ -35,8 +33,6 @@ const useGame = function () {
   const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
 
   const {
-    getAnchorNearbyCube,
-    polyomino,
     polyominoCoordinate,
     setPolyominoToTetrisData,
     tetrisData,
@@ -91,7 +87,7 @@ const useGame = function () {
     // console.log("gameState is " + gameState);
     // console.log("prevGameState state is " + prevGameState);
     setGameState(prevGameState.current);
-  }, [continueClearRowAnimation, continueFillRowAnimation, prevGameState.current, setGameState]);
+  }, [continueClearRowAnimation, continueFillRowAnimation, setGameState]);
 
   const handlePolyominoCreate = React.useCallback(() => {
     if (polyominoCoordinate == null) {
@@ -142,8 +138,8 @@ const useGame = function () {
     polyomino: polyominoCoordinate,
     previewPolyomino,
     gameState,
-    setGameState,
     prevGameState: prevGameState.current,
+    setGameState,
     setPrevGameStateRef,
     isPausing,
     isGameOver,

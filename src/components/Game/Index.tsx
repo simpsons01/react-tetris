@@ -1,6 +1,5 @@
 import React, { ReactElement } from "react";
 import { ScreenSizeContext } from "../../hooks/screenSize";
-import { ITetris } from "../Tetris";
 
 export interface IGame {
   single: boolean;

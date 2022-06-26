@@ -1,9 +1,6 @@
 import React from "react";
 import Tetris from "../../components/Tetris";
-import useTetris from "../../hooks/tetris";
-import { setting } from "../../common/config";
-import { CUBE_STATE, DIRECTION } from "../../common/polyomino";
-import { setRef, CountDownTimer, IntervalTimer } from "../../common/utils";
+import { DIRECTION } from "../../common/polyomino";
 import useGame, { GAME_STATE } from "../../hooks/game";
 import Game from "../../components/Game/Index";
 
@@ -13,9 +10,7 @@ const Single: React.FC = function () {
     polyomino,
     previewPolyomino,
     gameState,
-    prevGameState,
     setGameState,
-    setPrevGameStateRef,
     isPausing,
     isGameOver,
     movePolyomino,
