@@ -35,8 +35,8 @@ export interface ICoordinate {
 }
 
 export interface ICube extends ICoordinate {
-  strokeColor: string;
-  fillColor: string;
+  // strokeColor: string;
+  // fillColor: string;
   state?: CUBE_STATE;
 }
 
@@ -47,8 +47,8 @@ export interface IPolyominoConfig<T = { anchorIndex: number; coordinate: Array<I
     [POLYOMINO_SHAPE.THIRD]: T;
     [POLYOMINO_SHAPE.FOURTH]: T;
   };
-  strokeColor: string;
-  fillColor: string;
+  // strokeColor: string;
+  // fillColor: string;
 }
 
 export const I: Readonly<IPolyominoConfig> = Object.freeze({
@@ -90,8 +90,8 @@ export const I: Readonly<IPolyominoConfig> = Object.freeze({
       ],
     },
   },
-  strokeColor: "#292929",
-  fillColor: "#00BB00",
+  // strokeColor: "#292929",
+  // fillColor: "#00BB00",
 });
 
 export const J: Readonly<IPolyominoConfig> = Object.freeze({
@@ -133,8 +133,8 @@ export const J: Readonly<IPolyominoConfig> = Object.freeze({
       ],
     },
   },
-  strokeColor: "#292929",
-  fillColor: "#A6A6A6",
+  // strokeColor: "#292929",
+  // fillColor: "#A6A6A6",
 });
 
 export const L: Readonly<IPolyominoConfig> = Object.freeze({
@@ -176,8 +176,8 @@ export const L: Readonly<IPolyominoConfig> = Object.freeze({
       ],
     },
   },
-  strokeColor: "#292929",
-  fillColor: "#C6A300",
+  // strokeColor: "#292929",
+  // fillColor: "#C6A300",
 });
 
 export const O: Readonly<IPolyominoConfig> = Object.freeze({
@@ -219,8 +219,8 @@ export const O: Readonly<IPolyominoConfig> = Object.freeze({
       ],
     },
   },
-  strokeColor: "#292929",
-  fillColor: "#FF7575",
+  // strokeColor: "#292929",
+  // fillColor: "#FF7575",
 });
 
 export const S: Readonly<IPolyominoConfig> = Object.freeze({
@@ -262,8 +262,8 @@ export const S: Readonly<IPolyominoConfig> = Object.freeze({
       ],
     },
   },
-  strokeColor: "#292929",
-  fillColor: "#00CACA",
+  // strokeColor: "#292929",
+  // fillColor: "#00CACA",
 });
 
 export const T: Readonly<IPolyominoConfig> = Object.freeze({
@@ -305,8 +305,8 @@ export const T: Readonly<IPolyominoConfig> = Object.freeze({
       ],
     },
   },
-  strokeColor: "#292929",
-  fillColor: "#0072E3",
+  // strokeColor: "#292929",
+  // fillColor: "#0072E3",
 });
 
 export const Z: Readonly<IPolyominoConfig> = Object.freeze({
@@ -348,8 +348,8 @@ export const Z: Readonly<IPolyominoConfig> = Object.freeze({
       ],
     },
   },
-  strokeColor: "#292929",
-  fillColor: "#8080C0",
+  // strokeColor: "#292929",
+  // fillColor: "#8080C0",
 });
 
 export const getPolyominoConfig = function (type?: POLYOMINO_TYPE): Readonly<IPolyominoConfig> {

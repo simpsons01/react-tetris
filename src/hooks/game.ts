@@ -39,7 +39,6 @@ const useGame = function () {
     polyomino,
     polyominoCoordinate,
     setPolyominoToTetrisData,
-    polyominoData,
     tetrisData,
     createPolyomino,
     movePolyomino,
@@ -95,12 +94,12 @@ const useGame = function () {
   }, [continueClearRowAnimation, continueFillRowAnimation, prevGameState.current, setGameState]);
 
   const handlePolyominoCreate = React.useCallback(() => {
-    if (polyominoData == null) {
+    if (polyominoCoordinate == null) {
       console.log("create polyomino!");
       createPolyomino();
       setGameState(GAME_STATE.CHECK_IS_GAME_OVER);
     }
-  }, [polyominoData, createPolyomino, setGameState]);
+  }, [polyominoCoordinate, createPolyomino, setGameState]);
 
   const handleGameOver = React.useCallback(() => {
     alert("game over");
@@ -140,7 +139,7 @@ const useGame = function () {
 
   return {
     tetris: tetrisData,
-    polyomino: polyominoData,
+    polyomino: polyominoCoordinate,
     previewPolyomino,
     gameState,
     setGameState,

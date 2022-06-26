@@ -34,16 +34,16 @@ const usePolyomino = function () {
     }) as Array<ICoordinate>;
   }, [polyomino]);
 
-  const polyominoInfo = React.useMemo<Array<ICube> | null>(() => {
-    if (polyomino.type == null || polyominoCoordinate == null) return null;
-    const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
-    return polyominoCoordinate.map(({ x, y }) => ({
-      x,
-      y,
-      strokeColor,
-      fillColor,
-    })) as Array<ICube>;
-  }, [polyomino, polyominoCoordinate]);
+  // const polyominoInfo = React.useMemo<Array<ICube> | null>(() => {
+  //   if (polyomino.type == null || polyominoCoordinate == null) return null;
+  //   const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
+  //   return polyominoCoordinate.map(({ x, y }) => ({
+  //     x,
+  //     y,
+  //     strokeColor,
+  //     fillColor,
+  //   })) as Array<ICube>;
+  // }, [polyomino, polyominoCoordinate]);
 
   const resetPolyomino = React.useCallback((): void => {
     setPolyomino(createInitialPolyominoState());
@@ -52,7 +52,7 @@ const usePolyomino = function () {
   return {
     polyomino,
     polyominoCoordinate,
-    polyominoInfo,
+    //polyominoInfo,
     setPolyomino,
     resetPolyomino,
   };

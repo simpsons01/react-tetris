@@ -24,14 +24,14 @@ import { createAnimation, getKeys, IAnimation, minMax, setRef } from "../common/
 const condition = (index: number, col: number) => false;
 
 const useTetris = function (col: number, row: number) {
-  const { polyomino, setPolyomino, resetPolyomino, polyominoInfo, polyominoCoordinate } = usePolyomino();
+  const { polyomino, setPolyomino, resetPolyomino, polyominoCoordinate } = usePolyomino();
   const [tetrisData, setTetrisData] = React.useState<ITetris["tetris"]>(
     new Array(row * col).fill(null).map((_, index) => {
       return {
         x: index % col,
         y: Math.floor(index / col),
-        strokeColor: condition(index, col) ? "#292929" : "",
-        fillColor: condition(index, col) ? "#A6A6A6" : "",
+        // strokeColor: condition(index, col) ? "#292929" : "",
+        // fillColor: condition(index, col) ? "#A6A6A6" : "",
         state: condition(index, col) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
       };
     })
@@ -291,10 +291,10 @@ const useTetris = function (col: number, row: number) {
   );
 
   const setPolyominoToTetrisData = React.useCallback((): void => {
-    if (polyominoInfo == null) return;
+    if (polyominoCoordinate == null) return;
     setTetrisData((prevTetrisData) =>
       prevTetrisData.map((cube) => {
-        const cubeInPolyomino = polyominoInfo.find(({ x, y }) => cube.x === x && cube.y === y);
+        const cubeInPolyomino = polyominoCoordinate.find(({ x, y }) => cube.x === x && cube.y === y);
         if (cubeInPolyomino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
           return {
             ...cubeInPolyomino,
@@ -305,7 +305,7 @@ const useTetris = function (col: number, row: number) {
       })
     );
     resetPolyomino();
-  }, [polyominoInfo, resetPolyomino]);
+  }, [polyominoCoordinate, resetPolyomino]);
 
   const clearRowFilledWithCube = React.useCallback(
     (filledRow?: Array<number>): Promise<void> => {
@@ -341,8 +341,8 @@ const useTetris = function (col: number, row: number) {
                       ) {
                         return {
                           ...cube,
-                          strokeColor: "",
-                          fillColor: "",
+                          // strokeColor: "",
+                          // fillColor: "",
                           state: CUBE_STATE.UNFILLED,
                         };
                       }
@@ -437,8 +437,6 @@ const useTetris = function (col: number, row: number) {
                       return {
                         ...cube,
                         state: prevTetrisData[index].state,
-                        strokeColor: prevTetrisData[index].strokeColor,
-                        fillColor: prevTetrisData[index].fillColor,
                         y: cubeRow,
                       };
                     } else if (ddddddd !== undefined) {
@@ -502,12 +500,12 @@ const useTetris = function (col: number, row: number) {
   const previewPolyomino = React.useMemo((): Array<ICube> | null => {
     const previewCoordinate = getPolyominoPreviewCoordinate();
     if (previewCoordinate !== null && polyomino.type !== null) {
-      const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
+      // const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
       return previewCoordinate.map(({ x, y }) => ({
         x,
         y,
-        strokeColor,
-        fillColor,
+        // strokeColor,
+        // fillColor,
       })) as Array<ICube>;
     }
     return null;
@@ -539,7 +537,6 @@ const useTetris = function (col: number, row: number) {
 
   return {
     polyomino,
-    polyominoData: polyominoInfo,
     polyominoCoordinate,
     tetrisData,
     previewPolyomino,
