@@ -10,6 +10,7 @@
     "@types/node": "^16.11.36",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.5",
+    "nanoid": "^4.0.0",
     "ramda": "^0.28.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",

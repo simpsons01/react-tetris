@@ -17,6 +17,7 @@ import {
 } from "../common/polyomino";
 import usePolyomino from "./polyomino";
 import { createAnimation, getKeys, IAnimation, minMax, setRef } from "../common/utils";
+import { nanoid } from "nanoid";
 
 // const condition = (index: number, col: number) =>
 //   (Math.floor(index / col) === 17 && (index % col) % 2 === 0) ||
@@ -32,6 +33,7 @@ const useTetris = function (col: number, row: number) {
         y: Math.floor(index / col),
         // strokeColor: condition(index, col) ? "#292929" : "",
         // fillColor: condition(index, col) ? "#A6A6A6" : "",
+        id: nanoid(),
         state: condition(index, col) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
       };
     })
@@ -298,6 +300,7 @@ const useTetris = function (col: number, row: number) {
         if (cubeInPolyomino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
           return {
             ...cubeInPolyomino,
+            id: cube.id,
             state: CUBE_STATE.FILLED,
           };
         }
