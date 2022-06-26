@@ -15,21 +15,21 @@ const makeCube = ({
   top,
   cubeDistance,
   isPreview,
+  isPolyomino,
   isFilled,
 }: {
   left: number;
   top: number;
   cubeDistance: number;
   isPreview: boolean;
+  isPolyomino: boolean;
   isFilled: boolean;
 }): ReactElement => {
   let className = "absolute border-2";
   if (isFilled) {
-    className += " border-gray-50 bg-gray-900";
-    if (isPreview) {
+    className += " border-gray-50 bg-gray-900 z-10";
+    if (isPreview && !isPolyomino) {
       className += " opacity-30";
-    } else {
-      className += " z-10";
     }
   } else {
     className += " border-gray-300 bg-gray-300";
@@ -58,7 +58,14 @@ const Tetris: React.FC<ITetris> = function (props) {
         const isPreviewPolyominoCube =
           previewPolyomino === null ? false : previewPolyomino.some((cube) => cube.x === x && cube.y === y);
         const isFilled = isPolyominoCube || isPreviewPolyominoCube || state === CUBE_STATE.FILLED;
-        const cubeEl = makeCube({ left: x, top: y, isFilled, isPreview: isPreviewPolyominoCube, cubeDistance });
+        const cubeEl = makeCube({
+          left: x,
+          top: y,
+          isFilled,
+          isPolyomino: isPolyominoCube,
+          isPreview: isPreviewPolyominoCube,
+          cubeDistance,
+        });
         return React.cloneElement(cubeEl, { key: id });
       })}
     </div>
