@@ -25,7 +25,7 @@ const condition = (index: number, col: number) => false;
 
 const useTetris = function (col: number, row: number) {
   const { polyomino, setPolyomino, resetPolyomino, polyominoInfo, polyominoCoordinate } = usePolyomino();
-  const [tetrisData, setTetrisData] = React.useState<ITetris["data"]>(
+  const [tetrisData, setTetrisData] = React.useState<ITetris["tetris"]>(
     new Array(row * col).fill(null).map((_, index) => {
       return {
         x: index % col,

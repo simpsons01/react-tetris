@@ -5,7 +5,7 @@ export interface ITetris {
   width: number;
   height: number;
   cubeDistance: number;
-  data: Array<ICube>;
+  tetris: Array<ICube>;
   polyomino: Array<ICube> | null;
   previewPolyomino: Array<ICube> | null;
 }
@@ -14,6 +14,8 @@ const makeCube = (left: number, top: number, cubeDistance: number, isPreview: bo
   let className = "absolute border-2 border-gray-50 bg-gray-900";
   if (isPreview) {
     className += " opacity-30";
+  } else {
+    className += " z-10";
   }
   return (
     <div
@@ -29,13 +31,13 @@ const makeCube = (left: number, top: number, cubeDistance: number, isPreview: bo
 };
 
 const Tetris: React.FC<ITetris> = function (props) {
-  const { data, polyomino, previewPolyomino, width, height, cubeDistance } = props;
+  const { tetris, polyomino, previewPolyomino, width, height, cubeDistance } = props;
 
   return (
     <div className="relative" style={{ width: `${width}px`, height: `${height}px` }}>
       {previewPolyomino !== null && previewPolyomino.map((cube) => makeCube(cube.x, cube.y, cubeDistance, true))}
       {polyomino !== null && polyomino.map((cube) => makeCube(cube.x, cube.y, cubeDistance))}
-      {data
+      {tetris
         .map((cube) => (cube.state === CUBE_STATE.FILLED ? makeCube(cube.x, cube.y, cubeDistance) : null))
         .filter((cube) => cube !== null)}
     </div>

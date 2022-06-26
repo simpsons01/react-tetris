@@ -123,7 +123,7 @@ const Single: React.FC = function () {
           width={width}
           height={height}
           cubeDistance={cubeDistance}
-          data={tetris}
+          tetris={tetris}
           polyomino={polyomino}
           previewPolyomino={previewPolyomino}
         />
