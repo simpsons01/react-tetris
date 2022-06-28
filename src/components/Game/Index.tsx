@@ -64,14 +64,14 @@ const Game: React.FC<IGame> = function (props) {
 
   return (
     <div
-      className={`relative`}
+      className={``}
       style={{
         width: `${size.gameWidth}px`,
         height: `${size.gameHeight}px`,
       }}
     >
       <div
-        className={`absolute border-gray-800 box-content`}
+        className={``}
         style={{
           width: `${size.frameWidth}px`,
           height: `${size.frameHeight}px`,
@@ -85,11 +85,11 @@ const Game: React.FC<IGame> = function (props) {
             width: `${size.frameWidth}px`,
             height: `${size.frameHeight}px`,
           }}
-          className="bg-slate-300"
+          className=""
         ></div> */}
       </div>
       <div
-        className={`absolute border-gray-800 box-content`}
+        className={``}
         style={{
           width: `${size.frameWidth}px`,
           height: `${size.frameHeight}px`,
@@ -103,11 +103,11 @@ const Game: React.FC<IGame> = function (props) {
             width: `${size.frameWidth}px`,
             height: `${size.frameHeight}px`,
           }}
-          className="bg-slate-300"
+          className=""
         ></div> */}
       </div>
       <div
-        className={`absolute border-gray-800 box-content`}
+        className={``}
         style={{
           width: `${size.tetrisWidth}px`,
           height: `${size.tetrisHeight}px`,

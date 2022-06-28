@@ -25,14 +25,14 @@ const makeCube = ({
   isPolyomino: boolean;
   isFilled: boolean;
 }): ReactElement => {
-  let className = "absolute border-2";
+  let className = "";
   if (isFilled) {
-    className += " border-gray-50 bg-gray-900 z-10";
+    className += " ";
     if (isPreview && !isPolyomino) {
-      className += " opacity-30";
+      className += "";
     }
   } else {
-    className += " border-gray-300 bg-gray-300";
+    className += "";
   }
   return (
     <div
@@ -51,7 +51,7 @@ const Tetris: React.FC<ITetris> = function (props) {
   const { tetris, polyomino, previewPolyomino, width, height, cubeDistance } = props;
 
   return (
-    <div className="relative" style={{ width: `${width}px`, height: `${height}px` }}>
+    <div className="" style={{ width: `${width}px`, height: `${height}px` }}>
       {tetris.map((cube) => {
         const { x, y, state, id } = cube;
         const isPolyominoCube = polyomino === null ? false : polyomino.some((cube) => cube.x === x && cube.y === y);
