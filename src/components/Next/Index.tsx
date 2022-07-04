@@ -21,6 +21,7 @@ export interface INext {
 
 const Next: React.FC<INext> = function (props) {
   const { polyominoConfig, cubeCount, polyominoType, cubeDistance, width, height } = props;
+  // todo: 修正命名
   const { current: xxxxxxx } = React.useRef(new Array(cubeCount).fill(null).map(() => nanoid()));
   const polyominoAnchor = React.useMemo<ICoordinate | null>(() => {
     if (polyominoConfig !== null) {
