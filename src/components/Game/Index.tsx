@@ -5,6 +5,7 @@ import style from "./index.module.scss";
 export interface IGame {
   single: boolean;
   tetris: (width: number, height: number, cubeDistance: number) => ReactElement;
+  next: (width: number, height: number, cubeCount: number, cubeDistance: number) => ReactElement;
 }
 
 const Game: React.FC<IGame> = function (props) {
@@ -18,6 +19,7 @@ const Game: React.FC<IGame> = function (props) {
     const gapBetweenTetrisAndFrame = 40;
     const gapBetweenFrameAndFrame = 16;
     const frameTextHeight = 50;
+    const frameCubeCount = 4;
     const totalFrame = 2;
     let tetrisHeight = 0,
       tetrisWidth = 0,
@@ -31,7 +33,7 @@ const Game: React.FC<IGame> = function (props) {
         tetrisHeight = i;
         tetrisWidth = tetrisHeight / 2;
         cubeDistance = tetrisWidth / 10;
-        frameWidth = frameHeight = cubeDistance * 4 + frameInnerGap * 2;
+        frameWidth = frameHeight = cubeDistance * frameCubeCount + frameInnerGap * 2;
         gameWidth =
           tetrisWidth + tetrisBorderWidth * 2 + (frameWidth + frameBorderWidth * 2) + gapBetweenTetrisAndFrame;
         if (
@@ -55,6 +57,7 @@ const Game: React.FC<IGame> = function (props) {
       tetrisBorderWidth,
       frameWidth,
       frameHeight,
+      frameCubeCount,
       frameBorderWidth,
       frameTextHeight,
       gameWidth,
@@ -103,7 +106,9 @@ const Game: React.FC<IGame> = function (props) {
             height: `${size.frameHeight}px`,
           }}
           className={`${style.frame} nes-container is-rounded`}
-        ></div>
+        >
+          {props.next(size.frameHeight, size.frameHeight, size.frameCubeCount, size.cubeDistance)}
+        </div>
       </div>
       <div
         className={`${style.tetris}`}
