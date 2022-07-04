@@ -1,0 +1,32 @@
+@import "~nes.css/scss/base/color-palette.scss";
+@import "~nes.css/scss/base/variables.scss";
+
+.common {
+  position: absolute;
+  box-sizing: content-box;
+}
+
+.game {
+  position: relative;
+}
+
+.frame {
+  background-color: #eeeeee;
+  border-color: $color-black;
+  border-style: solid;
+  box-sizing: content-box;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.score {
+  @extend .common;
+}
+
+.next {
+  @extend .common;
+}
+
+.tetris {
+  @extend .common;
+}

@@ -1,5 +1,6 @@
 import React, { ReactElement } from "react";
 import { ICube, CUBE_STATE } from "../../common/polyomino";
+import style from "./index.module.scss";
 
 export interface ITetris {
   width: number;
@@ -25,11 +26,11 @@ const makeCube = ({
   isPolyomino: boolean;
   isFilled: boolean;
 }): ReactElement => {
-  let className = "";
+  let className = `${style["cube"]}`;
   if (isFilled) {
-    className += " ";
+    className += ` ${style["filled"]}`;
     if (isPreview && !isPolyomino) {
-      className += "";
+      className += ` ${style["preview"]}`;
     }
   } else {
     className += "";
@@ -51,7 +52,7 @@ const Tetris: React.FC<ITetris> = function (props) {
   const { tetris, polyomino, previewPolyomino, width, height, cubeDistance } = props;
 
   return (
-    <div className="" style={{ width: `${width}px`, height: `${height}px` }}>
+    <div className={style.tetris} style={{ width: `${width}px`, height: `${height}px` }}>
       {tetris.map((cube) => {
         const { x, y, state, id } = cube;
         const isPolyominoCube = polyomino === null ? false : polyomino.some((cube) => cube.x === x && cube.y === y);

@@ -1,0 +1,18 @@
+@import "~nes.css/scss/base/color-palette.scss";
+@import "~nes.css/scss/base/variables.scss";
+@import "~nes.css/css/nes.min.css";
+@import url("https://fonts.googleapis.com/css?family=Press+Start+2P");
+
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

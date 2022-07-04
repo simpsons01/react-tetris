@@ -1,5 +1,6 @@
 import React, { ReactElement } from "react";
 import { ScreenSizeContext } from "../../hooks/screenSize";
+import style from "./index.module.scss";
 
 export interface IGame {
   single: boolean;
@@ -14,8 +15,9 @@ const Game: React.FC<IGame> = function (props) {
     const frameInnerGap = 5;
     const frameBorderWidth = 4;
     const tetrisBorderWidth = 4;
-    const gapBetweenTetrisAndFrame = 16;
+    const gapBetweenTetrisAndFrame = 40;
     const gapBetweenFrameAndFrame = 16;
+    const frameTextHeight = 50;
     const totalFrame = 2;
     let tetrisHeight = 0,
       tetrisWidth = 0,
@@ -33,7 +35,7 @@ const Game: React.FC<IGame> = function (props) {
         gameWidth =
           tetrisWidth + tetrisBorderWidth * 2 + (frameWidth + frameBorderWidth * 2) + gapBetweenTetrisAndFrame;
         if (
-          (frameHeight + frameBorderWidth * 2) * totalFrame + frameInnerGap * (totalFrame - 1) >
+          (frameHeight + frameBorderWidth * 2 + frameTextHeight) * totalFrame + frameInnerGap * (totalFrame - 1) >
           tetrisHeight + tetrisBorderWidth * 2
         ) {
           gameHeight = (frameHeight + frameBorderWidth * 2) * totalFrame + frameInnerGap * (totalFrame - 1);
@@ -54,6 +56,7 @@ const Game: React.FC<IGame> = function (props) {
       frameWidth,
       frameHeight,
       frameBorderWidth,
+      frameTextHeight,
       gameWidth,
       gameHeight,
       gapBetweenTetrisAndFrame,
@@ -64,59 +67,61 @@ const Game: React.FC<IGame> = function (props) {
 
   return (
     <div
-      className={``}
+      className={style.game}
       style={{
         width: `${size.gameWidth}px`,
         height: `${size.gameHeight}px`,
       }}
     >
       <div
-        className={``}
+        className={style.score}
         style={{
-          width: `${size.frameWidth}px`,
-          height: `${size.frameHeight}px`,
           left: `${0}px`,
           top: `${0}px`,
-          borderWidth: `${size.frameBorderWidth}px`,
         }}
       >
-        {/* <div
+        <div style={{ lineHeight: `${size.frameTextHeight}px`, fontSize: "32px", margin: 0 }}>SCORE</div>
+        <div
           style={{
             width: `${size.frameWidth}px`,
             height: `${size.frameHeight}px`,
           }}
-          className=""
-        ></div> */}
+          className={`${style.frame} nes-container is-rounded`}
+        ></div>
       </div>
       <div
-        className={``}
+        className={style.next}
         style={{
-          width: `${size.frameWidth}px`,
-          height: `${size.frameHeight}px`,
           left: `${0}px`,
-          top: `${size.frameHeight + size.gapBetweenTetrisAndFrame}px`,
-          borderWidth: `${size.frameBorderWidth}px`,
+          top: `${size.frameHeight + size.frameTextHeight + size.gapBetweenTetrisAndFrame}px`,
         }}
       >
-        {/* <div
+        <p style={{ lineHeight: `${size.frameTextHeight}px`, fontSize: "32px", margin: 0 }}>NEXT</p>
+        <div
           style={{
             width: `${size.frameWidth}px`,
             height: `${size.frameHeight}px`,
           }}
-          className=""
-        ></div> */}
+          className={`${style.frame} nes-container is-rounded`}
+        ></div>
       </div>
       <div
-        className={``}
+        className={`${style.tetris}`}
         style={{
-          width: `${size.tetrisWidth}px`,
-          height: `${size.tetrisHeight}px`,
           left: `${size.frameWidth + size.frameBorderWidth * 2 + size.gapBetweenTetrisAndFrame}px`,
           top: `${0}px`,
-          borderWidth: `${size.tetrisBorderWidth}px`,
         }}
       >
-        {props.tetris(size.tetrisWidth, size.tetrisHeight, size.cubeDistance)}
+        <div
+          style={{
+            width: `${size.tetrisWidth}px`,
+            height: `${size.tetrisHeight}px`,
+            borderWidth: `${size.tetrisBorderWidth}px`,
+          }}
+          className={`${style.frame} nes-container is-rounded`}
+        >
+          {props.tetris(size.tetrisWidth, size.tetrisHeight, size.cubeDistance)}
+        </div>
       </div>
     </div>
   );
