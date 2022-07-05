@@ -1,6 +1,40 @@
 import React, { ReactElement } from "react";
 import { ScreenSizeContext } from "../../hooks/screenSize";
-import style from "./index.module.scss";
+import styled from "styled-components";
+
+const Frame = styled.div.attrs((props) => ({
+  className: `nes-container is-rounded ${props.className !== undefined ? props.className : ""}`,
+}))<{ width: number; height: number }>`
+  background-color: #eeeeee;
+  border-color: #212529;
+  border-style: solid;
+  box-sizing: content-box;
+  width: ${(props) => `${props.width}px`};
+  height: ${(props) => `${props.height}px`};
+  &&& {
+    padding: 0;
+    margin: 0;
+  }
+`;
+
+const Section = styled.div<{ left: number; top: number }>`
+  position: absolute;
+  box-sizing: content-box;
+  left: ${(props) => `${props.left}px`};
+  top: ${(props) => `${props.top}px`};
+`;
+
+const SectionTitle = styled.p<{ lineHeight: number }>`
+  line-height: ${(props) => `${props.lineHeight}px`};
+  font-size: 32px;
+  margin: 0;
+`;
+
+const GamePanel = styled.div<{ width: number; height: number }>`
+  position: relative;
+  width: ${(props) => `${props.width}px`};
+  height: ${(props) => `${props.height}px`};
+`;
 
 export interface IGame {
   single: boolean;
@@ -69,66 +103,23 @@ const Game: React.FC<IGame> = function (props) {
   }, [screenHeight, screenWidth, single]);
 
   return (
-    <div
-      className={style.game}
-      style={{
-        width: `${size.gameWidth}px`,
-        height: `${size.gameHeight}px`,
-      }}
-    >
-      <div
-        className={style.score}
-        style={{
-          left: `${0}px`,
-          top: `${0}px`,
-        }}
-      >
-        <div style={{ lineHeight: `${size.frameTextHeight}px`, fontSize: "32px", margin: 0 }}>SCORE</div>
-        <div
-          style={{
-            width: `${size.frameWidth}px`,
-            height: `${size.frameHeight}px`,
-          }}
-          className={`${style.frame} nes-container is-rounded`}
-        ></div>
-      </div>
-      <div
-        className={style.next}
-        style={{
-          left: `${0}px`,
-          top: `${size.frameHeight + size.frameTextHeight + size.gapBetweenTetrisAndFrame}px`,
-        }}
-      >
-        <p style={{ lineHeight: `${size.frameTextHeight}px`, fontSize: "32px", margin: 0 }}>NEXT</p>
-        <div
-          style={{
-            width: `${size.frameWidth}px`,
-            height: `${size.frameHeight}px`,
-          }}
-          className={`${style.frame} nes-container is-rounded`}
-        >
+    <GamePanel width={size.gameWidth} height={size.gameHeight}>
+      <Section left={0} top={0}>
+        <SectionTitle lineHeight={size.frameTextHeight}>SCORE</SectionTitle>
+        <Frame width={size.frameWidth} height={size.frameHeight}></Frame>
+      </Section>
+      <Section left={0} top={size.frameHeight + size.frameTextHeight + size.gapBetweenTetrisAndFrame}>
+        <SectionTitle lineHeight={size.frameTextHeight}>NEXT</SectionTitle>
+        <Frame width={size.frameWidth} height={size.frameHeight}>
           {props.next(size.frameHeight, size.frameHeight, size.frameCubeCount, size.cubeDistance)}
-        </div>
-      </div>
-      <div
-        className={`${style.tetris}`}
-        style={{
-          left: `${size.frameWidth + size.frameBorderWidth * 2 + size.gapBetweenTetrisAndFrame}px`,
-          top: `${0}px`,
-        }}
-      >
-        <div
-          style={{
-            width: `${size.tetrisWidth}px`,
-            height: `${size.tetrisHeight}px`,
-            borderWidth: `${size.tetrisBorderWidth}px`,
-          }}
-          className={`${style.frame} nes-container is-rounded`}
-        >
+        </Frame>
+      </Section>
+      <Section left={size.frameWidth + size.frameBorderWidth * 2 + size.gapBetweenTetrisAndFrame} top={0}>
+        <Frame width={size.tetrisWidth} height={size.tetrisHeight}>
           {props.tetris(size.tetrisWidth, size.tetrisHeight, size.cubeDistance)}
-        </div>
-      </div>
-    </div>
+        </Frame>
+      </Section>
+    </GamePanel>
   );
 };
 
