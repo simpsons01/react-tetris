@@ -17,15 +17,19 @@ interface ICubeBlock {
   top: number;
 }
 const Cube = styled.div.attrs<ICubeBlock>((props) => ({
-  className: `${props.className} ${props.isFilled ? "filled" : ""} ${props.isPreview ? "preview" : ""}`,
+  className: `${props.className !== undefined ? props.className : ""} ${props.isFilled ? "filled" : ""} ${
+    props.isPreview ? "preview" : ""
+  }`,
+  style: {
+    left: `${props.left}px`,
+    top: `${props.top}px`,
+    width: `${props.width}px`,
+    height: `${props.height}px`,
+  },
 }))<ICubeBlock>`
   border-width: 3px;
   border-style: solid;
   border-color: transparent;
-  left: ${(props) => `${props.left}px`};
-  top: ${(props) => `${props.top}px`};
-  width: ${(props) => `${props.width}px`};
-  height: ${(props) => `${props.height}px`};
   &&& {
     padding: 0;
     position: absolute;

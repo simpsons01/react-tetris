@@ -32,15 +32,17 @@ interface INextCubeBlock {
   top: number;
 }
 const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
-  className: `${props.className} ${props.isFilled ? "filled" : ""}`,
+  className: `${props.className !== undefined ? props.className : ""} ${props.isFilled ? "filled" : ""}`,
+  style: {
+    left: `${props.left}px`,
+    top: `${props.top}px`,
+    width: `${props.width}px`,
+    height: `${props.height}px`,
+  },
 }))<INextCubeBlock>`
   border-width: 3px;
   border-style: solid;
   border-color: transparent;
-  left: ${(props) => `${props.left}px`};
-  top: ${(props) => `${props.top}px`};
-  width: ${(props) => `${props.width}px`};
-  height: ${(props) => `${props.height}px`};
   &&& {
     padding: 0;
     position: absolute;
