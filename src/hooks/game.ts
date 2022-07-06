@@ -1,7 +1,7 @@
 import React from "react";
 import useTetris from "../hooks/tetris";
 import { setting } from "../common/config";
-import { DIRECTION } from "../common/polyomino";
+import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE } from "../common/polyomino";
 import { setRef, CountDownTimer, IntervalTimer } from "../common/utils";
 
 export enum GAME_STATE {
@@ -25,9 +25,9 @@ const countDownTimer = new CountDownTimer(leftsecWhenPolyominoCollideBottom, tru
 const intervalTimer = new IntervalTimer(frequencyPolyominoFalling);
 
 const useGame = function () {
+  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE>(getRandomPolyominoType());
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.INITIAL);
   const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.INITIAL);
-
   const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
   const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
@@ -92,10 +92,11 @@ const useGame = function () {
   const handlePolyominoCreate = React.useCallback(() => {
     if (polyominoCoordinate == null) {
       console.log("create polyomino!");
-      createPolyomino();
+      createPolyomino(nextPolyominoType);
+      setNextPolyominoType(getRandomPolyominoType());
       setGameState(GAME_STATE.CHECK_IS_GAME_OVER);
     }
-  }, [polyominoCoordinate, createPolyomino, setGameState]);
+  }, [polyominoCoordinate, createPolyomino, setGameState, nextPolyominoType]);
 
   const handleGameOver = React.useCallback(() => {
     alert("game over");
@@ -135,12 +136,14 @@ const useGame = function () {
 
   return {
     tetris: tetrisData,
+    nextPolyominoType,
     polyomino: polyominoCoordinate,
     previewPolyomino,
     gameState,
     prevGameState: prevGameState.current,
     setGameState,
     setPrevGameStateRef,
+    setNextPolyominoType,
     isPausing,
     isGameOver,
     rowGapInfo,

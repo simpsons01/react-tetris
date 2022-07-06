@@ -1,5 +1,5 @@
 import React from "react";
-import { DIRECTION, POLYOMINO_TYPE } from "../../common/polyomino";
+import { DIRECTION } from "../../common/polyomino";
 import useGame, { GAME_STATE } from "../../hooks/game";
 import Tetris from "../../components/Tetris";
 import Game from "../../components/Game";
@@ -9,6 +9,7 @@ const Single: React.FC = function () {
   const {
     tetris,
     polyomino,
+    nextPolyominoType,
     previewPolyomino,
     gameState,
     setGameState,
@@ -117,7 +118,7 @@ const Single: React.FC = function () {
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
       next={(cubeCount, cubeDistance) => (
-        <Next cubeCount={cubeCount} cubeDistance={cubeDistance} polyominoType={POLYOMINO_TYPE.S} />
+        <Next cubeCount={cubeCount} cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />
       )}
     />
   );

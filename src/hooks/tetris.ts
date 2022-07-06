@@ -135,20 +135,22 @@ const useTetris = function (col: number, row: number) {
     return filledRow;
   }, [col, row, findCube]);
 
-  const createPolyomino = React.useCallback((): void => {
-    const type = getRandomPolyominoType();
-    const config = getPolyominoConfig(type);
-    const { coordinate, anchorIndex } = config.coordinate[DEFAULT_POLYOMINO_SHAPE];
-    const range = getRangeByCoordinate(coordinate);
-    setPolyomino({
-      type,
-      shape: DEFAULT_POLYOMINO_SHAPE,
-      anchor: {
-        x: Math.ceil((col - (range.maxX - range.minX + 1)) / 2) - range.minX,
-        y: coordinate[anchorIndex].y - range.minY,
-      },
-    });
-  }, [col, setPolyomino]);
+  const createPolyomino = React.useCallback(
+    (nextPolyominoType: POLYOMINO_TYPE): void => {
+      const config = getPolyominoConfig(nextPolyominoType);
+      const { coordinate, anchorIndex } = config.coordinate[DEFAULT_POLYOMINO_SHAPE];
+      const range = getRangeByCoordinate(coordinate);
+      setPolyomino({
+        type: nextPolyominoType,
+        shape: DEFAULT_POLYOMINO_SHAPE,
+        anchor: {
+          x: Math.ceil((col - (range.maxX - range.minX + 1)) / 2) - range.minX,
+          y: coordinate[anchorIndex].y - range.minY,
+        },
+      });
+    },
+    [col, setPolyomino]
+  );
 
   const getPolyominoIsCollideWithNearbyCube = React.useCallback(
     (coordinate?: Array<ICoordinate>) => {
