@@ -4,6 +4,7 @@ import useGame, { GAME_STATE } from "../../hooks/game";
 import Tetris from "../../components/Tetris";
 import Game from "../../components/Game";
 import Next from "../../components/Next";
+import Score from "../../components/Score";
 
 const Single: React.FC = function () {
   const {
@@ -11,8 +12,10 @@ const Single: React.FC = function () {
     polyomino,
     nextPolyominoType,
     previewPolyomino,
+    score,
     gameState,
     setGameState,
+    setScore,
     isPausing,
     isGameOver,
     movePolyomino,
@@ -74,6 +77,7 @@ const Single: React.FC = function () {
         case GAME_STATE.CHECK_IS_ROW_FILLED:
           if (filledRow) {
             setGameState(GAME_STATE.ROW_FILLED_CLEARING);
+            setScore(score + filledRow.length);
             handleClearFillRow();
           } else {
             setGameState(GAME_STATE.INITIAL);
@@ -120,6 +124,7 @@ const Single: React.FC = function () {
       next={(cubeCount, cubeDistance) => (
         <Next cubeCount={cubeCount} cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />
       )}
+      score={() => <Score score={score} />}
     />
   );
 };

@@ -28,6 +28,7 @@ const useGame = function () {
   const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE>(getRandomPolyominoType());
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.INITIAL);
   const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.INITIAL);
+  const [score, setScore] = React.useState<number>(0);
   const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
   const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
@@ -139,11 +140,13 @@ const useGame = function () {
     nextPolyominoType,
     polyomino: polyominoCoordinate,
     previewPolyomino,
+    score,
     gameState,
     prevGameState: prevGameState.current,
     setGameState,
     setPrevGameStateRef,
     setNextPolyominoType,
+    setScore,
     isPausing,
     isGameOver,
     rowGapInfo,

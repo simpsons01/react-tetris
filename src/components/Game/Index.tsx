@@ -41,6 +41,7 @@ const SectionTitle = styled.p<{ lineHeight: number }>`
 
 export interface IGame {
   // single: boolean;
+  score: () => ReactElement;
   tetris: (cubeDistance: number) => ReactElement;
   next: (cubeCount: number, cubeDistance: number) => ReactElement;
 }
@@ -110,7 +111,9 @@ const Game: React.FC<IGame> = function (props) {
     <GamePanel width={size.gameWidth} height={size.gameHeight}>
       <Section left={0} top={0}>
         <SectionTitle lineHeight={size.frameTextHeight}>SCORE</SectionTitle>
-        <Frame borderWidth={size.frameBorderWidth} width={size.frameWidth} height={size.frameHeight}></Frame>
+        <Frame borderWidth={size.frameBorderWidth} width={size.frameWidth} height={size.frameHeight}>
+          {props.score()}
+        </Frame>
       </Section>
       <Section left={0} top={size.frameHeight + size.frameTextHeight + size.gapBetweenTetrisAndFrame}>
         <SectionTitle lineHeight={size.frameTextHeight}>NEXT</SectionTitle>
