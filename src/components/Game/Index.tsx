@@ -3,6 +3,8 @@ import { ScreenSizeContext } from "../../hooks/screenSize";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
 
+const MAX_FRAME_TITLE_TEXT_LENGTH = "score".length;
+
 const GamePanel = styled.div<ISize>`
   position: relative;
   width: ${(props) => `${props.width}px`};
@@ -33,15 +35,14 @@ const Section = styled.div<IPosition>`
   top: ${(props) => `${props.top}px`};
 `;
 
-const SectionTitle = styled.p<{ lineHeight: number }>`
-  line-height: ${(props) => `${props.lineHeight}px`};
-  font-size: 32px;
+const SectionTitle = styled.p<{ fontSize: number }>`
+  font-size: ${(props) => `${props.fontSize}px`};
   margin: 0;
 `;
 
 export interface IGame {
   // single: boolean;
-  score: () => ReactElement;
+  score: (fontSize: number) => ReactElement;
   tetris: (cubeDistance: number) => ReactElement;
   next: (cubeCount: number, cubeDistance: number) => ReactElement;
 }
@@ -56,13 +57,14 @@ const Game: React.FC<IGame> = function (props) {
     const tetrisBorderWidth = 4;
     const gapBetweenTetrisAndFrame = 40;
     const gapBetweenFrameAndFrame = 16;
-    const frameTextHeight = 50;
     const frameCubeCount = 4;
     const totalFrame = 2;
     let tetrisHeight = 0,
       tetrisWidth = 0,
       frameWidth = 0,
       frameHeight = 0,
+      frameTextWidth = 0,
+      frameTextHeight = 0,
       cubeDistance = 0,
       gameWidth = 0,
       gameHeight = 0;
@@ -72,6 +74,7 @@ const Game: React.FC<IGame> = function (props) {
         tetrisWidth = tetrisHeight / 2;
         cubeDistance = tetrisWidth / 10;
         frameWidth = frameHeight = cubeDistance * frameCubeCount + frameInnerGap * 2 + frameBorderWidth * 2;
+        frameTextHeight = frameTextWidth = Math.floor(frameWidth / MAX_FRAME_TITLE_TEXT_LENGTH);
         gameWidth =
           tetrisWidth + tetrisBorderWidth * 2 + (frameWidth + frameBorderWidth * 2) + gapBetweenTetrisAndFrame;
         if (
@@ -95,6 +98,7 @@ const Game: React.FC<IGame> = function (props) {
       tetrisHeight,
       tetrisBorderWidth,
       frameWidth,
+      frameTextWidth,
       frameHeight,
       frameCubeCount,
       frameBorderWidth,
@@ -110,13 +114,13 @@ const Game: React.FC<IGame> = function (props) {
   return (
     <GamePanel width={size.gameWidth} height={size.gameHeight}>
       <Section left={0} top={0}>
-        <SectionTitle lineHeight={size.frameTextHeight}>SCORE</SectionTitle>
+        <SectionTitle fontSize={size.frameTextWidth}>SCORE</SectionTitle>
         <Frame borderWidth={size.frameBorderWidth} width={size.frameWidth} height={size.frameHeight}>
-          {props.score()}
+          {props.score(size.frameTextWidth * 2)}
         </Frame>
       </Section>
       <Section left={0} top={size.frameHeight + size.frameTextHeight + size.gapBetweenTetrisAndFrame}>
-        <SectionTitle lineHeight={size.frameTextHeight}>NEXT</SectionTitle>
+        <SectionTitle fontSize={size.frameTextWidth}>NEXT</SectionTitle>
         <Frame borderWidth={size.frameBorderWidth} width={size.frameWidth} height={size.frameHeight}>
           {props.next(size.frameCubeCount, size.cubeDistance)}
         </Frame>

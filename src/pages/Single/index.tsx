@@ -113,18 +113,20 @@ const Single: React.FC = function () {
       isGameOver,
       rowGapInfo,
       setGameState,
+      setScore,
+      score,
     ]
   );
 
   return (
     <Game
-      tetris={(cubeDistance) => (
-        <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
-      )}
+      score={(fontSize) => <Score fontSize={fontSize} score={score} />}
       next={(cubeCount, cubeDistance) => (
         <Next cubeCount={cubeCount} cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />
       )}
-      score={() => <Score score={score} />}
+      tetris={(cubeDistance) => (
+        <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
+      )}
     />
   );
 };
