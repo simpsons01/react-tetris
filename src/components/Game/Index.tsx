@@ -40,13 +40,13 @@ const SectionTitle = styled.p<{ lineHeight: number }>`
 `;
 
 export interface IGame {
-  single: boolean;
+  // single: boolean;
   tetris: (cubeDistance: number) => ReactElement;
   next: (cubeCount: number, cubeDistance: number) => ReactElement;
 }
 
 const Game: React.FC<IGame> = function (props) {
-  const { single } = props;
+  // const { single } = props;
   const { width: screenWidth, height: screenHeight } = React.useContext(ScreenSizeContext);
 
   const size = React.useMemo(() => {
@@ -74,14 +74,15 @@ const Game: React.FC<IGame> = function (props) {
         gameWidth =
           tetrisWidth + tetrisBorderWidth * 2 + (frameWidth + frameBorderWidth * 2) + gapBetweenTetrisAndFrame;
         if (
-          (frameHeight + frameBorderWidth * 2 + frameTextHeight) * totalFrame + frameInnerGap * (totalFrame - 1) >
+          (frameHeight + frameBorderWidth * 2 + frameTextHeight) * totalFrame +
+            gapBetweenFrameAndFrame * (totalFrame - 1) >
           tetrisHeight + tetrisBorderWidth * 2
         ) {
-          gameHeight = (frameHeight + frameBorderWidth * 2) * totalFrame + frameInnerGap * (totalFrame - 1);
+          gameHeight = (frameHeight + frameBorderWidth * 2) * totalFrame + gapBetweenFrameAndFrame * (totalFrame - 1);
         } else {
           gameHeight = tetrisHeight + tetrisBorderWidth * 2;
         }
-        if (gameWidth >= (single ? screenWidth : screenWidth / 2) || gameHeight >= screenHeight) {
+        if (gameWidth >= screenWidth / 2 || gameHeight >= screenHeight * 0.8) {
           continue;
         } else {
           break;
@@ -103,7 +104,7 @@ const Game: React.FC<IGame> = function (props) {
       gapBetweenFrameAndFrame,
       cubeDistance,
     };
-  }, [screenHeight, screenWidth, single]);
+  }, [screenHeight, screenWidth]);
 
   return (
     <GamePanel width={size.gameWidth} height={size.gameHeight}>

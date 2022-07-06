@@ -1,8 +1,8 @@
 import React from "react";
 import { DIRECTION, POLYOMINO_TYPE } from "../../common/polyomino";
 import useGame, { GAME_STATE } from "../../hooks/game";
-import Game from "../../components/Game";
 import Tetris from "../../components/Tetris";
+import Game from "../../components/Game";
 import Next from "../../components/Next";
 
 const Single: React.FC = function () {
@@ -113,7 +113,6 @@ const Single: React.FC = function () {
 
   return (
     <Game
-      single={true}
       tetris={(cubeDistance) => (
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
