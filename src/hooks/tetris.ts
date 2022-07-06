@@ -421,7 +421,7 @@ const useTetris = function (col: number, row: number) {
           });
           return acc;
         }, [] as Array<{ start: number; end: number }>);
-        const duration = 0.15;
+        const duration = 0.1;
         setRef(
           fillRowAnimationRef,
           createAnimation(
