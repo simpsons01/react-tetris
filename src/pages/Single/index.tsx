@@ -5,6 +5,7 @@ import Tetris from "../../components/Tetris";
 import Game from "../../components/Game";
 import Next from "../../components/Next";
 import Score from "../../components/Score";
+import Pause from "../../components/Pause";
 
 const Single: React.FC = function () {
   const {
@@ -127,6 +128,7 @@ const Single: React.FC = function () {
       tetris={(cubeDistance) => (
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
+      pause={(fontSize) => <Pause isPausing={isPausing} fontSize={fontSize} />}
     />
   );
 };
