@@ -1,20 +1,17 @@
 import React, { ReactElement } from "react";
 import { ICube, CUBE_STATE } from "../../common/polyomino";
 import styled from "styled-components";
+import { ISize, IPosition } from "../../common/utils";
 
-const TetrisPanel = styled.div<{ width: number; height: number }>`
-  position: relative;
-  width: ${(props) => `${props.width}px`};
-  height: ${(props) => `${props.height}px`};
+const TetrisPanel = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
 `;
 
-interface ICubeBlock {
+interface ICubeBlock extends ISize, IPosition {
   isFilled: boolean;
   isPreview: boolean;
-  width: number;
-  height: number;
-  left: number;
-  top: number;
 }
 const Cube = styled.div.attrs<ICubeBlock>((props) => ({
   className: `${props.className !== undefined ? props.className : ""} ${props.isFilled ? "filled" : ""} ${
@@ -70,8 +67,6 @@ const Cube = styled.div.attrs<ICubeBlock>((props) => ({
 `;
 
 export interface ITetris {
-  width: number;
-  height: number;
   cubeDistance: number;
   tetris: Array<ICube & { id: string }>;
   polyomino: Array<ICube> | null;
@@ -106,10 +101,10 @@ const makeCube = ({
 };
 
 const Tetris: React.FC<ITetris> = function (props) {
-  const { tetris, polyomino, previewPolyomino, width, height, cubeDistance } = props;
+  const { tetris, polyomino, previewPolyomino, cubeDistance } = props;
 
   return (
-    <TetrisPanel width={width} height={height}>
+    <TetrisPanel>
       {tetris.map((cube) => {
         const { x, y, state, id } = cube;
         const isPolyominoCube = polyomino === null ? false : polyomino.some((cube) => cube.x === x && cube.y === y);

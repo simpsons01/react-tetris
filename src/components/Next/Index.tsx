@@ -1,6 +1,7 @@
 import React from "react";
 import {
   getCoordinateByAnchorAndShapeAndType,
+  getPolyominoConfig,
   ICoordinate,
   IPolyominoConfig,
   POLYOMINO_SHAPE,
@@ -9,27 +10,26 @@ import {
 import { getRangeByCoordinate } from "../../common/polyomino/index";
 import { nanoid } from "nanoid";
 import styled from "styled-components";
+import { ISize, IPosition } from "../../common/utils";
 
-const NextPanel = styled.div<{ width: number; height: number }>`
+const NextPanel = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+interface INextPanelContainer extends ISize {}
+const NextPanelContainer = styled.div<INextPanelContainer>`
   position: relative;
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.height}px`};
 `;
 
-const NextPanelContainer = styled.div<{ width: number; height: number; left: number; top: number }>`
-  position: relative;
-  left: ${(props) => `${props.left}px`};
-  top: ${(props) => `${props.top}px`};
-  width: ${(props) => `${props.width}px`};
-  height: ${(props) => `${props.height}px`};
-`;
-
-interface INextCubeBlock {
+interface INextCubeBlock extends ISize, IPosition {
   isFilled: boolean;
-  width: number;
-  height: number;
-  left: number;
-  top: number;
 }
 const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
   className: `${props.className !== undefined ? props.className : ""} ${props.isFilled ? "filled" : ""}`,
@@ -80,20 +80,18 @@ const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
 `;
 
 export interface INext {
-  polyominoConfig: IPolyominoConfig | null;
-  polyominoType: POLYOMINO_TYPE;
+  polyominoType: POLYOMINO_TYPE | null;
   cubeDistance: number;
   cubeCount: number;
-  width: number;
-  height: number;
 }
 
 const Next: React.FC<INext> = function (props) {
-  const { polyominoConfig, cubeCount, polyominoType, cubeDistance, width, height } = props;
+  const { cubeCount, polyominoType, cubeDistance } = props;
   // todo: 修正命名
   const { current: xxxxxxx } = React.useRef(new Array(cubeCount).fill(null).map(() => nanoid()));
   const polyominoAnchor = React.useMemo<ICoordinate | null>(() => {
-    if (polyominoConfig !== null) {
+    if (polyominoType !== null) {
+      const polyominoConfig = getPolyominoConfig(polyominoType);
       let anchor = { x: 0, y: 0 };
       const { coordinate: defaultCoordinate, anchorIndex } = polyominoConfig.coordinate[POLYOMINO_SHAPE.FIRST];
       const defaultAnchor = defaultCoordinate[anchorIndex];
@@ -103,23 +101,18 @@ const Next: React.FC<INext> = function (props) {
       return anchor;
     }
     return null;
-  }, [polyominoConfig, cubeCount]);
+  }, [polyominoType, cubeCount]);
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
-    if (polyominoAnchor !== null) {
+    if (polyominoType !== null && polyominoAnchor !== null) {
       return getCoordinateByAnchorAndShapeAndType(polyominoType, POLYOMINO_SHAPE.FIRST, polyominoAnchor);
     }
     return null;
   }, [polyominoAnchor, polyominoType]);
 
   return (
-    <NextPanel width={width} height={height}>
-      <NextPanelContainer
-        width={cubeCount * cubeDistance}
-        height={cubeCount * cubeDistance}
-        left={(width - cubeCount * cubeDistance) / 2}
-        top={(height - cubeCount * cubeDistance) / 2}
-      >
+    <NextPanel>
+      <NextPanelContainer width={cubeCount * cubeDistance} height={cubeCount * cubeDistance}>
         {xxxxxxx.map((id, index) => (
           <NextCube
             key={id}

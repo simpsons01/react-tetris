@@ -1,23 +1,32 @@
 import React, { ReactElement } from "react";
 import { ScreenSizeContext } from "../../hooks/screenSize";
 import styled from "styled-components";
+import { ISize, IPosition } from "../../common/utils";
 
-const Frame = styled.div.attrs((props) => ({
-  className: `nes-container is-rounded ${props.className !== undefined ? props.className : ""}`,
-}))<{ width: number; height: number }>`
-  background-color: #eeeeee;
-  border-color: #212529;
-  border-style: solid;
-  box-sizing: content-box;
+const GamePanel = styled.div<ISize>`
+  position: relative;
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.height}px`};
+`;
+
+interface IFrame extends ISize {
+  borderWidth: number;
+}
+const Frame = styled.div.attrs((props) => ({
+  className: `nes-container is-rounded ${props.className !== undefined ? props.className : ""}`,
+}))<IFrame>`
+  background-color: #eeeeee;
+  width: ${(props) => `${props.width}px`};
+  height: ${(props) => `${props.height}px`};
+  box-sizing: content-box;
   &&& {
     padding: 0;
     margin: 0;
+    border-width: ${(props) => `${props.borderWidth}px`};
   }
 `;
 
-const Section = styled.div<{ left: number; top: number }>`
+const Section = styled.div<IPosition>`
   position: absolute;
   box-sizing: content-box;
   left: ${(props) => `${props.left}px`};
@@ -30,16 +39,10 @@ const SectionTitle = styled.p<{ lineHeight: number }>`
   margin: 0;
 `;
 
-const GamePanel = styled.div<{ width: number; height: number }>`
-  position: relative;
-  width: ${(props) => `${props.width}px`};
-  height: ${(props) => `${props.height}px`};
-`;
-
 export interface IGame {
   single: boolean;
-  tetris: (width: number, height: number, cubeDistance: number) => ReactElement;
-  next: (width: number, height: number, cubeCount: number, cubeDistance: number) => ReactElement;
+  tetris: (cubeDistance: number) => ReactElement;
+  next: (cubeCount: number, cubeDistance: number) => ReactElement;
 }
 
 const Game: React.FC<IGame> = function (props) {
@@ -67,7 +70,7 @@ const Game: React.FC<IGame> = function (props) {
         tetrisHeight = i;
         tetrisWidth = tetrisHeight / 2;
         cubeDistance = tetrisWidth / 10;
-        frameWidth = frameHeight = cubeDistance * frameCubeCount + frameInnerGap * 2;
+        frameWidth = frameHeight = cubeDistance * frameCubeCount + frameInnerGap * 2 + frameBorderWidth * 2;
         gameWidth =
           tetrisWidth + tetrisBorderWidth * 2 + (frameWidth + frameBorderWidth * 2) + gapBetweenTetrisAndFrame;
         if (
@@ -106,17 +109,17 @@ const Game: React.FC<IGame> = function (props) {
     <GamePanel width={size.gameWidth} height={size.gameHeight}>
       <Section left={0} top={0}>
         <SectionTitle lineHeight={size.frameTextHeight}>SCORE</SectionTitle>
-        <Frame width={size.frameWidth} height={size.frameHeight}></Frame>
+        <Frame borderWidth={size.frameBorderWidth} width={size.frameWidth} height={size.frameHeight}></Frame>
       </Section>
       <Section left={0} top={size.frameHeight + size.frameTextHeight + size.gapBetweenTetrisAndFrame}>
         <SectionTitle lineHeight={size.frameTextHeight}>NEXT</SectionTitle>
-        <Frame width={size.frameWidth} height={size.frameHeight}>
-          {props.next(size.frameHeight, size.frameHeight, size.frameCubeCount, size.cubeDistance)}
+        <Frame borderWidth={size.frameBorderWidth} width={size.frameWidth} height={size.frameHeight}>
+          {props.next(size.frameCubeCount, size.cubeDistance)}
         </Frame>
       </Section>
       <Section left={size.frameWidth + size.frameBorderWidth * 2 + size.gapBetweenTetrisAndFrame} top={0}>
-        <Frame width={size.tetrisWidth} height={size.tetrisHeight}>
-          {props.tetris(size.tetrisWidth, size.tetrisHeight, size.cubeDistance)}
+        <Frame borderWidth={size.tetrisBorderWidth} width={size.tetrisWidth} height={size.tetrisHeight}>
+          {props.tetris(size.cubeDistance)}
         </Frame>
       </Section>
     </GamePanel>
