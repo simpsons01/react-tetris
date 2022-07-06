@@ -1,5 +1,15 @@
 import * as React from "react";
 
+export interface ISize {
+  width: number;
+  height: number;
+}
+
+export interface IPosition {
+  left: number;
+  top: number;
+}
+
 export const setRef = <T = any>(ref: React.MutableRefObject<T>, val: T) => {
   ref.current = val;
 };
