@@ -3,8 +3,6 @@ import useGameSize, { PLACEMENT } from "../../hooks/gameSize";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
 
-const MAX_FRAME_TITLE_TEXT_LENGTH = "score".length;
-
 const GamePanel = styled.div<ISize>`
   position: relative;
   width: ${(props) => `${props.width}px`};
