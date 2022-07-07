@@ -8,7 +8,6 @@ import Score from "../../components/Score";
 import Pause from "../../components/Pause";
 import CountDown from "../../components/CountDown";
 import GameOver from "../../components/GameOver";
-import useCountdown from "../../hooks/countdown";
 
 const Single: React.FC = function () {
   const {
@@ -18,6 +17,7 @@ const Single: React.FC = function () {
     previewPolyomino,
     score,
     gameState,
+    leftsec,
     setGameState,
     setScore,
     isPausing,
@@ -33,9 +33,8 @@ const Single: React.FC = function () {
     handleFillEmptyRow,
     filledRow,
     rowGapInfo,
+    startCountdown,
   } = useGame();
-
-  const { leftsec, stopCountDown, continueCountdown } = useCountdown(60);
 
   React.useEffect(
     function handleKeyDown() {
@@ -51,10 +50,8 @@ const Single: React.FC = function () {
           changePolyominoShape();
         } else if (e.keyCode === 32) {
           if (isPausing) {
-            continueCountdown();
             continueGame();
           } else {
-            stopCountDown();
             pauseGame();
           }
         }
@@ -62,19 +59,18 @@ const Single: React.FC = function () {
       window.addEventListener("keydown", keydownHandler);
       return () => window.removeEventListener("keydown", keydownHandler);
     },
-    [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame, continueCountdown, stopCountDown]
+    [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame]
   );
-
-  React.useEffect(() => {
-    if (leftsec === 0) {
-      setGameState(GAME_STATE.GAME_OVER);
-    }
-  }, [leftsec, setGameState]);
 
   React.useEffect(
     function handleGameChange() {
+      if (leftsec === 0) {
+        setGameState(GAME_STATE.GAME_OVER);
+        return;
+      }
       switch (gameState) {
         case GAME_STATE.INITIAL:
+          startCountdown();
           handlePolyominoCreate();
           break;
         case GAME_STATE.PAUSE:
@@ -133,6 +129,8 @@ const Single: React.FC = function () {
       setGameState,
       setScore,
       score,
+      startCountdown,
+      leftsec,
     ]
   );
 

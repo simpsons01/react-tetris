@@ -1,46 +1,52 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
-import { IntervalTimer } from "../common/utils";
 
 const useCountdown = function (sec: number) {
-  const intervalTimer = React.useRef<IntervalTimer | undefined>();
+  const timer = React.useRef<undefined | number>();
   const [leftsec, setLeftsec] = React.useState<number>(sec);
+  const [isStartCountDown, setStartCountDown] = React.useState<boolean>(false);
+
+  const { current: cleanTimer } = React.useRef(() => {
+    if (timer.current !== undefined) {
+      window.clearInterval(timer.current);
+      timer.current = undefined;
+    }
+  });
+
+  const startCountdown = React.useCallback(() => {
+    if (!isStartCountDown) {
+      cleanTimer();
+      setStartCountDown(true);
+    }
+  }, [isStartCountDown]);
 
   const stopCountDown = React.useCallback(() => {
-    if (intervalTimer.current !== undefined) {
-      intervalTimer.current.clear();
-      intervalTimer.current = undefined;
+    if (isStartCountDown) {
+      cleanTimer();
+      setStartCountDown(false);
     }
-  }, []);
+  }, [isStartCountDown]);
 
-  const continueCountdown = React.useCallback(() => {
-    if (intervalTimer.current === undefined && leftsec !== 0) {
-      intervalTimer.current = new IntervalTimer(1);
-      intervalTimer.current.start(() => {
-        setLeftsec(leftsec - 1);
-        (intervalTimer.current as IntervalTimer).clear();
-        intervalTimer.current = undefined;
-      });
-    }
-  }, [leftsec]);
+  const resetCountDown = React.useCallback(() => {
+    cleanTimer();
+    setLeftsec(sec);
+    setStartCountDown(false);
+  }, [sec]);
 
   React.useEffect(() => {
-    if (leftsec !== 0) {
-      intervalTimer.current = new IntervalTimer(1);
-      intervalTimer.current.start(() => {
+    if (leftsec !== 0 && isStartCountDown) {
+      timer.current = window.setInterval(() => {
         setLeftsec(leftsec - 1);
-      });
+      }, 1000);
     }
-    return () => {
-      if (intervalTimer.current !== undefined) {
-        intervalTimer.current.clear();
-      }
-    };
-  }, [leftsec]);
+    return cleanTimer;
+  }, [leftsec, isStartCountDown]);
 
   return {
     leftsec,
+    resetCountDown,
     stopCountDown,
-    continueCountdown,
+    startCountdown,
   };
 };
 

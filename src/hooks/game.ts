@@ -3,6 +3,7 @@ import useTetris from "../hooks/tetris";
 import { setting } from "../common/config";
 import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE } from "../common/polyomino";
 import { setRef, CountDownTimer, IntervalTimer } from "../common/utils";
+import useCountdown from "./countdown";
 
 export enum GAME_STATE {
   INITIAL,
@@ -25,9 +26,15 @@ const intervalTimer = new IntervalTimer(frequencyPolyominoFalling);
 
 const useGame = function () {
   const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE>(getRandomPolyominoType());
+
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.INITIAL);
+
   const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.INITIAL);
+
   const [score, setScore] = React.useState<number>(0);
+
+  const { leftsec, stopCountDown, startCountdown } = useCountdown(60);
+
   const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
   const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
@@ -76,7 +83,8 @@ const useGame = function () {
     intervalTimer.pause();
     setPrevGameStateRef(gameState);
     setGameState(GAME_STATE.PAUSE);
-  }, [gameState, pauseClearRowAnimation, pauseFillRowAnimation, setGameState, setPrevGameStateRef]);
+    stopCountDown();
+  }, [gameState, pauseClearRowAnimation, pauseFillRowAnimation, setGameState, setPrevGameStateRef, stopCountDown]);
 
   const continueGame = React.useCallback(() => {
     // console.log("continue game!");
@@ -87,7 +95,8 @@ const useGame = function () {
     // console.log("gameState is " + gameState);
     // console.log("prevGameState state is " + prevGameState);
     setGameState(prevGameState.current);
-  }, [continueClearRowAnimation, continueFillRowAnimation, setGameState]);
+    startCountdown();
+  }, [continueClearRowAnimation, continueFillRowAnimation, setGameState, startCountdown]);
 
   const handlePolyominoCreate = React.useCallback(() => {
     if (polyominoCoordinate == null) {
@@ -98,7 +107,13 @@ const useGame = function () {
     }
   }, [polyominoCoordinate, createPolyomino, setGameState, nextPolyominoType]);
 
-  const handleGameOver = React.useCallback(() => {}, []);
+  const handleGameOver = React.useCallback(() => {
+    pauseClearRowAnimation();
+    pauseFillRowAnimation();
+    countDownTimer.clear();
+    intervalTimer.clear();
+    stopCountDown();
+  }, [pauseClearRowAnimation, pauseFillRowAnimation, stopCountDown]);
 
   const handlePolyominoFalling = React.useCallback(() => {
     const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
@@ -138,7 +153,9 @@ const useGame = function () {
     previewPolyomino,
     score,
     gameState,
+    leftsec,
     prevGameState: prevGameState.current,
+    startCountdown,
     setGameState,
     setPrevGameStateRef,
     setNextPolyominoType,
