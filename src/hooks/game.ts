@@ -17,7 +17,6 @@ export enum GAME_STATE {
 }
 
 const {
-  tetris: { row, col },
   game: { frequencyPolyominoFalling, leftsecWhenPolyominoCollideBottom },
 } = setting;
 
@@ -51,7 +50,7 @@ const useGame = function () {
     continueClearRowAnimation,
     pauseFillRowAnimation,
     continueFillRowAnimation,
-  } = useTetris(col, row);
+  } = useTetris();
 
   const isGameOver = React.useMemo(() => {
     let isGameOver = false;

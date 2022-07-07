@@ -1,4 +1,4 @@
-import { ISize } from "./../common/utils/index";
+import { ISize } from "../common/utils/index";
 import React from "react";
 
 export interface IScreenSize extends ISize {}

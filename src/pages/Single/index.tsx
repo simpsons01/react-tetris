@@ -2,10 +2,11 @@ import React from "react";
 import { DIRECTION } from "../../common/polyomino";
 import useGame, { GAME_STATE } from "../../hooks/game";
 import Tetris from "../../components/Tetris";
-import Game from "../../components/Game";
+import Game from "../../components/SingleGame";
 import Next from "../../components/Next";
 import Score from "../../components/Score";
 import Pause from "../../components/Pause";
+import CountDown from "../../components/CountDown";
 
 const Single: React.FC = function () {
   const {
@@ -122,12 +123,11 @@ const Single: React.FC = function () {
   return (
     <Game
       score={(fontSize) => <Score fontSize={fontSize} score={score} />}
-      next={(cubeCount, cubeDistance) => (
-        <Next cubeCount={cubeCount} cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />
-      )}
+      next={(cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />}
       tetris={(cubeDistance) => (
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
+      countdown={(fontSize) => <CountDown fontSize={fontSize} sec={60} />}
       pause={(fontSize) => <Pause isPausing={isPausing} fontSize={fontSize} />}
     />
   );

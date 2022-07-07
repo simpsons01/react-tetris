@@ -3,7 +3,7 @@ import {
   getCoordinateByAnchorAndShapeAndType,
   getPolyominoConfig,
   ICoordinate,
-  IPolyominoConfig,
+  PER_POLYOMINO_CUBE_NUM,
   POLYOMINO_SHAPE,
   POLYOMINO_TYPE,
 } from "../../common/polyomino";
@@ -82,13 +82,12 @@ const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
 export interface INext {
   polyominoType: POLYOMINO_TYPE | null;
   cubeDistance: number;
-  cubeCount: number;
 }
 
 const Next: React.FC<INext> = function (props) {
-  const { cubeCount, polyominoType, cubeDistance } = props;
+  const { polyominoType, cubeDistance } = props;
   // todo: 修正命名
-  const { current: xxxxxxx } = React.useRef(new Array(cubeCount).fill(null).map(() => nanoid()));
+  const { current: xxxxxxx } = React.useRef(new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()));
   const polyominoAnchor = React.useMemo<ICoordinate | null>(() => {
     if (polyominoType !== null) {
       const polyominoConfig = getPolyominoConfig(polyominoType);
@@ -96,12 +95,12 @@ const Next: React.FC<INext> = function (props) {
       const { coordinate: defaultCoordinate, anchorIndex } = polyominoConfig.coordinate[POLYOMINO_SHAPE.FIRST];
       const defaultAnchor = defaultCoordinate[anchorIndex];
       const { minX, maxX, maxY, minY } = getRangeByCoordinate(defaultCoordinate);
-      anchor.x = (cubeCount - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
-      anchor.y = (cubeCount - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
+      anchor.x = (PER_POLYOMINO_CUBE_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
+      anchor.y = (PER_POLYOMINO_CUBE_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
       return anchor;
     }
     return null;
-  }, [polyominoType, cubeCount]);
+  }, [polyominoType]);
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
     if (polyominoType !== null && polyominoAnchor !== null) {
@@ -112,7 +111,7 @@ const Next: React.FC<INext> = function (props) {
 
   return (
     <NextPanel>
-      <NextPanelContainer width={cubeCount * cubeDistance} height={cubeCount * cubeDistance}>
+      <NextPanelContainer width={PER_POLYOMINO_CUBE_NUM * cubeDistance} height={PER_POLYOMINO_CUBE_NUM * cubeDistance}>
         {xxxxxxx.map((id, index) => (
           <NextCube
             key={id}

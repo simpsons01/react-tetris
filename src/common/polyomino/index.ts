@@ -1,3 +1,5 @@
+export const PER_POLYOMINO_CUBE_NUM = 4;
+
 export enum POLYOMINO_SHAPE {
   FIRST,
   SECOND,

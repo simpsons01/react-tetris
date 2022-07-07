@@ -1,12 +1,9 @@
 export const setting = {
-  tetris: {
-    backgroundColor: "#292929",
-    blockDistance: 40,
-    row: 20,
-    col: 10,
-  },
   game: {
     leftsecWhenPolyominoCollideBottom: 0.5,
     frequencyPolyominoFalling: 0.8,
   },
 };
+
+export const PER_COL_CUBE_NUM = 10;
+export const PER_ROW_CUBE_NUM = 20;
