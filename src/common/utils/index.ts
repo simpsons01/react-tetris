@@ -86,7 +86,7 @@ abstract class Timer {
 
   abstract create(): void;
 
-  abstract start(cb: Function): void;
+  abstract start(cb?: Function): void;
 
   abstract clear(): void;
 
@@ -111,11 +111,13 @@ export class IntervalTimer extends Timer {
     }
   }
 
-  start(cb: Function) {
+  start(cb?: Function) {
     if (this.autoClear) {
       this.clear();
     }
-    this.action = cb;
+    if (cb !== undefined) {
+      this.action = cb;
+    }
     this.create();
   }
 
@@ -156,11 +158,13 @@ export class CountDownTimer extends Timer {
     }
   }
 
-  start(cb: Function) {
+  start(cb?: Function) {
     if (this.autoClear) {
       this.clear();
     }
-    this.action = cb;
+    if (cb !== undefined) {
+      this.action = cb;
+    }
     this.leftsec = this.sec;
     this.create();
   }

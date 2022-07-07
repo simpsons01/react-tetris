@@ -7,6 +7,7 @@ import Next from "../../components/Next";
 import Score from "../../components/Score";
 import Pause from "../../components/Pause";
 import CountDown from "../../components/CountDown";
+import useCountdown from "../../hooks/countdown";
 
 const Single: React.FC = function () {
   const {
@@ -33,6 +34,8 @@ const Single: React.FC = function () {
     rowGapInfo,
   } = useGame();
 
+  const { leftsec, stopCountDown, continueCountdown } = useCountdown(60);
+
   React.useEffect(
     function handleKeyDown() {
       function keydownHandler(e: KeyboardEvent) {
@@ -46,14 +49,26 @@ const Single: React.FC = function () {
         } else if (e.keyCode === 38) {
           changePolyominoShape();
         } else if (e.keyCode === 32) {
-          isPausing ? continueGame() : pauseGame();
+          if (isPausing) {
+            continueCountdown();
+            continueGame();
+          } else {
+            stopCountDown();
+            pauseGame();
+          }
         }
       }
       window.addEventListener("keydown", keydownHandler);
       return () => window.removeEventListener("keydown", keydownHandler);
     },
-    [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame]
+    [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame, continueCountdown, stopCountDown]
   );
+
+  React.useEffect(() => {
+    if (leftsec === 0) {
+      setGameState(GAME_STATE.GAME_OVER);
+    }
+  }, [leftsec, setGameState]);
 
   React.useEffect(
     function handleGameChange() {
@@ -127,7 +142,7 @@ const Single: React.FC = function () {
       tetris={(cubeDistance) => (
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
-      countdown={(fontSize) => <CountDown fontSize={fontSize} sec={60} />}
+      countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
       pause={(fontSize) => <Pause isPausing={isPausing} fontSize={fontSize} />}
     />
   );
