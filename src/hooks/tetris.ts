@@ -448,8 +448,8 @@ const useTetris = function (col: number, row: number) {
                       return {
                         ...cube,
                         state: CUBE_STATE.UNFILLED,
-                        strokeColor: "",
-                        fillColor: "",
+                        // strokeColor: "",
+                        // fillColor: "",
                         y: cubeRow,
                       };
                     }
