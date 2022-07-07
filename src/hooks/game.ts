@@ -98,10 +98,7 @@ const useGame = function () {
     }
   }, [polyominoCoordinate, createPolyomino, setGameState, nextPolyominoType]);
 
-  const handleGameOver = React.useCallback(() => {
-    alert("game over");
-    window.location.reload();
-  }, []);
+  const handleGameOver = React.useCallback(() => {}, []);
 
   const handlePolyominoFalling = React.useCallback(() => {
     const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();

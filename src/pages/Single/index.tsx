@@ -7,6 +7,7 @@ import Next from "../../components/Next";
 import Score from "../../components/Score";
 import Pause from "../../components/Pause";
 import CountDown from "../../components/CountDown";
+import GameOver from "../../components/GameOver";
 import useCountdown from "../../hooks/countdown";
 
 const Single: React.FC = function () {
@@ -142,6 +143,7 @@ const Single: React.FC = function () {
       tetris={(cubeDistance) => (
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
+      gameover={(fontSize) => <GameOver fontSize={fontSize} isGameOver={isGameOver} />}
       countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
       pause={(fontSize) => <Pause isPausing={isPausing} fontSize={fontSize} />}
     />

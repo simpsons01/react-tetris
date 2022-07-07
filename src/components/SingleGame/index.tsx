@@ -44,6 +44,7 @@ export interface IGame {
   next: (cubeDistance: number) => ReactElement;
   countdown: (fontSize: number) => ReactElement;
   pause: (fontSize: number) => ReactElement | null;
+  gameover: (fontSize: number) => ReactElement | null;
 }
 
 const Game: React.FC<IGame> = function (props) {
@@ -94,6 +95,7 @@ const Game: React.FC<IGame> = function (props) {
         <Frame borderWidth={tetrisBorderWidth} width={tetrisFrameWidth} height={tetrisFrameHeight}>
           {props.tetris(cubeDistance)}
           {props.pause(frameFontSize)}
+          {props.gameover(frameFontSize)}
         </Frame>
       </Section>
       <Section left={frameWidth + tetrisFrameWidth + gapBetweenTetrisAndFrame * 2} top={0}>
