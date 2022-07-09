@@ -19,6 +19,7 @@ const Single: React.FC = function () {
     gameState,
     leftsec,
     setGameState,
+    prevGameState,
     setScore,
     isPausing,
     isGameOver,
@@ -50,8 +51,10 @@ const Single: React.FC = function () {
           changePolyominoShape();
         } else if (e.keyCode === 32) {
           if (isPausing) {
+            setGameState(prevGameState);
             continueGame();
           } else {
+            setGameState(GAME_STATE.PAUSE);
             pauseGame();
           }
         }
@@ -59,19 +62,16 @@ const Single: React.FC = function () {
       window.addEventListener("keydown", keydownHandler);
       return () => window.removeEventListener("keydown", keydownHandler);
     },
-    [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame]
+    [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame, setGameState, prevGameState]
   );
 
   React.useEffect(
     function handleGameChange() {
-      if (leftsec === 0) {
-        setGameState(GAME_STATE.GAME_OVER);
-        return;
-      }
       switch (gameState) {
         case GAME_STATE.INITIAL:
           startCountdown();
           handlePolyominoCreate();
+          setGameState(GAME_STATE.CHECK_IS_GAME_OVER);
           break;
         case GAME_STATE.PAUSE:
           break;
@@ -86,13 +86,19 @@ const Single: React.FC = function () {
           handleGameOver();
           break;
         case GAME_STATE.POLYOMINO_FALLING:
-          handlePolyominoFalling();
+          handlePolyominoFalling().then((isBottomCollide) => {
+            if (isBottomCollide) {
+              setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+            }
+          });
           break;
         case GAME_STATE.CHECK_IS_ROW_FILLED:
           if (filledRow) {
             setGameState(GAME_STATE.ROW_FILLED_CLEARING);
             setScore(score + filledRow.length);
-            handleClearFillRow();
+            handleClearFillRow().then(() => {
+              setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
+            });
           } else {
             setGameState(GAME_STATE.INITIAL);
           }
@@ -105,7 +111,9 @@ const Single: React.FC = function () {
           if (!isGapNotExist) {
             //console.log("fill empty row!");
             setGameState(GAME_STATE.EMPTY_ROW_FILLING);
-            handleFillEmptyRow();
+            handleFillEmptyRow().then(() => {
+              setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
+            });
           } else {
             setGameState(GAME_STATE.INITIAL);
           }
