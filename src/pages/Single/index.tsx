@@ -24,7 +24,7 @@ const Single: React.FC = function () {
     isTimeUp,
     isGameOver,
     filledRow,
-    rowGapInfo,
+    emptyRowGap,
     setGameState,
     setScore,
     checkIsPolyominoCollideWithTetris,
@@ -122,7 +122,7 @@ const Single: React.FC = function () {
           break;
         case GAME_STATE.CHECK_IS_ROW_EMPTY:
           const isGapNotExist =
-            rowGapInfo.length === 0 || (rowGapInfo.length === 1 && rowGapInfo[0].empty.length === 0);
+            emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
           if (!isGapNotExist) {
             //console.log("fill empty row!");
             setGameState(GAME_STATE.EMPTY_ROW_FILLING);
@@ -142,7 +142,7 @@ const Single: React.FC = function () {
     [
       filledRow,
       gameState,
-      rowGapInfo,
+      emptyRowGap,
       score,
       handleClearFillRow,
       handleFillEmptyRow,

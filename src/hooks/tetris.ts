@@ -414,9 +414,9 @@ const useTetris = function () {
 
   // TODO: 想更好的變數命名
   const fillEmptyRow = React.useCallback(
-    (rowGapInfo: Array<{ not_empty: Array<number>; empty: Array<number> }>): Promise<void> => {
+    (emptyRowGap: Array<{ not_empty: Array<number>; empty: Array<number> }>): Promise<void> => {
       return new Promise((resolve) => {
-        const zzzzzzzzz = rowGapInfo.reduce((acc, { empty, not_empty }) => {
+        const zzzzzzzzz = emptyRowGap.reduce((acc, { empty, not_empty }) => {
           const bottommostEmptyRow = Math.max(...empty);
           const bottommostNotEmptyRow = Math.max(...not_empty);
           const distance = bottommostEmptyRow - bottommostNotEmptyRow;
