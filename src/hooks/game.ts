@@ -165,6 +165,7 @@ const useGame = function () {
         polyominoFallingTimer.start(() => {
           polyominoFallingTimer.clear();
           movePolyomino(DIRECTION.DOWN);
+          resolve(isBottomCollide);
         });
       }
     });
