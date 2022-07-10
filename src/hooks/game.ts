@@ -25,7 +25,7 @@ const {
 } = setting;
 
 const useGame = function () {
-  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
+  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE>(getRandomPolyominoType());
 
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 

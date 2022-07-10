@@ -98,7 +98,6 @@ const Single: React.FC = function () {
           break;
         case GAME_STATE.START:
           startCountdown();
-          handleNextPolyominoTypeCreate();
           setGameState(GAME_STATE.NEXT_CYCLE);
           break;
         case GAME_STATE.NEXT_CYCLE:
