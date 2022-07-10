@@ -41,14 +41,15 @@ const Single: React.FC = function () {
     handleNextPolyominoTypeCreate,
     handleFillEmptyRow,
     startCountdown,
+    setPrevGameState,
   } = useGame();
 
   React.useEffect(
     function handleKeyDown() {
+      const isRegisterKeyDownHandler = !isTimeUp && !isGameOver;
       function keydownHandler(e: KeyboardEvent) {
-        if (isTimeUp || isGameOver) return;
         // console.log("keyCode is " + e.keyCode);
-        if (!isPausing) {
+        if (!isPausing || gameState === GAME_STATE.ROW_FILLED_CLEARING || gameState === GAME_STATE.ROW_EMPTY_FILLING) {
           if (e.keyCode === 37) {
             movePolyomino(DIRECTION.LEFT);
           } else if (e.keyCode === 39) {
@@ -61,16 +62,21 @@ const Single: React.FC = function () {
         }
         if (e.keyCode === 32) {
           if (isPausing) {
-            setGameState(prevGameState);
-            continueGame();
+            setGameState(GAME_STATE.BEFORE_LEAVE_PAUSE);
           } else {
+            setPrevGameState(gameState);
             setGameState(GAME_STATE.PAUSE);
-            pauseGame();
           }
         }
       }
-      window.addEventListener("keydown", keydownHandler);
-      return () => window.removeEventListener("keydown", keydownHandler);
+      if (isRegisterKeyDownHandler) {
+        window.addEventListener("keydown", keydownHandler);
+      }
+      return () => {
+        if (isRegisterKeyDownHandler) {
+          window.removeEventListener("keydown", keydownHandler);
+        }
+      };
     },
     [
       movePolyomino,
@@ -82,6 +88,8 @@ const Single: React.FC = function () {
       prevGameState,
       isTimeUp,
       isGameOver,
+      gameState,
+      setPrevGameState,
     ]
   );
 
@@ -109,6 +117,11 @@ const Single: React.FC = function () {
           setGameState(GAME_STATE.CHECK_IS_GAME_OVER);
           break;
         case GAME_STATE.PAUSE:
+          pauseGame();
+          break;
+        case GAME_STATE.BEFORE_LEAVE_PAUSE:
+          setGameState(prevGameState);
+          continueGame();
           break;
         case GAME_STATE.CHECK_IS_GAME_OVER:
           if (checkIsPolyominoCollideWithTetris()) {
@@ -148,7 +161,7 @@ const Single: React.FC = function () {
             emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
           if (!isGapNotExist) {
             //console.log("fill empty row!");
-            setGameState(GAME_STATE.EMPTY_ROW_FILLING);
+            setGameState(GAME_STATE.ROW_EMPTY_FILLING);
             handleFillEmptyRow().then(() => {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
@@ -156,7 +169,7 @@ const Single: React.FC = function () {
             setGameState(GAME_STATE.NEXT_CYCLE);
           }
           break;
-        case GAME_STATE.EMPTY_ROW_FILLING:
+        case GAME_STATE.ROW_EMPTY_FILLING:
           break;
         default:
           break;
@@ -167,6 +180,7 @@ const Single: React.FC = function () {
       gameState,
       emptyRowGap,
       score,
+      prevGameState,
       handleClearFilledRow,
       handleFillEmptyRow,
       handlePolyominoCreate,
@@ -177,6 +191,8 @@ const Single: React.FC = function () {
       setScore,
       startCountdown,
       handleNextPolyominoTypeCreate,
+      continueGame,
+      pauseGame,
     ]
   );
 

@@ -10,13 +10,14 @@ export enum GAME_STATE {
   START,
   NEXT_CYCLE,
   PAUSE,
+  BEFORE_LEAVE_PAUSE,
   CHECK_IS_GAME_OVER,
   GAME_OVER,
   POLYOMINO_FALLING,
   CHECK_IS_ROW_FILLED,
   ROW_FILLED_CLEARING,
   CHECK_IS_ROW_EMPTY,
-  EMPTY_ROW_FILLING,
+  ROW_EMPTY_FILLING,
   TIME_UP,
 }
 
@@ -47,7 +48,10 @@ const useGame = function () {
 
   const isGameStart = React.useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);
 
-  const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
+  const isPausing = React.useMemo(
+    () => gameState === GAME_STATE.PAUSE || gameState === GAME_STATE.BEFORE_LEAVE_PAUSE,
+    [gameState]
+  );
 
   const isGameOver = React.useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
 
@@ -95,13 +99,10 @@ const useGame = function () {
     pauseFillRowAnimation();
     polyominoFallingTimer.pause();
     polyominoCollideBottomTimer.pause();
-    setPrevGameStateRef(gameState);
     stopCountDown();
   }, [
-    gameState,
     pauseClearRowAnimation,
     pauseFillRowAnimation,
-    setPrevGameStateRef,
     stopCountDown,
     polyominoFallingTimer,
     polyominoCollideBottomTimer,
@@ -201,7 +202,7 @@ const useGame = function () {
     isGameStart,
     startCountdown,
     setGameState,
-    setPrevGameStateRef,
+    setPrevGameState: setPrevGameStateRef,
     setNextPolyominoType,
     setScore,
     pauseGame,
