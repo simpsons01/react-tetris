@@ -35,7 +35,7 @@ const Single: React.FC = function () {
     handlePolyominoCreate,
     handlePolyominoFalling,
     handleGameOver,
-    handleClearFillRow,
+    handleClearFilledRow,
     handleFillEmptyRow,
     startCountdown,
   } = useGame();
@@ -111,7 +111,7 @@ const Single: React.FC = function () {
           if (filledRow) {
             setGameState(GAME_STATE.ROW_FILLED_CLEARING);
             setScore(score + filledRow.length);
-            handleClearFillRow().then(() => {
+            handleClearFilledRow().then(() => {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
           } else {
@@ -144,7 +144,7 @@ const Single: React.FC = function () {
       gameState,
       emptyRowGap,
       score,
-      handleClearFillRow,
+      handleClearFilledRow,
       handleFillEmptyRow,
       handlePolyominoCreate,
       handlePolyominoFalling,

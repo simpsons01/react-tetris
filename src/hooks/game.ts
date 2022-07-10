@@ -169,7 +169,7 @@ const useGame = function () {
     polyominoCollideBottomTimer,
   ]);
 
-  const handleClearFillRow = React.useCallback(async (): Promise<void> => {
+  const handleClearFilledRow = React.useCallback(async (): Promise<void> => {
     await clearRowFilledWithCube(filledRow);
   }, [clearRowFilledWithCube, filledRow]);
 
@@ -201,7 +201,7 @@ const useGame = function () {
     handlePolyominoCreate,
     handleGameOver,
     handlePolyominoFalling,
-    handleClearFillRow,
+    handleClearFilledRow,
     handleFillEmptyRow,
     movePolyomino,
     changePolyominoShape,
