@@ -1,46 +1,43 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
+import { CountDownTimer } from "../common/utils";
 
 const useCountdown = function (sec: number) {
-  const timer = React.useRef<undefined | number>();
+  const { current: countDownTimer } = React.useRef<CountDownTimer>(new CountDownTimer(1));
   const [leftsec, setLeftsec] = React.useState<number>(sec);
-  const [isStartCountDown, setStartCountDown] = React.useState<boolean>(false);
-
-  const { current: cleanTimer } = React.useRef(() => {
-    if (timer.current !== undefined) {
-      window.clearInterval(timer.current);
-      timer.current = undefined;
-    }
-  });
+  const [isStartCountDown, setIsStartCountDown] = React.useState<boolean>(false);
 
   const startCountdown = React.useCallback(() => {
     if (!isStartCountDown) {
-      cleanTimer();
-      setStartCountDown(true);
+      countDownTimer.clear();
+      setIsStartCountDown(true);
     }
-  }, [isStartCountDown]);
+  }, [countDownTimer, isStartCountDown]);
 
   const stopCountDown = React.useCallback(() => {
     if (isStartCountDown) {
-      cleanTimer();
-      setStartCountDown(false);
+      countDownTimer.pause();
+      setIsStartCountDown(false);
     }
-  }, [isStartCountDown]);
+  }, [countDownTimer, isStartCountDown]);
 
   const resetCountDown = React.useCallback(() => {
-    cleanTimer();
+    countDownTimer.clear();
     setLeftsec(sec);
-    setStartCountDown(false);
-  }, [sec]);
+    setIsStartCountDown(false);
+  }, [countDownTimer, sec]);
 
   React.useEffect(() => {
     if (leftsec !== 0 && isStartCountDown) {
-      timer.current = window.setInterval(() => {
+      countDownTimer.start(() => {
         setLeftsec(leftsec - 1);
-      }, 1000);
+      });
     }
-    return cleanTimer;
-  }, [leftsec, isStartCountDown]);
+    return () => {
+      if (leftsec !== 0 && isStartCountDown) {
+        countDownTimer.clear();
+      }
+    };
+  }, [leftsec, isStartCountDown, countDownTimer]);
 
   return {
     leftsec,

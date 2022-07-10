@@ -30,7 +30,10 @@ const useGame = function () {
 
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
+  const [score, setScore] = React.useState<number>(0);
+
   const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
+  const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
   const { current: polyominoFallingTimer } = React.useRef<CountDownTimer>(
     new CountDownTimer(frequencyPolyominoFalling)
@@ -39,12 +42,6 @@ const useGame = function () {
   const { current: polyominoCollideBottomTimer } = React.useRef<CountDownTimer>(
     new CountDownTimer(leftsecWhenPolyominoCollideBottom)
   );
-
-  const [score, setScore] = React.useState<number>(0);
-
-  const { leftsec, stopCountDown, startCountdown } = useCountdown(60);
-
-  const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
   const isGameStart = React.useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);
 
@@ -56,6 +53,8 @@ const useGame = function () {
   const isGameOver = React.useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
 
   const isTimeUp = React.useMemo(() => gameState === GAME_STATE.TIME_UP, [gameState]);
+
+  const { leftsec, stopCountDown, startCountdown } = useCountdown(60);
 
   const {
     polyominoCoordinate,

@@ -3,7 +3,7 @@ import { PER_COL_CUBE_NUM } from "../common/tetris";
 import { PER_POLYOMINO_CUBE_NUM } from "../common/polyomino";
 import { getKeys } from "../common/utils";
 import { ScreenSizeContext } from "./screenSize";
-import { PER_ROW_CUBE_NUM } from "../common/config";
+import { PER_ROW_CUBE_NUM } from "../common/tetris";
 
 const MAX_FRAME_TEXT_LENGTH = "score".length;
 

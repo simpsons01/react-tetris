@@ -103,7 +103,7 @@ const Single: React.FC = function () {
   );
 
   React.useEffect(
-    function handleGameChange() {
+    function handleGameStateChange() {
       switch (gameState) {
         case GAME_STATE.BEFORE_START:
           break;

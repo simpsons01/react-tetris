@@ -17,7 +17,7 @@ import {
 import usePolyomino from "./polyomino";
 import { createAnimation, getKeys, IAnimation, minMax, setRef } from "../common/utils";
 import { nanoid } from "nanoid";
-import { PER_ROW_CUBE_NUM, PER_COL_CUBE_NUM } from "../common/config";
+import { PER_ROW_CUBE_NUM, PER_COL_CUBE_NUM } from "../common/tetris";
 
 // const condition = (index: number, col: number) =>
 //   (Math.floor(index / col) === 17 && (index % col) % 2 === 0) ||
