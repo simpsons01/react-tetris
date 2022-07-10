@@ -15,6 +15,7 @@ export enum GAME_STATE {
   ROW_FILLED_CLEARING,
   CHECK_IS_ROW_EMPTY,
   EMPTY_ROW_FILLING,
+  TIME_UP,
 }
 
 const {
@@ -39,6 +40,10 @@ const useGame = function () {
 
   const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
 
+  const isGameOver = React.useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
+
+  const isTimeUp = React.useMemo(() => gameState === GAME_STATE.TIME_UP, [gameState]);
+
   const {
     polyominoCoordinate,
     setPolyominoToTetrisData,
@@ -51,7 +56,7 @@ const useGame = function () {
     getEmptyRow,
     fillEmptyRow,
     getPolyominoIsCollideWithNearbyCube,
-    getCoordinateIsCollide,
+    getCoordinateIsCollideWithTetris,
     previewPolyomino,
     pauseClearRowAnimation,
     continueClearRowAnimation,
@@ -59,13 +64,13 @@ const useGame = function () {
     continueFillRowAnimation,
   } = useTetris();
 
-  const isGameOver = React.useMemo(() => {
-    let isGameOver = false;
-    if ((polyominoCoordinate !== null && getCoordinateIsCollide(polyominoCoordinate)) || leftsec === 0) {
-      isGameOver = true;
+  const checkIsPolyominoCollideWithTetris = React.useCallback(() => {
+    let isCollide = false;
+    if (polyominoCoordinate !== null && getCoordinateIsCollideWithTetris(polyominoCoordinate)) {
+      isCollide = true;
     }
-    return isGameOver;
-  }, [polyominoCoordinate, getCoordinateIsCollide, leftsec]);
+    return isCollide;
+  }, [polyominoCoordinate, getCoordinateIsCollideWithTetris]);
 
   const rowGapInfo = React.useMemo(() => {
     return getEmptyRow();
@@ -150,15 +155,16 @@ const useGame = function () {
     gameState,
     leftsec,
     prevGameState: prevGameState.current,
+    isPausing,
+    isTimeUp,
+    rowGapInfo,
+    isGameOver,
+    filledRow,
     startCountdown,
     setGameState,
     setPrevGameStateRef,
     setNextPolyominoType,
     setScore,
-    isPausing,
-    isGameOver,
-    rowGapInfo,
-    filledRow,
     pauseGame,
     continueGame,
     handlePolyominoCreate,
@@ -168,6 +174,7 @@ const useGame = function () {
     handleFillEmptyRow,
     movePolyomino,
     changePolyominoShape,
+    checkIsPolyominoCollideWithTetris,
   };
 };
 

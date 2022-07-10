@@ -106,7 +106,7 @@ const useTetris = function () {
     [findCube]
   );
 
-  const getCoordinateIsCollide = React.useCallback(
+  const getCoordinateIsCollideWithTetris = React.useCallback(
     (coordinate: Array<ICoordinate>): boolean => {
       let isCollide = false;
       for (let i = 0; i < coordinate.length; i++) {
@@ -258,7 +258,7 @@ const useTetris = function () {
       const nextAnchor = getAnchorByAnchorAndShapeAndType(polyomino.type, polyomino.shape, nextShape, polyomino.anchor);
       const nextCoordinate = getCoordinateByAnchorAndShapeAndType(polyomino.type, nextShape, nextAnchor);
       // console.log(nextCoordinate);
-      const isNextCoordinateCollide = getCoordinateIsCollide(nextCoordinate);
+      const isNextCoordinateCollide = getCoordinateIsCollideWithTetris(nextCoordinate);
       if (!isNextCoordinateCollide) {
         setPolyomino((prevPolyomino) => ({
           ...prevPolyomino,
@@ -274,7 +274,7 @@ const useTetris = function () {
           x: cube.x,
           y: cube.y,
         });
-        return !getCoordinateIsCollide(_coordinate);
+        return !getCoordinateIsCollideWithTetris(_coordinate);
       });
       // console.log(notCollideAnchor);
       if (notCollideAnchor.length === 0) return isChangeSuccess;
@@ -298,7 +298,7 @@ const useTetris = function () {
       isChangeSuccess = true;
       return isChangeSuccess;
     },
-    [polyomino, setPolyomino, getCoordinateIsCollide, getAnchorNearbyCube]
+    [polyomino, setPolyomino, getCoordinateIsCollideWithTetris, getAnchorNearbyCube]
   );
 
   const setPolyominoToTetrisData = React.useCallback((): void => {
@@ -496,7 +496,7 @@ const useTetris = function () {
           y: nextY,
           x: polyomino.anchor.x,
         });
-        const isNextCoordinateCollide = getCoordinateIsCollide(nextCoordinate);
+        const isNextCoordinateCollide = getCoordinateIsCollideWithTetris(nextCoordinate);
         if (isNextCoordinateCollide) {
           break;
         }
@@ -507,7 +507,7 @@ const useTetris = function () {
       }
     }
     return previewCollideCoordinate;
-  }, [getCoordinateIsCollide, getPolyominoIsCollideWithNearbyCube, polyomino]);
+  }, [getCoordinateIsCollideWithTetris, getPolyominoIsCollideWithNearbyCube, polyomino]);
 
   const previewPolyomino = React.useMemo((): Array<ICube> | null => {
     const previewCoordinate = getPolyominoPreviewCoordinate();
@@ -552,7 +552,7 @@ const useTetris = function () {
     polyominoCoordinate,
     tetrisData,
     previewPolyomino,
-    getCoordinateIsCollide,
+    getCoordinateIsCollideWithTetris,
     getPolyominoIsCollideWithNearbyCube,
     getAnchorNearbyCube,
     getRowFilledWithCube,

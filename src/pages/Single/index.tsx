@@ -8,6 +8,7 @@ import Score from "../../components/Score";
 import Pause from "../../components/Pause";
 import CountDown from "../../components/CountDown";
 import GameOver from "../../components/GameOver";
+import TimeUp from "../../components/TimeUp";
 
 const Single: React.FC = function () {
   const {
@@ -18,11 +19,15 @@ const Single: React.FC = function () {
     score,
     gameState,
     leftsec,
-    setGameState,
-    prevGameState,
-    setScore,
     isPausing,
+    prevGameState,
+    isTimeUp,
     isGameOver,
+    filledRow,
+    rowGapInfo,
+    setGameState,
+    setScore,
+    checkIsPolyominoCollideWithTetris,
     movePolyomino,
     changePolyominoShape,
     continueGame,
@@ -32,8 +37,6 @@ const Single: React.FC = function () {
     handleGameOver,
     handleClearFillRow,
     handleFillEmptyRow,
-    filledRow,
-    rowGapInfo,
     startCountdown,
   } = useGame();
 
@@ -66,6 +69,15 @@ const Single: React.FC = function () {
   );
 
   React.useEffect(
+    function handleLeftSec() {
+      if (leftsec === 0) {
+        setGameState(GAME_STATE.TIME_UP);
+      }
+    },
+    [leftsec, setGameState]
+  );
+
+  React.useEffect(
     function handleGameChange() {
       switch (gameState) {
         case GAME_STATE.INITIAL:
@@ -76,13 +88,16 @@ const Single: React.FC = function () {
         case GAME_STATE.PAUSE:
           break;
         case GAME_STATE.CHECK_IS_GAME_OVER:
-          if (!isGameOver) {
-            setGameState(GAME_STATE.POLYOMINO_FALLING);
-          } else {
+          if (checkIsPolyominoCollideWithTetris()) {
             setGameState(GAME_STATE.GAME_OVER);
+          } else {
+            setGameState(GAME_STATE.POLYOMINO_FALLING);
           }
           break;
         case GAME_STATE.GAME_OVER:
+          handleGameOver();
+          break;
+        case GAME_STATE.TIME_UP:
           handleGameOver();
           break;
         case GAME_STATE.POLYOMINO_FALLING:
@@ -127,18 +142,17 @@ const Single: React.FC = function () {
     [
       filledRow,
       gameState,
+      rowGapInfo,
+      score,
       handleClearFillRow,
       handleFillEmptyRow,
       handlePolyominoCreate,
       handlePolyominoFalling,
       handleGameOver,
-      isGameOver,
-      rowGapInfo,
+      checkIsPolyominoCollideWithTetris,
       setGameState,
       setScore,
-      score,
       startCountdown,
-      leftsec,
     ]
   );
 
@@ -152,6 +166,7 @@ const Single: React.FC = function () {
       gameover={(fontSize) => <GameOver fontSize={fontSize} isGameOver={isGameOver} />}
       countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
       pause={(fontSize) => <Pause isPausing={isPausing} fontSize={fontSize} />}
+      timeup={(fontSize) => <TimeUp isTimeUp={isTimeUp} fontSize={fontSize} />}
     />
   );
 };
