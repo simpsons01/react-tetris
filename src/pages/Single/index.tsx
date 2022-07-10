@@ -9,6 +9,7 @@ import Pause from "../../components/Pause";
 import CountDown from "../../components/CountDown";
 import GameOver from "../../components/GameOver";
 import TimeUp from "../../components/TimeUp";
+import GameStart from "../../components/GameStart";
 
 const Single: React.FC = function () {
   const {
@@ -22,6 +23,7 @@ const Single: React.FC = function () {
     isPausing,
     prevGameState,
     isTimeUp,
+    isGameStart,
     isGameOver,
     filledRow,
     emptyRowGap,
@@ -36,6 +38,7 @@ const Single: React.FC = function () {
     handlePolyominoFalling,
     handleGameOver,
     handleClearFilledRow,
+    handleNextPolyominoTypeCreate,
     handleFillEmptyRow,
     startCountdown,
   } = useGame();
@@ -43,6 +46,7 @@ const Single: React.FC = function () {
   React.useEffect(
     function handleKeyDown() {
       function keydownHandler(e: KeyboardEvent) {
+        if (isTimeUp || isGameOver) return;
         // console.log("keyCode is " + e.keyCode);
         if (e.keyCode === 37) {
           movePolyomino(DIRECTION.LEFT);
@@ -65,7 +69,17 @@ const Single: React.FC = function () {
       window.addEventListener("keydown", keydownHandler);
       return () => window.removeEventListener("keydown", keydownHandler);
     },
-    [movePolyomino, changePolyominoShape, isPausing, continueGame, pauseGame, setGameState, prevGameState]
+    [
+      movePolyomino,
+      changePolyominoShape,
+      isPausing,
+      continueGame,
+      pauseGame,
+      setGameState,
+      prevGameState,
+      isTimeUp,
+      isGameOver,
+    ]
   );
 
   React.useEffect(
@@ -80,9 +94,16 @@ const Single: React.FC = function () {
   React.useEffect(
     function handleGameChange() {
       switch (gameState) {
-        case GAME_STATE.INITIAL:
+        case GAME_STATE.BEFORE_START:
+          break;
+        case GAME_STATE.START:
           startCountdown();
+          handleNextPolyominoTypeCreate();
+          setGameState(GAME_STATE.NEXT_CYCLE);
+          break;
+        case GAME_STATE.NEXT_CYCLE:
           handlePolyominoCreate();
+          handleNextPolyominoTypeCreate();
           setGameState(GAME_STATE.CHECK_IS_GAME_OVER);
           break;
         case GAME_STATE.PAUSE:
@@ -115,7 +136,7 @@ const Single: React.FC = function () {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
           } else {
-            setGameState(GAME_STATE.INITIAL);
+            setGameState(GAME_STATE.NEXT_CYCLE);
           }
           break;
         case GAME_STATE.ROW_FILLED_CLEARING:
@@ -130,7 +151,7 @@ const Single: React.FC = function () {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
           } else {
-            setGameState(GAME_STATE.INITIAL);
+            setGameState(GAME_STATE.NEXT_CYCLE);
           }
           break;
         case GAME_STATE.EMPTY_ROW_FILLING:
@@ -153,6 +174,7 @@ const Single: React.FC = function () {
       setGameState,
       setScore,
       startCountdown,
+      handleNextPolyominoTypeCreate,
     ]
   );
 
@@ -167,6 +189,15 @@ const Single: React.FC = function () {
       countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
       pause={(fontSize) => <Pause isPausing={isPausing} fontSize={fontSize} />}
       timeup={(fontSize) => <TimeUp isTimeUp={isTimeUp} fontSize={fontSize} />}
+      gamestart={(fontSize) => (
+        <GameStart
+          onGameStart={() => {
+            setGameState(GAME_STATE.START);
+          }}
+          isGameStart={!isGameStart}
+          fontSize={fontSize}
+        />
+      )}
     />
   );
 };

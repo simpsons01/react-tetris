@@ -6,7 +6,9 @@ import { setRef, CountDownTimer } from "../common/utils";
 import useCountdown from "./countdown";
 
 export enum GAME_STATE {
-  INITIAL,
+  BEFORE_START,
+  START,
+  NEXT_CYCLE,
   PAUSE,
   CHECK_IS_GAME_OVER,
   GAME_OVER,
@@ -23,11 +25,11 @@ const {
 } = setting;
 
 const useGame = function () {
-  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE>(getRandomPolyominoType());
+  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
 
-  const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.INITIAL);
+  const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
-  const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.INITIAL);
+  const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
 
   const { current: polyominoFallingTimer } = React.useRef<CountDownTimer>(
     new CountDownTimer(frequencyPolyominoFalling)
@@ -42,6 +44,8 @@ const useGame = function () {
   const { leftsec, stopCountDown, startCountdown } = useCountdown(60);
 
   const setPrevGameStateRef = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
+
+  const isGameStart = React.useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);
 
   const isPausing = React.useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
 
@@ -121,12 +125,15 @@ const useGame = function () {
   ]);
 
   const handlePolyominoCreate = React.useCallback(() => {
-    if (polyominoCoordinate == null) {
+    if (polyominoCoordinate == null && nextPolyominoType !== null) {
       console.log("create polyomino!");
       createPolyomino(nextPolyominoType);
-      setNextPolyominoType(getRandomPolyominoType());
     }
   }, [polyominoCoordinate, createPolyomino, nextPolyominoType]);
+
+  const handleNextPolyominoTypeCreate = React.useCallback(() => {
+    setNextPolyominoType(getRandomPolyominoType());
+  }, [setNextPolyominoType]);
 
   const handleGameOver = React.useCallback(() => {
     pauseClearRowAnimation();
@@ -186,11 +193,12 @@ const useGame = function () {
     gameState,
     leftsec,
     prevGameState: prevGameState.current,
-    isPausing,
-    isTimeUp,
     emptyRowGap,
     isGameOver,
     filledRow,
+    isPausing,
+    isTimeUp,
+    isGameStart,
     startCountdown,
     setGameState,
     setPrevGameStateRef,
@@ -201,6 +209,7 @@ const useGame = function () {
     handlePolyominoCreate,
     handleGameOver,
     handlePolyominoFalling,
+    handleNextPolyominoTypeCreate,
     handleClearFilledRow,
     handleFillEmptyRow,
     movePolyomino,
