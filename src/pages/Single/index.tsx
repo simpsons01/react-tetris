@@ -48,15 +48,18 @@ const Single: React.FC = function () {
       function keydownHandler(e: KeyboardEvent) {
         if (isTimeUp || isGameOver) return;
         // console.log("keyCode is " + e.keyCode);
-        if (e.keyCode === 37) {
-          movePolyomino(DIRECTION.LEFT);
-        } else if (e.keyCode === 39) {
-          movePolyomino(DIRECTION.RIGHT);
-        } else if (e.keyCode === 40) {
-          movePolyomino(DIRECTION.DOWN);
-        } else if (e.keyCode === 38) {
-          changePolyominoShape();
-        } else if (e.keyCode === 32) {
+        if (!isPausing) {
+          if (e.keyCode === 37) {
+            movePolyomino(DIRECTION.LEFT);
+          } else if (e.keyCode === 39) {
+            movePolyomino(DIRECTION.RIGHT);
+          } else if (e.keyCode === 40) {
+            movePolyomino(DIRECTION.DOWN);
+          } else if (e.keyCode === 38) {
+            changePolyominoShape();
+          }
+        }
+        if (e.keyCode === 32) {
           if (isPausing) {
             setGameState(prevGameState);
             continueGame();
