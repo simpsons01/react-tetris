@@ -5,11 +5,8 @@ import Tetris from "../../components/Tetris";
 import Game from "../../components/SingleGame";
 import Next from "../../components/Next";
 import Score from "../../components/Score";
-import Pause from "../../components/Pause";
+import TetrisPanel from "../../components/Tetris/Panel";
 import CountDown from "../../components/CountDown";
-import GameOver from "../../components/GameOver";
-import TimeUp from "../../components/TimeUp";
-import GameStart from "../../components/GameStart";
 
 const Single = (): JSX.Element => {
   const {
@@ -203,12 +200,20 @@ const Single = (): JSX.Element => {
       tetris={(cubeDistance) => (
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
-      gameover={(fontSize) => <GameOver fontSize={fontSize} isGameOver={isGameOver} />}
+      gameover={(fontSize) => (
+        <TetrisPanel.GameOver
+          fontSize={fontSize}
+          isGameOver={isGameOver}
+          onGameOverBtnClick={() => window.location.reload()}
+        />
+      )}
       countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
-      pause={(fontSize) => <Pause isPausing={isPausing} fontSize={fontSize} />}
-      timeup={(fontSize) => <TimeUp isTimeUp={isTimeUp} fontSize={fontSize} />}
+      pause={(fontSize) => <TetrisPanel.Pause isPausing={isPausing} fontSize={fontSize} />}
+      timeup={(fontSize) => (
+        <TetrisPanel.TimeUp isTimeUp={isTimeUp} fontSize={fontSize} onTimesUpBtn={() => window.location.reload()} />
+      )}
       gamestart={(fontSize) => (
-        <GameStart
+        <TetrisPanel.GameStart
           onGameStart={() => {
             setGameState(GAME_STATE.START);
           }}

@@ -1,5 +1,7 @@
 import * as React from "react";
 
+export type MyFunction<T = any> = (...args: Array<T>) => T;
+
 export interface ISize {
   width: number;
   height: number;
