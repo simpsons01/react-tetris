@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { MyFunction, IFontSize } from "../../../common/utils";
-import { BasePanel, BasePanelText, IPanel } from "./Base";
+import { BasePanel, IPanel } from "./Base";
 
 export interface IGameOverPanel extends IPanel {
   isGameStart: boolean;
@@ -17,9 +17,8 @@ const GameOver = (props: IGameOverPanel): JSX.Element | null => {
   if (!isGameStart) return null;
   return (
     <BasePanel>
-      <BasePanelText fontSize={fontSize}>START</BasePanelText>
       <GameStartBtn fontSize={fontSize} onClick={onGameStart} className="nes-btn">
-        TRY AGAIN
+        START
       </GameStartBtn>
     </BasePanel>
   );
