@@ -43,7 +43,7 @@ const Single = (): JSX.Element => {
 
   React.useEffect(
     function handleKeyDown() {
-      const isRegisterKeyDownHandler = !isTimeUp && !isGameOver;
+      const isRegisterKeyDownHandler = !isTimeUp && !isGameOver && isGameStart;
       function keydownHandler(e: KeyboardEvent) {
         // console.log("keyCode is " + e.keyCode);
         if (!isPausing || gameState === GAME_STATE.ROW_FILLED_CLEARING || gameState === GAME_STATE.ROW_EMPTY_FILLING) {
@@ -76,16 +76,17 @@ const Single = (): JSX.Element => {
       };
     },
     [
-      movePolyomino,
-      changePolyominoShape,
       isPausing,
-      continueGame,
-      pauseGame,
-      setGameState,
       prevGameState,
       isTimeUp,
       isGameOver,
       gameState,
+      isGameStart,
+      movePolyomino,
+      changePolyominoShape,
+      continueGame,
+      pauseGame,
+      setGameState,
       setPrevGameState,
     ]
   );
