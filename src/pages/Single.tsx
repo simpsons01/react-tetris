@@ -1,12 +1,12 @@
 import React from "react";
-import { DIRECTION } from "../../common/polyomino";
-import useGame, { GAME_STATE } from "../../hooks/game";
-import Tetris from "../../components/Tetris";
-import Game from "../../components/Game";
-import Next from "../../components/Next";
-import Score from "../../components/Score";
-import TetrisPanel from "../../components/Tetris/Panel";
-import CountDown from "../../components/CountDown";
+import { DIRECTION } from "../common/polyomino";
+import useGame, { GAME_STATE } from "../hooks/game";
+import Tetris from "../components/Tetris";
+import Game from "../components/Game";
+import Next from "../components/Next";
+import Score from "../components/Score";
+import TetrisPanel from "../components/Tetris/Panel";
+import CountDown from "../components/CountDown";
 
 const Single = (): JSX.Element => {
   const {
