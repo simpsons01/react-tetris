@@ -13,11 +13,11 @@ const AppContainer = styled.div`
 function App() {
   const { width, height } = useScreenSize();
   return (
-    <ScreenSizeContext.Provider value={{ width, height }}>
-      <AppContainer>
+    <AppContainer>
+      <ScreenSizeContext.Provider value={{ width, height }}>
         <Outlet />
-      </AppContainer>
-    </ScreenSizeContext.Provider>
+      </ScreenSizeContext.Provider>
+    </AppContainer>
   );
 }
 
