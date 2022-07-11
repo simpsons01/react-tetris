@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import { MyFunction } from "../../../common/utils";
-import { BasePanel, BasePanelText, IPanel, IFontSize } from "./Base";
+import { MyFunction, IFontSize } from "../../../common/utils";
+import { BasePanel, BasePanelText, IPanel } from "./Base";
 
 export interface IGameOverPanel extends IPanel {
   isGameStart: boolean;

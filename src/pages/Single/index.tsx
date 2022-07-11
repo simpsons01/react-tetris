@@ -2,7 +2,7 @@ import React from "react";
 import { DIRECTION } from "../../common/polyomino";
 import useGame, { GAME_STATE } from "../../hooks/game";
 import Tetris from "../../components/Tetris";
-import Game from "../../components/SingleGame";
+import Game from "../../components/Game";
 import Next from "../../components/Next";
 import Score from "../../components/Score";
 import TetrisPanel from "../../components/Tetris/Panel";
@@ -194,9 +194,10 @@ const Single = (): JSX.Element => {
   );
 
   return (
-    <Game
+    <Game.Single
       score={(fontSize) => <Score fontSize={fontSize} score={score} />}
       next={(cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />}
+      countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
       tetris={(cubeDistance) => (
         <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
       )}
@@ -207,7 +208,6 @@ const Single = (): JSX.Element => {
           onGameOverBtnClick={() => window.location.reload()}
         />
       )}
-      countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
       pause={(fontSize) => <TetrisPanel.Pause isPausing={isPausing} fontSize={fontSize} />}
       timeup={(fontSize) => (
         <TetrisPanel.TimeUp isTimeUp={isTimeUp} fontSize={fontSize} onTimesUpBtn={() => window.location.reload()} />

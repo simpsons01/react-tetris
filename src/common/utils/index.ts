@@ -1,5 +1,9 @@
 import * as React from "react";
 
+export interface IFontSize {
+  fontSize: number;
+}
+
 export type MyFunction<T = any> = (...args: Array<T>) => T;
 
 export interface ISize {

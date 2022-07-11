@@ -1,8 +1,5 @@
 import styled from "styled-components";
-
-export interface IFontSize {
-  fontSize: number;
-}
+import { IFontSize } from "../../../common/utils";
 
 export interface IPanel extends IFontSize {}
 

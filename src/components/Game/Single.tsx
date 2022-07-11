@@ -1,7 +1,8 @@
 import React, { ReactNode } from "react";
 import useGameSize, { PLACEMENT } from "../../hooks/gameSize";
 import styled from "styled-components";
-import { ISize, IPosition } from "../../common/utils";
+import { ISize, IPosition, IFontSize } from "../../common/utils";
+import { IGame } from "./Base";
 
 const GamePanel = styled.div<ISize>`
   position: relative;
@@ -32,16 +33,13 @@ const Section = styled.div<IPosition>`
   top: ${(props) => `${props.top}px`};
 `;
 
-const SectionTitle = styled.p<{ fontSize: number }>`
+const SectionTitle = styled.p<IFontSize>`
   font-size: ${(props) => `${props.fontSize}px`};
   margin: 0;
 `;
 
-export interface IGame {
+export interface ISingleGame extends IGame {
   // single: boolean;
-  score: (fontSize: number) => ReactNode;
-  tetris: (cubeDistance: number) => ReactNode;
-  next: (cubeDistance: number) => ReactNode;
   countdown: (fontSize: number) => ReactNode;
   pause: (fontSize: number) => ReactNode | null;
   gameover: (fontSize: number) => ReactNode | null;
@@ -49,7 +47,7 @@ export interface IGame {
   gamestart: (fontSize: number) => ReactNode | null;
 }
 
-const Game = (props: IGame): JSX.Element => {
+const SingleGame = (props: ISingleGame): JSX.Element => {
   const {
     tetrisFrameWidth,
     tetrisFrameHeight,
@@ -112,4 +110,4 @@ const Game = (props: IGame): JSX.Element => {
   );
 };
 
-export default Game;
+export default SingleGame;

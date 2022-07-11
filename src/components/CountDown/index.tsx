@@ -1,5 +1,5 @@
-import React from "react";
 import styled from "styled-components";
+import { IFontSize } from "../../common/utils";
 
 const CountDownPanel = styled.div`
   display: flex;
@@ -9,14 +9,13 @@ const CountDownPanel = styled.div`
   height: 100%;
 `;
 
-const CountDownText = styled.p<{ fontSize: number }>`
+const CountDownText = styled.p<IFontSize>`
   margin: 0;
   font-size: ${(props) => `${props.fontSize}px`};
 `;
 
-export interface ICountDown {
+export interface ICountDown extends IFontSize {
   sec: number;
-  fontSize: number;
 }
 
 const CountDown = (props: ICountDown): JSX.Element => {

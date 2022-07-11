@@ -13,7 +13,6 @@ import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
 
 const NextPanel = styled.div`
-  position: absolute;
   width: 100%;
   height: 100%;
   display: flex;

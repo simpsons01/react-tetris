@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { IFontSize } from "../../common/utils";
 
 const ScorePanel = styled.div`
   display: flex;
@@ -9,14 +10,13 @@ const ScorePanel = styled.div`
   height: 100%;
 `;
 
-const ScoreText = styled.p<{ fontSize: number }>`
+const ScoreText = styled.p<IFontSize>`
   margin: 0;
   font-size: ${(props) => `${props.fontSize}px`};
 `;
 
-export interface IScore {
+export interface IScore extends IFontSize {
   score: number;
-  fontSize: number;
 }
 
 const Score = (props: IScore): JSX.Element => {
