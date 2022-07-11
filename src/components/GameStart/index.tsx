@@ -25,7 +25,7 @@ export interface IGameStart {
   onGameStart: () => void;
 }
 
-const GameStart: React.FC<IGameStart> = function (props) {
+const GameStart = (props: IGameStart): JSX.Element | null => {
   const { fontSize, isGameStart } = props;
   if (!isGameStart) return null;
   return (

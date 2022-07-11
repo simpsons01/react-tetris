@@ -24,7 +24,7 @@ export interface IPause {
   fontSize: number;
 }
 
-const Pause: React.FC<IPause> = function (props) {
+const Pause = (props: IPause): JSX.Element | null => {
   const { fontSize, isPausing } = props;
   if (!isPausing) return null;
   return (

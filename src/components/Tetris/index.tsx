@@ -100,7 +100,7 @@ const makeCube = ({
   );
 };
 
-const Tetris: React.FC<ITetris> = function (props) {
+const Tetris = (props: ITetris): JSX.Element => {
   const { tetris, polyomino, previewPolyomino, cubeDistance } = props;
 
   return (

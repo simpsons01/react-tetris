@@ -19,7 +19,7 @@ export interface ICountDown {
   fontSize: number;
 }
 
-const CountDown: React.FC<ICountDown> = function (props) {
+const CountDown = (props: ICountDown): JSX.Element => {
   const { sec, fontSize } = props;
 
   return (

@@ -84,7 +84,7 @@ export interface INext {
   cubeDistance: number;
 }
 
-const Next: React.FC<INext> = function (props) {
+const Next = (props: INext): JSX.Element => {
   const { polyominoType, cubeDistance } = props;
   // todo: 修正命名
   const { current: xxxxxxx } = React.useRef(new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()));

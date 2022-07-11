@@ -19,7 +19,7 @@ export interface IScore {
   fontSize: number;
 }
 
-const Score: React.FC<IScore> = function (props) {
+const Score = (props: IScore): JSX.Element => {
   const { score, fontSize } = props;
 
   const calcFontSize = React.useMemo<number>(() => {

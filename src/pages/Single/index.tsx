@@ -11,7 +11,7 @@ import GameOver from "../../components/GameOver";
 import TimeUp from "../../components/TimeUp";
 import GameStart from "../../components/GameStart";
 
-const Single: React.FC = function () {
+const Single = (): JSX.Element => {
   const {
     tetris,
     polyomino,

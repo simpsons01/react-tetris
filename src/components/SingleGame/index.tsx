@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { ReactNode } from "react";
 import useGameSize, { PLACEMENT } from "../../hooks/gameSize";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
@@ -39,17 +39,17 @@ const SectionTitle = styled.p<{ fontSize: number }>`
 
 export interface IGame {
   // single: boolean;
-  score: (fontSize: number) => ReactElement;
-  tetris: (cubeDistance: number) => ReactElement;
-  next: (cubeDistance: number) => ReactElement;
-  countdown: (fontSize: number) => ReactElement;
-  pause: (fontSize: number) => ReactElement | null;
-  gameover: (fontSize: number) => ReactElement | null;
-  timeup: (fontSize: number) => ReactElement | null;
-  gamestart: (fontSize: number) => ReactElement | null;
+  score: (fontSize: number) => ReactNode;
+  tetris: (cubeDistance: number) => ReactNode;
+  next: (cubeDistance: number) => ReactNode;
+  countdown: (fontSize: number) => ReactNode;
+  pause: (fontSize: number) => ReactNode | null;
+  gameover: (fontSize: number) => ReactNode | null;
+  timeup: (fontSize: number) => ReactNode | null;
+  gamestart: (fontSize: number) => ReactNode | null;
 }
 
-const Game: React.FC<IGame> = function (props) {
+const Game = (props: IGame): JSX.Element => {
   const {
     tetrisFrameWidth,
     tetrisFrameHeight,

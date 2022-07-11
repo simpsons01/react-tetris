@@ -29,7 +29,7 @@ export interface ITimesUp {
   fontSize: number;
 }
 
-const TimeUp: React.FC<ITimesUp> = function (props) {
+const TimeUp = (props: ITimesUp): JSX.Element | null => {
   const { fontSize, isTimeUp } = props;
   if (!isTimeUp) return null;
   return (

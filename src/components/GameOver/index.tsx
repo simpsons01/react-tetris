@@ -29,7 +29,7 @@ export interface IGameOver {
   fontSize: number;
 }
 
-const GameOver: React.FC<IGameOver> = function (props) {
+const GameOver = (props: IGameOver): JSX.Element | null => {
   const { fontSize, isGameOver } = props;
   if (!isGameOver) return null;
   return (
