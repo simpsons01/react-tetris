@@ -1,46 +1,18 @@
 import React from "react";
 import { PER_COL_CUBE_NUM } from "../common/tetris";
 import { PER_POLYOMINO_CUBE_NUM } from "../common/polyomino";
-import { getKeys } from "../common/utils";
 import { ScreenSizeContext } from "./screenSize";
 import { PER_ROW_CUBE_NUM } from "../common/tetris";
 
 const MAX_FRAME_TEXT_LENGTH = "score".length;
 
-export enum PLACEMENT {
-  LEFT,
-  MIDDLE,
-  RIGHT,
-}
-
-export interface ISection {
-  placement: PLACEMENT;
-}
-
-export interface IGameConfig {
-  score?: ISection;
-  next?: ISection;
-  countdown?: ISection;
-  line?: ISection;
-}
-
-const useGameSize = function (config: IGameConfig, isSingle: boolean, ratio: number = 0.8) {
+const useGameSize = function (
+  isBothSideHasFrame: boolean,
+  isSingle: boolean,
+  sideFrameMaxNum: number,
+  ratio: number = 0.8
+) {
   const { width: screenWidth, height: screenHeight } = React.useContext(ScreenSizeContext);
-
-  const hasRightFrame = React.useMemo(
-    () => getKeys(config).some((key) => config[key]?.placement === PLACEMENT.RIGHT),
-    [config]
-  );
-  const hasLeftFrame = React.useMemo(
-    () => getKeys(config).some((key) => config[key]?.placement === PLACEMENT.LEFT),
-    [config]
-  );
-
-  const frameNum = React.useMemo(() => {
-    const leftFrameNum = getKeys(config).filter((key) => config[key]?.placement === PLACEMENT.RIGHT).length;
-    const rightFrameNum = getKeys(config).filter((key) => config[key]?.placement === PLACEMENT.RIGHT).length;
-    return leftFrameNum > rightFrameNum ? leftFrameNum : rightFrameNum;
-  }, [config]);
 
   const size = React.useMemo(() => {
     const frameInnerGap = 5;
@@ -72,11 +44,9 @@ const useGameSize = function (config: IGameConfig, isSingle: boolean, ratio: num
         frameFontSize = Math.floor(frameWidth / MAX_FRAME_TEXT_LENGTH);
         frameLineHeight = frameFontSize * 1.5;
         // game size
-        gameWidth =
-          tetrisFrameWidth +
-          (frameWidth + gapBetweenTetrisAndFrame) * [hasLeftFrame, hasRightFrame].filter((x) => x).length;
-        if (frameHeight * frameNum + gapBetweenFrameAndFrame * (frameNum - 1) > tetrisFrameHeight) {
-          gameHeight = frameHeight * frameNum + gapBetweenFrameAndFrame * (frameNum - 1);
+        gameWidth = tetrisFrameWidth + (frameWidth + gapBetweenTetrisAndFrame) * (isBothSideHasFrame ? 2 : 1);
+        if (frameHeight * sideFrameMaxNum + gapBetweenFrameAndFrame * (sideFrameMaxNum - 1) > tetrisFrameHeight) {
+          gameHeight = frameHeight * sideFrameMaxNum + gapBetweenFrameAndFrame * (sideFrameMaxNum - 1);
         } else {
           gameHeight = tetrisFrameHeight;
         }
@@ -111,7 +81,7 @@ const useGameSize = function (config: IGameConfig, isSingle: boolean, ratio: num
       gapBetweenTetrisAndFrame,
       gapBetweenFrameAndFrame,
     };
-  }, [screenHeight, ratio, hasLeftFrame, hasRightFrame, frameNum, isSingle, screenWidth]);
+  }, [screenHeight, ratio, isBothSideHasFrame, sideFrameMaxNum, isSingle, screenWidth]);
 
   return size;
 };
