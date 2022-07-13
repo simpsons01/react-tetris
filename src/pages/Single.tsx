@@ -1,45 +1,180 @@
 import React from "react";
-import { DIRECTION } from "../common/polyomino";
-import useGame, { GAME_STATE } from "../hooks/game";
+import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE } from "../common/polyomino";
+import { setRef, CountDownTimer } from "../common/utils";
+import { setting } from "../common/config";
 import Tetris from "../components/Tetris";
 import Game from "../components/Game";
 import Next from "../components/Next";
 import Score from "../components/Score";
 import TetrisPanel from "../components/Tetris/Panel";
 import CountDown from "../components/CountDown";
+import useCountdown from "../hooks/countdown";
+import useTetris from "../hooks/tetris";
+
+export enum GAME_STATE {
+  BEFORE_START,
+  START,
+  NEXT_CYCLE,
+  PAUSE,
+  BEFORE_LEAVE_PAUSE,
+  CHECK_IS_GAME_OVER,
+  GAME_OVER,
+  POLYOMINO_FALLING,
+  CHECK_IS_ROW_FILLED,
+  ROW_FILLED_CLEARING,
+  CHECK_IS_ROW_EMPTY,
+  ROW_EMPTY_FILLING,
+  TIME_UP,
+}
+
+const {
+  game: { frequencyPolyominoFalling, leftsecWhenPolyominoCollideBottom },
+} = setting;
 
 const Single = (): JSX.Element => {
   const {
-    tetris,
-    polyomino,
-    nextPolyominoType,
-    previewPolyomino,
-    score,
-    gameState,
-    leftsec,
-    isPausing,
-    prevGameState,
-    isTimeUp,
-    isGameStart,
-    isGameOver,
-    filledRow,
-    emptyRowGap,
-    setGameState,
-    setScore,
-    checkIsPolyominoCollideWithTetris,
+    polyominoCoordinate,
+    setPolyominoToTetrisData,
+    tetrisData,
+    createPolyomino,
     movePolyomino,
     changePolyominoShape,
-    continueGame,
-    pauseGame,
-    handlePolyominoCreate,
-    handlePolyominoFalling,
-    handleGameOver,
-    handleClearFilledRow,
-    handleNextPolyominoTypeCreate,
-    handleFillEmptyRow,
+    clearRowFilledWithCube,
+    getRowFilledWithCube,
+    getEmptyRow,
+    fillEmptyRow,
+    getPolyominoIsCollideWithNearbyCube,
+    getCoordinateIsCollideWithTetris,
+    previewPolyomino,
+    pauseClearRowAnimation,
+    continueClearRowAnimation,
+    pauseFillRowAnimation,
+    continueFillRowAnimation,
+  } = useTetris();
+
+  const { leftsec, stopCountDown, startCountdown } = useCountdown(60);
+
+  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE>(getRandomPolyominoType());
+
+  const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
+
+  const [score, setScore] = React.useState<number>(0);
+
+  const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
+
+  const setPrevGameState = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
+
+  const { current: polyominoFallingTimer } = React.useRef<CountDownTimer>(
+    new CountDownTimer(frequencyPolyominoFalling)
+  );
+
+  const { current: polyominoCollideBottomTimer } = React.useRef<CountDownTimer>(
+    new CountDownTimer(leftsecWhenPolyominoCollideBottom)
+  );
+
+  const isGameStart = React.useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);
+
+  const isPausing = React.useMemo(
+    () => gameState === GAME_STATE.PAUSE || gameState === GAME_STATE.BEFORE_LEAVE_PAUSE,
+    [gameState]
+  );
+
+  const isGameOver = React.useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
+
+  const isTimeUp = React.useMemo(() => gameState === GAME_STATE.TIME_UP, [gameState]);
+
+  const checkIsPolyominoCollideWithTetris = React.useCallback(() => {
+    let isCollide = false;
+    if (polyominoCoordinate !== null && getCoordinateIsCollideWithTetris(polyominoCoordinate)) {
+      isCollide = true;
+    }
+    return isCollide;
+  }, [polyominoCoordinate, getCoordinateIsCollideWithTetris]);
+
+  const pauseGame = React.useCallback(() => {
+    // console.log("pause game!");
+    pauseClearRowAnimation();
+    pauseFillRowAnimation();
+    polyominoFallingTimer.pause();
+    polyominoCollideBottomTimer.pause();
+    stopCountDown();
+  }, [
+    pauseClearRowAnimation,
+    pauseFillRowAnimation,
+    stopCountDown,
+    polyominoFallingTimer,
+    polyominoCollideBottomTimer,
+  ]);
+
+  const continueGame = React.useCallback(() => {
+    // console.log("continue game!");
+    continueClearRowAnimation();
+    continueFillRowAnimation();
+    polyominoFallingTimer.pause();
+    polyominoCollideBottomTimer.pause();
+    // console.log("gameState is " + gameState);
+    // console.log("prevGameState state is " + prevGameState);
+    startCountdown();
+  }, [
+    continueClearRowAnimation,
+    continueFillRowAnimation,
     startCountdown,
-    setPrevGameState,
-  } = useGame();
+    polyominoFallingTimer,
+    polyominoCollideBottomTimer,
+  ]);
+
+  const handlePolyominoCreate = React.useCallback(() => {
+    if (polyominoCoordinate == null && nextPolyominoType !== null) {
+      console.log("create polyomino!");
+      createPolyomino(nextPolyominoType);
+    }
+  }, [polyominoCoordinate, createPolyomino, nextPolyominoType]);
+
+  const handleNextPolyominoTypeCreate = React.useCallback(() => {
+    setNextPolyominoType(getRandomPolyominoType());
+  }, [setNextPolyominoType]);
+
+  const handleGameOver = React.useCallback(() => {
+    pauseClearRowAnimation();
+    pauseFillRowAnimation();
+    polyominoFallingTimer.clear();
+    polyominoCollideBottomTimer.clear();
+    stopCountDown();
+  }, [
+    pauseClearRowAnimation,
+    pauseFillRowAnimation,
+    stopCountDown,
+    polyominoFallingTimer,
+    polyominoCollideBottomTimer,
+  ]);
+
+  const handlePolyominoFalling = React.useCallback((): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
+      // console.log("isBottomCollide " + isBottomCollide);
+      if (isBottomCollide) {
+        polyominoFallingTimer.clear();
+        polyominoCollideBottomTimer.start(() => {
+          polyominoCollideBottomTimer.clear();
+          setPolyominoToTetrisData();
+          resolve(isBottomCollide);
+        });
+      } else {
+        polyominoCollideBottomTimer.clear();
+        polyominoFallingTimer.start(() => {
+          polyominoFallingTimer.clear();
+          movePolyomino(DIRECTION.DOWN);
+          resolve(isBottomCollide);
+        });
+      }
+    });
+  }, [
+    setPolyominoToTetrisData,
+    getPolyominoIsCollideWithNearbyCube,
+    movePolyomino,
+    polyominoFallingTimer,
+    polyominoCollideBottomTimer,
+  ]);
 
   React.useEffect(
     function handleKeyDown() {
@@ -77,7 +212,6 @@ const Single = (): JSX.Element => {
     },
     [
       isPausing,
-      prevGameState,
       isTimeUp,
       isGameOver,
       gameState,
@@ -118,7 +252,7 @@ const Single = (): JSX.Element => {
           pauseGame();
           break;
         case GAME_STATE.BEFORE_LEAVE_PAUSE:
-          setGameState(prevGameState);
+          setGameState(prevGameState.current);
           continueGame();
           break;
         case GAME_STATE.CHECK_IS_GAME_OVER:
@@ -142,10 +276,11 @@ const Single = (): JSX.Element => {
           });
           break;
         case GAME_STATE.CHECK_IS_ROW_FILLED:
+          const filledRow = getRowFilledWithCube();
           if (filledRow) {
             setGameState(GAME_STATE.ROW_FILLED_CLEARING);
             setScore(score + filledRow.length);
-            handleClearFilledRow().then(() => {
+            clearRowFilledWithCube(filledRow).then(() => {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
           } else {
@@ -155,12 +290,13 @@ const Single = (): JSX.Element => {
         case GAME_STATE.ROW_FILLED_CLEARING:
           break;
         case GAME_STATE.CHECK_IS_ROW_EMPTY:
+          const emptyRowGap = getEmptyRow();
           const isGapNotExist =
             emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
           if (!isGapNotExist) {
             //console.log("fill empty row!");
             setGameState(GAME_STATE.ROW_EMPTY_FILLING);
-            handleFillEmptyRow().then(() => {
+            fillEmptyRow(emptyRowGap).then(() => {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
           } else {
@@ -174,13 +310,9 @@ const Single = (): JSX.Element => {
       }
     },
     [
-      filledRow,
       gameState,
-      emptyRowGap,
       score,
       prevGameState,
-      handleClearFilledRow,
-      handleFillEmptyRow,
       handlePolyominoCreate,
       handlePolyominoFalling,
       handleGameOver,
@@ -191,6 +323,10 @@ const Single = (): JSX.Element => {
       handleNextPolyominoTypeCreate,
       continueGame,
       pauseGame,
+      getRowFilledWithCube,
+      getEmptyRow,
+      clearRowFilledWithCube,
+      fillEmptyRow,
     ]
   );
 
@@ -200,7 +336,12 @@ const Single = (): JSX.Element => {
       next={(cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />}
       countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
       tetris={(cubeDistance) => (
-        <Tetris cubeDistance={cubeDistance} tetris={tetris} polyomino={polyomino} previewPolyomino={previewPolyomino} />
+        <Tetris
+          cubeDistance={cubeDistance}
+          tetris={tetrisData}
+          polyomino={polyominoCoordinate}
+          previewPolyomino={previewPolyomino}
+        />
       )}
       gameover={(fontSize) => (
         <TetrisPanel.GameOver

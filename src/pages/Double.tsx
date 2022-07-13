@@ -1,35 +1,35 @@
 import React from "react";
-import { DIRECTION } from "../common/polyomino";
-import useGame, { GAME_STATE } from "../hooks/game";
+import { getRandomPolyominoType, POLYOMINO_TYPE } from "../common/polyomino";
 import Tetris from "../components/Tetris";
 import Game from "../components/Game";
 import Next from "../components/Next";
 import Score from "../components/Score";
+import useTetris from "../hooks/tetris";
 
 const Single = (): JSX.Element => {
   const {
-    tetris,
-    polyomino,
-    nextPolyominoType,
-    previewPolyomino,
-    score,
-    gameState,
-    filledRow,
-    emptyRowGap,
-    setGameState,
-    setScore,
-    checkIsPolyominoCollideWithTetris,
+    polyominoCoordinate,
+    setPolyominoToTetrisData,
+    tetrisData,
+    createPolyomino,
     movePolyomino,
     changePolyominoShape,
-    handlePolyominoCreate,
-    handlePolyominoFalling,
-    handleGameOver,
-    handleClearFilledRow,
-    handleNextPolyominoTypeCreate,
-    handleFillEmptyRow,
-    startCountdown,
-    setPrevGameState,
-  } = useGame();
+    clearRowFilledWithCube,
+    getRowFilledWithCube,
+    getEmptyRow,
+    fillEmptyRow,
+    getPolyominoIsCollideWithNearbyCube,
+    getCoordinateIsCollideWithTetris,
+    previewPolyomino,
+    pauseClearRowAnimation,
+    continueClearRowAnimation,
+    pauseFillRowAnimation,
+    continueFillRowAnimation,
+  } = useTetris();
+
+  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE>(getRandomPolyominoType());
+
+  const [score, setScore] = React.useState<number>(0);
 
   return (
     <Game.Double
@@ -39,8 +39,8 @@ const Single = (): JSX.Element => {
         tetris: (cubeDistance) => (
           <Tetris
             cubeDistance={cubeDistance}
-            tetris={tetris}
-            polyomino={polyomino}
+            tetris={tetrisData}
+            polyomino={polyominoCoordinate}
             previewPolyomino={previewPolyomino}
           />
         ),
@@ -51,8 +51,8 @@ const Single = (): JSX.Element => {
         tetris: (cubeDistance) => (
           <Tetris
             cubeDistance={cubeDistance}
-            tetris={tetris}
-            polyomino={polyomino}
+            tetris={tetrisData}
+            polyomino={polyominoCoordinate}
             previewPolyomino={previewPolyomino}
           />
         ),

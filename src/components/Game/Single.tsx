@@ -1,8 +1,6 @@
 import { ReactNode } from "react";
 import useGameSize from "../../hooks/gameSize";
 import { IBaseGame, Frame, FrameContainer, FrameTitle, GameContainer } from "./Base";
-import { ISize } from "../../common/utils";
-import styled from "styled-components";
 
 export interface ISingleGame extends IBaseGame {
   countdown: (fontSize: number) => ReactNode;
