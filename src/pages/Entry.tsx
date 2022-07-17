@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import http from "../common/http";
+import socketInstance from "../common/socket";
 
 const EntryContainer = styled.div`
   ul {
@@ -22,6 +23,10 @@ const Entry = (): JSX.Element => {
   React.useEffect(() => {
     http.get("health-check").then((res) => {
       console.log(res);
+    });
+    socketInstance.on("connect", () => {
+      console.log("connected");
+      console.log(socketInstance.id);
     });
   }, []);
   return (
