@@ -1,5 +1,7 @@
+import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import http from "../common/http";
 
 const EntryContainer = styled.div`
   ul {
@@ -17,6 +19,11 @@ const EntryContainer = styled.div`
 `;
 
 const Entry = (): JSX.Element => {
+  React.useEffect(() => {
+    http.get("health-check").then((res) => {
+      console.log(res);
+    });
+  }, []);
   return (
     <EntryContainer>
       <h1>TETRIS GAME</h1>
