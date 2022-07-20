@@ -1,5 +1,5 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
-const socketInstance = io(process.env.REACT_APP_SOCKET_URL as string);
+const createSocketInstance = (roomId: string): Socket => io(`${process.env.REACT_APP_SOCKET_URL as string}/${roomId}`);
 
-export default socketInstance;
+export default createSocketInstance;

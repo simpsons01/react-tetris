@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import http from "../common/http";
-import socketInstance from "../common/socket";
+import createSocketInstance from "../common/socket";
 
 const EntryContainer = styled.div`
   ul {
@@ -21,13 +21,31 @@ const EntryContainer = styled.div`
 
 const Entry = (): JSX.Element => {
   React.useEffect(() => {
-    http.get("health-check").then((res) => {
-      console.log(res);
-    });
-    socketInstance.on("connect", () => {
-      console.log("connected");
-      console.log(socketInstance.id);
-    });
+    async function connect() {
+      const {
+        data: { roomId },
+      } = await http.get<{ roomId: string }>("/game/join");
+      const socket = createSocketInstance(roomId);
+      socket.on("connect", () => {});
+      socket.on("game-participant-joined", (arg1, arg2) => {
+        console.log(arg1);
+        arg2();
+      });
+      socket.on("game-start", () => {
+        console.log("game-start");
+      });
+      socket.on("game-countdown", (leftSec) => {
+        console.log(leftSec);
+      });
+      socket.on("game-over", () => {
+        console.log("game over");
+      });
+      socket.on("disconnect", () => {
+        console.log("disconnect");
+      });
+    }
+
+    connect();
   }, []);
   return (
     <EntryContainer>
