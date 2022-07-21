@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import http from "../common/http";
-import createSocketInstance from "../common/socket";
+import createSocketInstance from "../common/socket/index";
 
 const EntryContainer = styled.div`
   ul {
@@ -22,26 +22,16 @@ const EntryContainer = styled.div`
 const Entry = (): JSX.Element => {
   React.useEffect(() => {
     async function connect() {
+      const { data: user } = await http.post<{ name: string; socketId: string; roomId: string }>("/game/online");
       const {
         data: { roomId },
-      } = await http.get<{ roomId: string }>("/game/join");
+      } = await http.post<{ name: string; socketId: string; roomId: string }>("/game/join-game");
       const socket = createSocketInstance(roomId);
-      socket.on("connect", () => {});
-      socket.on("game-participant-joined", (arg1, arg2) => {
-        console.log(arg1);
-        arg2();
+      socket.on("connect", () => {
+        console.log("connect");
       });
-      socket.on("game-start", () => {
-        console.log("game-start");
-      });
-      socket.on("game-countdown", (leftSec) => {
-        console.log(leftSec);
-      });
-      socket.on("game-over", () => {
-        console.log("game over");
-      });
-      socket.on("disconnect", () => {
-        console.log("disconnect");
+      socket.on("game-countdown", (sec) => {
+        console.log(sec);
       });
     }
 
