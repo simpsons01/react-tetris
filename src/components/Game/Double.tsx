@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import styled from "styled-components";
+import { IFontSize } from "../../common/utils";
 import useGameSize from "../../hooks/gameSize";
 import { IBaseGame, Frame, FrameContainer, FrameTitle, GameContainer } from "./Base";
 
@@ -56,12 +57,26 @@ const OpponentGame = styled.div`
   justify-content: center;
 `;
 
+const RoomStateNotifierContainer = styled.div<IFontSize>`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: ${(props) => `${props.fontSize}px`};
+`;
+
 interface ISideGame extends IBaseGame {}
 
 export interface IDoubleGame {
   self: ISideGame;
   opponent: ISideGame;
   countdown: () => ReactNode;
+  roomStateNotifier: () => ReactNode | null;
 }
 
 const DoubleGame = (props: IDoubleGame): JSX.Element => {
@@ -80,6 +95,10 @@ const DoubleGame = (props: IDoubleGame): JSX.Element => {
     gapBetweenTetrisAndFrame,
     gapBetweenFrameAndFrame,
   } = useGameSize(false, false, 2);
+
+  const roomStateNotifier = props.roomStateNotifier();
+
+  const hasRoomStateNotifier = roomStateNotifier !== null;
 
   return (
     <DoubleGamePanel>
@@ -130,6 +149,9 @@ const DoubleGame = (props: IDoubleGame): JSX.Element => {
           </FrameContainer>
         </GameContainer>
       </OpponentGame>
+      {hasRoomStateNotifier ? (
+        <RoomStateNotifierContainer fontSize={frameFontSize * 2}>{roomStateNotifier}</RoomStateNotifierContainer>
+      ) : null}
     </DoubleGamePanel>
   );
 };
