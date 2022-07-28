@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import http from "../common/http";
 
 const EntryContainer = styled.div`
   ul {
@@ -17,6 +18,17 @@ const EntryContainer = styled.div`
   }
 `;
 const Entry = (): JSX.Element => {
+  const navigate = useNavigate();
+
+  const toDouble = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      http.post("game/online").then(() => {
+        navigate("/double");
+      });
+    },
+    [navigate]
+  );
   return (
     <EntryContainer>
       <h1>TETRIS GAME</h1>
@@ -25,7 +37,7 @@ const Entry = (): JSX.Element => {
           <Link to="/single">PLAY 1P</Link>
         </li>
         <li>
-          <Link to="/double">PLAY 2P</Link>
+          <a onClick={(e) => toDouble(e)}>PLAY 2P</a>
         </li>
       </ul>
     </EntryContainer>
