@@ -34,8 +34,8 @@ const {
 const Single = (): JSX.Element => {
   const {
     polyominoCoordinate,
-    setPolyominoToTetrisData,
-    tetrisData,
+    setPolyominoToTetris,
+    tetris,
     createPolyomino,
     movePolyomino,
     changePolyominoShape,
@@ -156,7 +156,7 @@ const Single = (): JSX.Element => {
         polyominoFallingTimer.clear();
         polyominoCollideBottomTimer.start(() => {
           polyominoCollideBottomTimer.clear();
-          setPolyominoToTetrisData();
+          setPolyominoToTetris();
           resolve(isBottomCollide);
         });
       } else {
@@ -169,7 +169,7 @@ const Single = (): JSX.Element => {
       }
     });
   }, [
-    setPolyominoToTetrisData,
+    setPolyominoToTetris,
     getPolyominoIsCollideWithNearbyCube,
     movePolyomino,
     polyominoFallingTimer,
@@ -338,7 +338,7 @@ const Single = (): JSX.Element => {
       tetris={(cubeDistance) => (
         <Tetris
           cubeDistance={cubeDistance}
-          tetris={tetrisData}
+          tetris={tetris}
           polyomino={polyominoCoordinate}
           previewPolyomino={previewPolyomino}
         />

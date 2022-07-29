@@ -13,14 +13,14 @@ const createInitialPolyominoState = () => ({
   type: null,
 });
 
-export interface IPolyominoState {
+export interface IPolyomino {
   anchor: ICoordinate;
   shape: POLYOMINO_SHAPE;
   type: POLYOMINO_TYPE | null;
 }
 
 const usePolyomino = function () {
-  const [polyomino, setPolyomino] = React.useState<IPolyominoState>(createInitialPolyominoState());
+  const [polyomino, setPolyomino] = React.useState<IPolyomino>(createInitialPolyominoState());
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
     if (polyomino.type == null) return null;

@@ -26,7 +26,7 @@ const condition = (index: number, col: number) => false;
 
 const useTetris = function () {
   const { polyomino, setPolyomino, resetPolyomino, polyominoCoordinate } = usePolyomino();
-  const [tetrisData, setTetrisData] = React.useState<ITetris["tetris"]>(
+  const [tetris, setTetris] = React.useState<ITetris["tetris"]>(
     new Array(PER_ROW_CUBE_NUM * PER_COL_CUBE_NUM).fill(null).map((_, index) => {
       return {
         x: index % PER_COL_CUBE_NUM,
@@ -49,13 +49,13 @@ const useTetris = function () {
         coordinate.y < 0 ||
         coordinate.y >= PER_ROW_CUBE_NUM
       ) {
-        // console.warn(`x: ${coordinate.x} and y: ${coordinate.y} is not in tetrisData`);
+        // console.warn(`x: ${coordinate.x} and y: ${coordinate.y} is not in tetris`);
         return null;
       }
       const index = coordinate.x + coordinate.y * PER_COL_CUBE_NUM;
-      return tetrisData[index] ? tetrisData[index] : null;
+      return tetris[index] ? tetris[index] : null;
     },
-    [tetrisData]
+    [tetris]
   );
 
   const getAnchorNearbyCube = React.useCallback(
@@ -301,10 +301,10 @@ const useTetris = function () {
     [polyomino, setPolyomino, getCoordinateIsCollideWithTetris, getAnchorNearbyCube]
   );
 
-  const setPolyominoToTetrisData = React.useCallback((): void => {
+  const setPolyominoToTetris = React.useCallback((): void => {
     if (polyominoCoordinate == null) return;
-    setTetrisData((prevTetrisData) =>
-      prevTetrisData.map((cube) => {
+    setTetris((prevTetris) =>
+      prevTetris.map((cube) => {
         const cubeInPolyomino = polyominoCoordinate.find(({ x, y }) => cube.x === x && cube.y === y);
         if (cubeInPolyomino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
           return {
@@ -345,8 +345,8 @@ const useTetris = function () {
             (elapse) => {
               if (elapse > executedTime * perUpdateTime && executedTime < times) {
                 ((executedTime) => {
-                  setTetrisData((prevTetrisData) => {
-                    return prevTetrisData.map((cube) => {
+                  setTetris((prevTetris) => {
+                    return prevTetris.map((cube) => {
                       if (
                         (filledRow as Array<number>).indexOf(cube.y) > -1 &&
                         removeIndex[executedTime].indexOf(cube.x) > -1
@@ -438,8 +438,8 @@ const useTetris = function () {
               const end = 1;
               const progress = minMax(elapse / duration, start, end);
               // console.log("progress is " + progress);
-              setTetrisData((prevTetrisData) =>
-                prevTetrisData.map((cube, cubeIndex) => {
+              setTetris((prevTetris) =>
+                prevTetris.map((cube, cubeIndex) => {
                   const cubeRow = Math.floor(cubeIndex / PER_COL_CUBE_NUM);
                   if (progress === end) {
                     const eeeeeeee = zzzzzzzzz.find(({ end }) => end === cubeRow);
@@ -448,7 +448,7 @@ const useTetris = function () {
                       const index = eeeeeeee.start * PER_COL_CUBE_NUM + (cubeIndex % PER_COL_CUBE_NUM);
                       return {
                         ...cube,
-                        state: prevTetrisData[index].state,
+                        state: prevTetris[index].state,
                         y: cubeRow,
                       };
                     } else if (ddddddd !== undefined) {
@@ -550,8 +550,10 @@ const useTetris = function () {
   return {
     polyomino,
     polyominoCoordinate,
-    tetrisData,
+    tetris,
     previewPolyomino,
+    setPolyomino,
+    setTetris,
     getCoordinateIsCollideWithTetris,
     getPolyominoIsCollideWithNearbyCube,
     getAnchorNearbyCube,
@@ -561,7 +563,7 @@ const useTetris = function () {
     movePolyomino,
     changePolyominoShape,
     clearRowFilledWithCube,
-    setPolyominoToTetrisData,
+    setPolyominoToTetris,
     getEmptyRow,
     fillEmptyRow,
     pauseClearRowAnimation,
