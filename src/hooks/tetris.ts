@@ -24,20 +24,21 @@ import { PER_ROW_CUBE_NUM, PER_COL_CUBE_NUM } from "../common/tetris";
 //   (Math.floor(index / col) === 19 && (index % col) % 2 !== 0)
 const condition = (index: number, col: number) => false;
 
+const createTetris = () =>
+  new Array(PER_ROW_CUBE_NUM * PER_COL_CUBE_NUM).fill(null).map((_, index) => {
+    return {
+      x: index % PER_COL_CUBE_NUM,
+      y: Math.floor(index / PER_COL_CUBE_NUM),
+      // strokeColor: condition(index, col) ? "#292929" : "",
+      // fillColor: condition(index, col) ? "#A6A6A6" : "",
+      id: nanoid(),
+      state: condition(index, PER_COL_CUBE_NUM) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
+    };
+  });
+
 const useTetris = function () {
   const { polyomino, setPolyomino, resetPolyomino, polyominoCoordinate } = usePolyomino();
-  const [tetris, setTetris] = React.useState<ITetris["tetris"]>(
-    new Array(PER_ROW_CUBE_NUM * PER_COL_CUBE_NUM).fill(null).map((_, index) => {
-      return {
-        x: index % PER_COL_CUBE_NUM,
-        y: Math.floor(index / PER_COL_CUBE_NUM),
-        // strokeColor: condition(index, col) ? "#292929" : "",
-        // fillColor: condition(index, col) ? "#A6A6A6" : "",
-        id: nanoid(),
-        state: condition(index, PER_COL_CUBE_NUM) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
-      };
-    })
-  );
+  const [tetris, setTetris] = React.useState<ITetris["tetris"]>(createTetris());
   const clearRowAnimationRef = React.useRef<IAnimation | null>(null);
   const fillRowAnimationRef = React.useRef<IAnimation | null>(null);
 
@@ -509,20 +510,6 @@ const useTetris = function () {
     return previewCollideCoordinate;
   }, [getCoordinateIsCollideWithTetris, getPolyominoIsCollideWithNearbyCube, polyomino]);
 
-  const previewPolyomino = React.useMemo((): Array<ICube> | null => {
-    const previewCoordinate = getPolyominoPreviewCoordinate();
-    if (previewCoordinate !== null && polyomino.type !== null) {
-      // const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
-      return previewCoordinate.map(({ x, y }) => ({
-        x,
-        y,
-        // strokeColor,
-        // fillColor,
-      })) as Array<ICube>;
-    }
-    return null;
-  }, [getPolyominoPreviewCoordinate, polyomino]);
-
   const pauseClearRowAnimation = React.useCallback(() => {
     if (clearRowAnimationRef.current !== null && clearRowAnimationRef.current.isStart()) {
       clearRowAnimationRef.current.pause();
@@ -547,6 +534,24 @@ const useTetris = function () {
     }
   }, []);
 
+  const resetTetris = React.useCallback(() => {
+    setTetris(createTetris());
+  }, [setTetris]);
+
+  const previewPolyomino = React.useMemo((): Array<ICube> | null => {
+    const previewCoordinate = getPolyominoPreviewCoordinate();
+    if (previewCoordinate !== null && polyomino.type !== null) {
+      // const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
+      return previewCoordinate.map(({ x, y }) => ({
+        x,
+        y,
+        // strokeColor,
+        // fillColor,
+      })) as Array<ICube>;
+    }
+    return null;
+  }, [getPolyominoPreviewCoordinate, polyomino]);
+
   return {
     polyomino,
     polyominoCoordinate,
@@ -554,6 +559,8 @@ const useTetris = function () {
     previewPolyomino,
     setPolyomino,
     setTetris,
+    resetPolyomino,
+    resetTetris,
     getCoordinateIsCollideWithTetris,
     getPolyominoIsCollideWithNearbyCube,
     getAnchorNearbyCube,
