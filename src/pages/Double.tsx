@@ -90,23 +90,43 @@ const BeforeStart = styled.div``;
 
 const Single = (): JSX.Element => {
   const {
-    polyominoCoordinate,
-    setPolyominoToTetrisData,
-    tetrisData,
-    createPolyomino,
-    movePolyomino,
-    changePolyominoShape,
-    clearRowFilledWithCube,
-    getRowFilledWithCube,
-    getEmptyRow,
-    fillEmptyRow,
-    getPolyominoIsCollideWithNearbyCube,
-    getCoordinateIsCollideWithTetris,
-    previewPolyomino,
-    pauseClearRowAnimation,
-    continueClearRowAnimation,
-    pauseFillRowAnimation,
-    continueFillRowAnimation,
+    polyominoCoordinate: selfPolyominoCoordinate,
+    setPolyominoToTetrisData: setSelfPolyominoToTetrisData,
+    tetrisData: selfTetrisData,
+    createPolyomino: createSelfPolyomino,
+    movePolyomino: moveSelfPolyomino,
+    changePolyominoShape: changeSelfPolyominoShape,
+    clearRowFilledWithCube: clearSelfRowFilledWithCube,
+    getRowFilledWithCube: getSelfRowFilledWithCube,
+    getEmptyRow: getSelfEmptyRow,
+    fillEmptyRow: fillSelfEmptyRow,
+    getPolyominoIsCollideWithNearbyCube: getSelfPolyominoIsCollideWithNearbyCube,
+    getCoordinateIsCollideWithTetris: getSelfCoordinateIsCollideWithTetris,
+    previewPolyomino: selfPreviewPolyomino,
+    pauseClearRowAnimation: pauseSelfClearRowAnimation,
+    continueClearRowAnimation: continueSelfClearRowAnimation,
+    pauseFillRowAnimation: pauseSelfFillRowAnimation,
+    continueFillRowAnimation: continueSelfFillRowAnimation,
+  } = useTetris();
+
+  const {
+    polyominoCoordinate: opponentPolyominoCoordinate,
+    setPolyominoToTetrisData: setOpponentPolyominoToTetrisData,
+    tetrisData: opponentTetrisData,
+    createPolyomino: createOpponentPolyomino,
+    movePolyomino: moveOpponentPolyomino,
+    changePolyominoShape: changeOpponentPolyominoShape,
+    clearRowFilledWithCube: clearOpponentRowFilledWithCube,
+    getRowFilledWithCube: getOpponentRowFilledWithCube,
+    getEmptyRow: getOpponentEmptyRow,
+    fillEmptyRow: fillOpponentEmptyRow,
+    getPolyominoIsCollideWithNearbyCube: getOpponentPolyominoIsCollideWithNearbyCube,
+    getCoordinateIsCollideWithTetris: getOpponentCoordinateIsCollideWithTetris,
+    previewPolyomino: opponentPreviewPolyomino,
+    pauseClearRowAnimation: pauseOpponentClearRowAnimation,
+    continueClearRowAnimation: continueOpponentClearRowAnimation,
+    pauseFillRowAnimation: pauseOpponentFillRowAnimation,
+    continueFillRowAnimation: continueOpponentFillRowAnimation,
   } = useTetris();
 
   const navigate = useNavigate();
@@ -119,9 +139,13 @@ const Single = (): JSX.Element => {
 
   const [roomState, setRoomState] = React.useState<ROOM_STATE>(ROOM_STATE.INITIAL);
 
-  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
+  const [selfNextPolyominoType, setSelfNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
 
-  const [score, setScore] = React.useState<number>(0);
+  const [selfScore, setSelfScore] = React.useState<number>(0);
+
+  const [opponentNextPolyominoType, setOpponentNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
+
+  const [opponentScore, setOpponentScore] = React.useState<number>(0);
 
   const ready = React.useCallback(() => {
     socket.emit("ready", (isReady: boolean) => {
@@ -176,7 +200,7 @@ const Single = (): JSX.Element => {
     socket.on("before_start_game", (leftSec: number) => {
       if (roomState !== ROOM_STATE.BEFORE_START) {
         setRoomState(ROOM_STATE.BEFORE_START);
-        setNextPolyominoType(getRandomPolyominoType());
+        setSelfNextPolyominoType(getRandomPolyominoType());
       }
       setBeforeStartCountDown(leftSec);
     });
@@ -209,26 +233,26 @@ const Single = (): JSX.Element => {
   return (
     <Game.Double
       self={{
-        score: (fontSize) => <Score fontSize={fontSize} score={score} />,
-        next: (cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />,
+        score: (fontSize) => <Score fontSize={fontSize} score={selfScore} />,
+        next: (cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={selfNextPolyominoType} />,
         tetris: (cubeDistance) => (
           <Tetris
             cubeDistance={cubeDistance}
-            tetris={tetrisData}
-            polyomino={polyominoCoordinate}
-            previewPolyomino={previewPolyomino}
+            tetris={selfTetrisData}
+            polyomino={selfPolyominoCoordinate}
+            previewPolyomino={selfPreviewPolyomino}
           />
         ),
       }}
       opponent={{
-        score: (fontSize) => <Score fontSize={fontSize} score={score} />,
-        next: (cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />,
+        score: (fontSize) => <Score fontSize={fontSize} score={opponentScore} />,
+        next: (cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={opponentNextPolyominoType} />,
         tetris: (cubeDistance) => (
           <Tetris
             cubeDistance={cubeDistance}
-            tetris={tetrisData}
-            polyomino={polyominoCoordinate}
-            previewPolyomino={previewPolyomino}
+            tetris={opponentTetrisData}
+            polyomino={opponentPolyominoCoordinate}
+            previewPolyomino={opponentPreviewPolyomino}
           />
         ),
       }}
