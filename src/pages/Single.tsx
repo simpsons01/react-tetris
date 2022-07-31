@@ -65,11 +65,11 @@ const Single = (): JSX.Element => {
   const setPrevGameState = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
   const { current: polyominoFallingTimer } = React.useRef<CountDownTimer>(
-    new CountDownTimer(frequencyPolyominoFalling)
+    new CountDownTimer(frequencyPolyominoFalling, true)
   );
 
   const { current: polyominoCollideBottomTimer } = React.useRef<CountDownTimer>(
-    new CountDownTimer(leftsecWhenPolyominoCollideBottom)
+    new CountDownTimer(leftsecWhenPolyominoCollideBottom, true)
   );
 
   const isGameStart = React.useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);

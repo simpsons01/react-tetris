@@ -6,11 +6,13 @@ import Next from "../components/Next";
 import Score from "../components/Score";
 import Room from "../components/Room";
 import useTetris from "../hooks/tetris";
-import createSocketInstance from "../common/socket/index";
+import getSocketInstance from "../common/socket/index";
 import http from "../common/http";
 import { useNavigate } from "react-router-dom";
 import { IPolyomino } from "../hooks/polyomino";
 import { CountDownTimer, setRef } from "../common/utils";
+
+const socket = getSocketInstance();
 
 export enum GAME_STATE {
   BEFORE_START,
@@ -44,6 +46,7 @@ enum GameDataType {
   TETRIS,
   SCORE,
 }
+
 type GameData = IPolyomino | ITetris["tetris"] | POLYOMINO_TYPE | number | null;
 
 type GameDataUpdatedQueue = Array<{ data: GameData; type: GameDataType }>;
@@ -80,8 +83,6 @@ const Single = (): JSX.Element => {
 
   const navigate = useNavigate();
 
-  const { current: socket } = React.useRef(createSocketInstance());
-
   const [beforeStartCountDown, setBeforeStartCountDown] = React.useState<number>(0);
 
   const [leftSec, setLeftSec] = React.useState<number | undefined>(undefined);
@@ -106,9 +107,9 @@ const Single = (): JSX.Element => {
 
   const prevSelfNextPolyominoType = React.useRef<POLYOMINO_TYPE>(selfNextPolyominoType);
 
-  const { current: polyominoFallingTimer } = React.useRef<CountDownTimer>(new CountDownTimer(0.5));
+  const { current: polyominoFallingTimer } = React.useRef<CountDownTimer>(new CountDownTimer(0.5, true));
 
-  const { current: polyominoCollideBottomTimer } = React.useRef<CountDownTimer>(new CountDownTimer(0.8));
+  const { current: polyominoCollideBottomTimer } = React.useRef<CountDownTimer>(new CountDownTimer(0.8, true));
 
   const handleReady = React.useCallback(() => {
     socket.emit("ready", (isReady: boolean) => {
@@ -119,7 +120,7 @@ const Single = (): JSX.Element => {
         console.log("other is not ready");
       }
     });
-  }, [socket]);
+  }, []);
 
   const handleNextGame = React.useCallback(() => {
     socket.emit("leave_game", () => {
@@ -132,7 +133,7 @@ const Single = (): JSX.Element => {
         }
       });
     });
-  }, [socket]);
+  }, []);
 
   const handleBackToIndex = React.useCallback(() => {
     http.post("game/offline").then(() => {
@@ -140,7 +141,7 @@ const Single = (): JSX.Element => {
       socket.off();
       navigate("/");
     });
-  }, [navigate, socket]);
+  }, [navigate]);
 
   const handlePolyominoFalling = React.useCallback((): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -205,7 +206,11 @@ const Single = (): JSX.Element => {
 
   React.useEffect(
     function handleKeyDown() {
-      const isRegisterKeyDownHandler = roomState === ROOM_STATE.START;
+      const isRegisterKeyDownHandler =
+        roomState === ROOM_STATE.START ||
+        gameState === GAME_STATE.START ||
+        gameState === GAME_STATE.NEXT_CYCLE ||
+        gameState === GAME_STATE.POLYOMINO_FALLING;
       function keydownHandler(e: KeyboardEvent) {
         // console.log("keyCode is " + e.keyCode);
         if (e.keyCode === 37) {
@@ -227,7 +232,7 @@ const Single = (): JSX.Element => {
         }
       };
     },
-    [roomState, changeSelfPolyominoShape, moveSelfPolyomino]
+    [roomState, gameState, changeSelfPolyominoShape, moveSelfPolyomino]
   );
 
   React.useEffect(
@@ -387,7 +392,7 @@ const Single = (): JSX.Element => {
         socket.off();
       };
     },
-    [setRoomState, socket, roomState, setOpponentTetris, setOpponentPolyomino]
+    [setRoomState, roomState, setOpponentTetris, setOpponentPolyomino, handlePauseGame]
   );
 
   React.useEffect(
@@ -425,7 +430,7 @@ const Single = (): JSX.Element => {
         socket.emit("game_data_updated", updatedQueue);
       }
     },
-    [selfTetris, selfScore, selfPolyomino, selfNextPolyominoType, socket]
+    [selfTetris, selfScore, selfPolyomino, selfNextPolyominoType]
   );
 
   return (
