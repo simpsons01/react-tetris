@@ -31,7 +31,9 @@ interface INextCubeBlock extends ISize, IPosition {
   isFilled: boolean;
 }
 const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
-  className: `${props.className !== undefined ? props.className : ""} ${props.isFilled ? "filled" : ""}`,
+  className: `${props.className !== undefined ? props.className : ""} ${
+    props.isFilled ? "filled" : ""
+  }`,
   style: {
     left: `${props.left}px`,
     top: `${props.top}px`,
@@ -86,16 +88,24 @@ export interface INext {
 const Next = (props: INext): JSX.Element => {
   const { polyominoType, cubeDistance } = props;
   // todo: 修正命名
-  const { current: xxxxxxx } = React.useRef(new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()));
+  const { current: xxxxxxx } = React.useRef(
+    new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid())
+  );
   const polyominoAnchor = React.useMemo<ICoordinate | null>(() => {
     if (polyominoType !== null) {
       const polyominoConfig = getPolyominoConfig(polyominoType);
       let anchor = { x: 0, y: 0 };
-      const { coordinate: defaultCoordinate, anchorIndex } = polyominoConfig.coordinate[POLYOMINO_SHAPE.FIRST];
+      const { coordinate: defaultCoordinate, anchorIndex } =
+        polyominoConfig.coordinate[POLYOMINO_SHAPE.FIRST];
       const defaultAnchor = defaultCoordinate[anchorIndex];
-      const { minX, maxX, maxY, minY } = getRangeByCoordinate(defaultCoordinate);
-      anchor.x = (PER_POLYOMINO_CUBE_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
-      anchor.y = (PER_POLYOMINO_CUBE_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
+      const { minX, maxX, maxY, minY } =
+        getRangeByCoordinate(defaultCoordinate);
+      anchor.x =
+        (PER_POLYOMINO_CUBE_NUM - (maxX - minX + 1)) / 2 +
+        (defaultAnchor.x - minX);
+      anchor.y =
+        (PER_POLYOMINO_CUBE_NUM - (maxY - minY + 1)) / 2 +
+        (defaultAnchor.y - minY);
       return anchor;
     }
     return null;
@@ -103,20 +113,35 @@ const Next = (props: INext): JSX.Element => {
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
     if (polyominoType !== null && polyominoAnchor !== null) {
-      return getCoordinateByAnchorAndShapeAndType(polyominoType, POLYOMINO_SHAPE.FIRST, polyominoAnchor);
+      return getCoordinateByAnchorAndShapeAndType(
+        polyominoType,
+        POLYOMINO_SHAPE.FIRST,
+        polyominoAnchor
+      );
     }
     return null;
   }, [polyominoAnchor, polyominoType]);
 
   return (
     <NextPanel>
-      <NextPanelContainer width={PER_POLYOMINO_CUBE_NUM * cubeDistance} height={PER_POLYOMINO_CUBE_NUM * cubeDistance}>
+      <NextPanelContainer
+        width={PER_POLYOMINO_CUBE_NUM * cubeDistance}
+        height={PER_POLYOMINO_CUBE_NUM * cubeDistance}
+      >
         {xxxxxxx.map((id, index) => (
           <NextCube
             key={id}
             isFilled={polyominoCoordinate !== null}
-            left={polyominoCoordinate !== null ? polyominoCoordinate[index].x * cubeDistance : 0}
-            top={polyominoCoordinate !== null ? polyominoCoordinate[index].y * cubeDistance : 0}
+            left={
+              polyominoCoordinate !== null
+                ? polyominoCoordinate[index].x * cubeDistance
+                : 0
+            }
+            top={
+              polyominoCoordinate !== null
+                ? polyominoCoordinate[index].y * cubeDistance
+                : 0
+            }
             width={cubeDistance}
             height={cubeDistance}
           />

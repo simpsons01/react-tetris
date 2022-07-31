@@ -20,17 +20,21 @@ export interface IPolyomino {
 }
 
 const usePolyomino = function () {
-  const [polyomino, setPolyomino] = React.useState<IPolyomino>(createInitialPolyominoState());
+  const [polyomino, setPolyomino] = React.useState<IPolyomino>(
+    createInitialPolyominoState()
+  );
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
     if (polyomino.type == null) return null;
     const polyominoConfig = getPolyominoConfig(polyomino.type);
-    return polyominoConfig.coordinate[polyomino.shape].coordinate.map(({ x, y }) => {
-      return {
-        x: x + polyomino.anchor.x,
-        y: y + polyomino.anchor.y,
-      };
-    }) as Array<ICoordinate>;
+    return polyominoConfig.coordinate[polyomino.shape].coordinate.map(
+      ({ x, y }) => {
+        return {
+          x: x + polyomino.anchor.x,
+          y: y + polyomino.anchor.y,
+        };
+      }
+    ) as Array<ICoordinate>;
   }, [polyomino]);
 
   // const polyominoInfo = React.useMemo<Array<ICube> | null>(() => {

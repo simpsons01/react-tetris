@@ -20,7 +20,9 @@ export const setRef = <T = any>(ref: React.MutableRefObject<T>, val: T) => {
   ref.current = val;
 };
 
-export const getKeys = <T extends object, K extends keyof T>(obj: T): Array<K> => {
+export const getKeys = <T extends object, K extends keyof T>(
+  obj: T
+): Array<K> => {
   return Object.keys(obj) as Array<K>;
 };
 
@@ -32,7 +34,11 @@ export interface IAnimation {
 }
 
 const ms = 1000;
-export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, duration: number = 1): IAnimation => {
+export const createAnimation = (
+  fn: (elapse: number) => void,
+  onEnd?: Function,
+  duration: number = 1
+): IAnimation => {
   let initialTimestamp: number | undefined,
     elapse: number | undefined,
     id: number | undefined,
@@ -40,10 +46,15 @@ export const createAnimation = (fn: (elapse: number) => void, onEnd?: Function, 
     _passed = 0;
   return {
     start: function startAnimation(timestamp: number) {
-      initialTimestamp = initialTimestamp === undefined ? timestamp : initialTimestamp;
-      elapse = minMax((timestamp - initialTimestamp) / ms + _passed, 0, _duration);
+      initialTimestamp =
+        initialTimestamp === undefined ? timestamp : initialTimestamp;
+      elapse = minMax(
+        (timestamp - initialTimestamp) / ms + _passed,
+        0,
+        _duration
+      );
       fn(elapse);
-      //console.log("elapse is " + elapse + "s");
+      console.log("elapse is " + elapse + "s");
       if (elapse !== _duration) {
         id = window.requestAnimationFrame(startAnimation);
       } else {

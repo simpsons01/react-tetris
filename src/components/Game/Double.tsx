@@ -2,7 +2,13 @@ import { ReactNode } from "react";
 import styled from "styled-components";
 import { IFontSize } from "../../common/utils";
 import useGameSize from "../../hooks/gameSize";
-import { IBaseGame, Frame, FrameContainer, FrameTitle, GameContainer } from "./Base";
+import {
+  IBaseGame,
+  Frame,
+  FrameContainer,
+  FrameTitle,
+  GameContainer,
+} from "./Base";
 
 const DoubleGamePanel = styled.div`
   width: 100vw;
@@ -106,35 +112,63 @@ const DoubleGame = (props: IDoubleGame): JSX.Element => {
         <GameContainer width={gameWidth} height={gameHeight}>
           <FrameContainer left={0} top={0}>
             <FrameTitle fontSize={frameFontSize}>SCORE</FrameTitle>
-            <Frame borderWidth={frameBorderWidth} width={frameWidth} height={frameHeight}>
+            <Frame
+              borderWidth={frameBorderWidth}
+              width={frameWidth}
+              height={frameHeight}
+            >
               {props.self.score(frameFontSize * 2)}
             </Frame>
           </FrameContainer>
-          <FrameContainer left={0} top={frameHeight + frameLineHeight + gapBetweenFrameAndFrame}>
+          <FrameContainer
+            left={0}
+            top={frameHeight + frameLineHeight + gapBetweenFrameAndFrame}
+          >
             <FrameTitle fontSize={frameFontSize}>NEXT</FrameTitle>
-            <Frame borderWidth={frameBorderWidth} width={frameWidth} height={frameHeight}>
+            <Frame
+              borderWidth={frameBorderWidth}
+              width={frameWidth}
+              height={frameHeight}
+            >
               {props.self.next(cubeDistance)}
             </Frame>
           </FrameContainer>
           <FrameContainer left={frameWidth + gapBetweenTetrisAndFrame} top={0}>
-            <Frame borderWidth={tetrisBorderWidth} width={tetrisFrameWidth} height={tetrisFrameHeight}>
+            <Frame
+              borderWidth={tetrisBorderWidth}
+              width={tetrisFrameWidth}
+              height={tetrisFrameHeight}
+            >
               {props.self.tetris(cubeDistance)}
             </Frame>
           </FrameContainer>
         </GameContainer>
       </SelfGame>
       <Divider />
-      <CountDownTimer className="nes-container">{props.countdown()}</CountDownTimer>
+      <CountDownTimer className="nes-container">
+        {props.countdown()}
+      </CountDownTimer>
       <OpponentGame>
         <GameContainer width={gameWidth} height={gameHeight}>
           <FrameContainer left={0} top={0}>
-            <Frame borderWidth={tetrisBorderWidth} width={tetrisFrameWidth} height={tetrisFrameHeight}>
+            <Frame
+              borderWidth={tetrisBorderWidth}
+              width={tetrisFrameWidth}
+              height={tetrisFrameHeight}
+            >
               {props.opponent.tetris(cubeDistance)}
             </Frame>
           </FrameContainer>
-          <FrameContainer left={tetrisFrameWidth + gapBetweenTetrisAndFrame} top={0}>
+          <FrameContainer
+            left={tetrisFrameWidth + gapBetweenTetrisAndFrame}
+            top={0}
+          >
             <FrameTitle fontSize={frameFontSize}>SCORE</FrameTitle>
-            <Frame borderWidth={frameBorderWidth} width={frameWidth} height={frameHeight}>
+            <Frame
+              borderWidth={frameBorderWidth}
+              width={frameWidth}
+              height={frameHeight}
+            >
               {props.opponent.score(frameFontSize * 2)}
             </Frame>
           </FrameContainer>
@@ -143,14 +177,20 @@ const DoubleGame = (props: IDoubleGame): JSX.Element => {
             top={frameHeight + frameLineHeight + gapBetweenFrameAndFrame}
           >
             <FrameTitle fontSize={frameFontSize}>NEXT</FrameTitle>
-            <Frame borderWidth={frameBorderWidth} width={frameWidth} height={frameHeight}>
+            <Frame
+              borderWidth={frameBorderWidth}
+              width={frameWidth}
+              height={frameHeight}
+            >
               {props.opponent.next(cubeDistance)}
             </Frame>
           </FrameContainer>
         </GameContainer>
       </OpponentGame>
       {hasRoomStateNotifier ? (
-        <RoomStateNotifierContainer fontSize={frameFontSize * 2}>{roomStateNotifier}</RoomStateNotifierContainer>
+        <RoomStateNotifierContainer fontSize={frameFontSize * 2}>
+          {roomStateNotifier}
+        </RoomStateNotifierContainer>
       ) : null}
     </DoubleGamePanel>
   );

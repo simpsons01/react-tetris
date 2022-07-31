@@ -18,7 +18,9 @@ export interface IFrame extends ISize {
 }
 
 export const Frame = styled.div.attrs((props) => ({
-  className: `nes-container is-rounded ${props.className !== undefined ? props.className : ""}`,
+  className: `nes-container is-rounded ${
+    props.className !== undefined ? props.className : ""
+  }`,
 }))<IFrame>`
   background-color: #eeeeee;
   width: ${(props) => `${props.width}px`};

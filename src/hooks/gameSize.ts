@@ -12,7 +12,8 @@ const useGameSize = function (
   sideFrameMaxNum: number,
   ratio: number = 0.8
 ) {
-  const { width: screenWidth, height: screenHeight } = React.useContext(ScreenSizeContext);
+  const { width: screenWidth, height: screenHeight } =
+    React.useContext(ScreenSizeContext);
 
   const size = React.useMemo(() => {
     const frameInnerGap = 5;
@@ -40,18 +41,31 @@ const useGameSize = function (
         tetrisFrameWidth = tetrisWidth + tetrisBorderWidth * 2;
         tetrisFrameHeight = tetrisHeight + tetrisBorderWidth * 2;
         // frame size
-        frameHeight = frameWidth = cubeDistance * PER_POLYOMINO_CUBE_NUM + frameInnerGap * 2 + frameBorderWidth * 2;
+        frameHeight = frameWidth =
+          cubeDistance * PER_POLYOMINO_CUBE_NUM +
+          frameInnerGap * 2 +
+          frameBorderWidth * 2;
         frameFontSize = Math.floor(frameWidth / MAX_FRAME_TEXT_LENGTH);
         frameLineHeight = frameFontSize * 1.5;
         // game size
-        gameWidth = tetrisFrameWidth + (frameWidth + gapBetweenTetrisAndFrame) * (isBothSideHasFrame ? 2 : 1);
-        if (frameHeight * sideFrameMaxNum + gapBetweenFrameAndFrame * (sideFrameMaxNum - 1) > tetrisFrameHeight) {
-          gameHeight = frameHeight * sideFrameMaxNum + gapBetweenFrameAndFrame * (sideFrameMaxNum - 1);
+        gameWidth =
+          tetrisFrameWidth +
+          (frameWidth + gapBetweenTetrisAndFrame) *
+            (isBothSideHasFrame ? 2 : 1);
+        if (
+          frameHeight * sideFrameMaxNum +
+            gapBetweenFrameAndFrame * (sideFrameMaxNum - 1) >
+          tetrisFrameHeight
+        ) {
+          gameHeight =
+            frameHeight * sideFrameMaxNum +
+            gapBetweenFrameAndFrame * (sideFrameMaxNum - 1);
         } else {
           gameHeight = tetrisFrameHeight;
         }
         if (
-          gameWidth >= (isSingle ? screenWidth * ratio : (screenWidth / 2) * ratio) ||
+          gameWidth >=
+            (isSingle ? screenWidth * ratio : (screenWidth / 2) * ratio) ||
           gameHeight >= screenHeight * ratio
         ) {
           continue;
@@ -81,7 +95,14 @@ const useGameSize = function (
       gapBetweenTetrisAndFrame,
       gapBetweenFrameAndFrame,
     };
-  }, [screenHeight, ratio, isBothSideHasFrame, sideFrameMaxNum, isSingle, screenWidth]);
+  }, [
+    screenHeight,
+    ratio,
+    isBothSideHasFrame,
+    sideFrameMaxNum,
+    isSingle,
+    screenWidth,
+  ]);
 
   return size;
 };

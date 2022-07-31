@@ -2,9 +2,12 @@ import React from "react";
 import { CountDownTimer } from "../common/utils";
 
 const useCountdown = function (sec: number) {
-  const { current: countDownTimer } = React.useRef<CountDownTimer>(new CountDownTimer(1));
+  const { current: countDownTimer } = React.useRef<CountDownTimer>(
+    new CountDownTimer(1)
+  );
   const [leftsec, setLeftsec] = React.useState<number>(sec);
-  const [isStartCountDown, setIsStartCountDown] = React.useState<boolean>(false);
+  const [isStartCountDown, setIsStartCountDown] =
+    React.useState<boolean>(false);
 
   const startCountdown = React.useCallback(() => {
     if (!isStartCountDown) {
