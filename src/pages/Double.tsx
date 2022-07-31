@@ -17,9 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { IPolyomino } from "../hooks/polyomino";
 import { CountDownTimer, setRef } from "../common/utils";
 
-const socket = getSocketInstance();
-
-export enum GAME_STATE {
+enum GAME_STATE {
   BEFORE_START,
   START,
   NEXT_CYCLE,
@@ -33,7 +31,7 @@ export enum GAME_STATE {
   GAME_OVER,
 }
 
-export enum ROOM_STATE {
+enum ROOM_STATE {
   INITIAL,
   WAITING,
   READY,
@@ -55,6 +53,10 @@ enum GameDataType {
 type GameData = IPolyomino | ITetris["tetris"] | POLYOMINO_TYPE | number | null;
 
 type GameDataUpdatedQueue = Array<{ data: GameData; type: GameDataType }>;
+
+const socket = getSocketInstance();
+const polyominoFallingTimer = new CountDownTimer(0.3, true);
+const polyominoCollideBottomTimer = new CountDownTimer(0.2, true);
 
 const Single = (): JSX.Element => {
   const {
@@ -126,14 +128,6 @@ const Single = (): JSX.Element => {
 
   const prevSelfNextPolyominoType = React.useRef<POLYOMINO_TYPE>(
     selfNextPolyominoType
-  );
-
-  const { current: polyominoFallingTimer } = React.useRef<CountDownTimer>(
-    new CountDownTimer(0.5, true)
-  );
-
-  const { current: polyominoCollideBottomTimer } = React.useRef<CountDownTimer>(
-    new CountDownTimer(0.3, true)
   );
 
   const selfPreviewPolyomino = React.useMemo((): Array<ICube> | null => {
@@ -223,8 +217,6 @@ const Single = (): JSX.Element => {
   }, [
     getSelfPolyominoIsCollideWithNearbyCube,
     moveSelfPolyomino,
-    polyominoCollideBottomTimer,
-    polyominoFallingTimer,
     setSelfPolyominoToTetris,
   ]);
 
@@ -246,8 +238,6 @@ const Single = (): JSX.Element => {
     pauseSelfClearRowAnimation();
     pauseSelfFillRowAnimation();
   }, [
-    polyominoFallingTimer,
-    polyominoCollideBottomTimer,
     pauseSelfClearRowAnimation,
     pauseSelfFillRowAnimation,
     pauseSelfFillAllRowAnimation,
@@ -422,8 +412,6 @@ const Single = (): JSX.Element => {
     [
       gameState,
       selfScore,
-      polyominoCollideBottomTimer,
-      polyominoFallingTimer,
       checkIsPolyominoCollideWithTetris,
       handleNextPolyominoTypeCreate,
       handlePolyominoCreate,
