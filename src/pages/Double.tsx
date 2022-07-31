@@ -58,7 +58,7 @@ const socket = getSocketInstance();
 const polyominoFallingTimer = new CountDownTimer(0.3, true);
 const polyominoCollideBottomTimer = new CountDownTimer(0.2, true);
 
-const Single = (): JSX.Element => {
+const Double = (): JSX.Element => {
   const {
     polyomino: selfPolyomino,
     tetris: selfTetris,
@@ -611,4 +611,4 @@ const Single = (): JSX.Element => {
   );
 };
 
-export default Single;
+export default Double;
