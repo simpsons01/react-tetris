@@ -3,10 +3,11 @@ import "./style/index.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import Single from "./pages/Single";
 import Entry from "./pages/Entry";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Double from "./pages/Double";
+
+const Single = React.lazy(() => import("./pages/Single"));
+const Double = React.lazy(() => import("./pages/Double"));
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
