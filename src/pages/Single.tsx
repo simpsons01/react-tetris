@@ -1,5 +1,5 @@
 import React from "react";
-import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE } from "../common/polyomino";
+import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE, ICube } from "../common/polyomino";
 import { setRef, CountDownTimer } from "../common/utils";
 import { setting } from "../common/config";
 import Tetris from "../components/Tetris";
@@ -34,8 +34,9 @@ const {
 const Single = (): JSX.Element => {
   const {
     polyominoCoordinate,
-    setPolyominoToTetris,
+    polyomino,
     tetris,
+    setPolyominoToTetris,
     createPolyomino,
     movePolyomino,
     changePolyominoShape,
@@ -45,11 +46,11 @@ const Single = (): JSX.Element => {
     fillEmptyRow,
     getPolyominoIsCollideWithNearbyCube,
     getCoordinateIsCollideWithTetris,
-    previewPolyomino,
     pauseClearRowAnimation,
     continueClearRowAnimation,
     pauseFillRowAnimation,
     continueFillRowAnimation,
+    getPolyominoPreviewCoordinate,
   } = useTetris();
 
   const { leftsec, stopCountDown, startCountdown } = useCountdown(60);
@@ -82,6 +83,17 @@ const Single = (): JSX.Element => {
   const isGameOver = React.useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
 
   const isTimeUp = React.useMemo(() => gameState === GAME_STATE.TIME_UP, [gameState]);
+
+  const previewPolyomino = React.useMemo(() => {
+    const previewCoordinate = getPolyominoPreviewCoordinate();
+    if (previewCoordinate !== null && polyomino.type !== null) {
+      return previewCoordinate.map(({ x, y }) => ({
+        x,
+        y,
+      })) as Array<ICube>;
+    }
+    return null;
+  }, [polyomino, getPolyominoPreviewCoordinate]);
 
   const checkIsPolyominoCollideWithTetris = React.useCallback(() => {
     let isCollide = false;
