@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const Single = React.lazy(() => import("./pages/Single"));
 const Double = React.lazy(() => import("./pages/Double"));
+const Rooms = React.lazy(() => import("./pages/Rooms"));
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -19,6 +20,7 @@ root.render(
         <Route index element={<Entry />} />
         <Route path="single" element={<Single />} />
         <Route path="double" element={<Double />} />
+        <Route path="rooms" element={<Rooms />} />
       </Route>
     </Routes>
   </BrowserRouter>

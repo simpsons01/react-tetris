@@ -1,9 +1,15 @@
+import { isNil } from "ramda";
 import { io, Socket } from "socket.io-client";
 
-const instance = io(process.env.REACT_APP_SOCKET_URL as string, {
-  withCredentials: true,
-});
+let instance: Socket;
 
-const getSocketInstance = (): Socket => instance;
+const getSocketInstance = (): Socket => {
+  if (isNil(instance)) {
+    instance = io(process.env.REACT_APP_SOCKET_URL as string, {
+      withCredentials: true,
+    });
+  }
+  return instance;
+};
 
 export default getSocketInstance;
