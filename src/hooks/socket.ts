@@ -2,47 +2,54 @@ import React from "react";
 import { Socket } from "socket.io-client";
 import getSocketInstance from "../common/socket";
 
-export interface ISocketContext {
-  isErrorOccur: boolean;
+export interface ISocketContext<
+  ServerToClientEvt = {},
+  ClientToServerEvt = {}
+> {
+  isConnectErrorOccur: boolean;
   isConnected: boolean;
-  socketInstance: Socket | null;
+  socketInstance: Socket<ServerToClientEvt, ClientToServerEvt>;
 }
 
-export const SocketContext = React.createContext<ISocketContext>({
-  isErrorOccur: false,
-  isConnected: false,
-  socketInstance: null,
-});
+export const SocketContext = React.createContext<ISocketContext>(
+  {} as ISocketContext
+);
 
 const useSocket = function () {
-  const [isErrorOccur, setIsErrorOccur] = React.useState<boolean>(false);
-
-  const [isConnected, setIsConnected] = React.useState<boolean>(false);
-
   const socketInstance = getSocketInstance();
+
+  const [isConnected, setIsConnected] = React.useState<boolean>(
+    socketInstance.connected
+  );
+
+  const [isConnectErrorOccur, setIsConnectErrorOccur] =
+    React.useState<boolean>(false);
 
   React.useEffect(() => {
     socketInstance.on("connect", () => {
-      if (isErrorOccur) {
-        setIsErrorOccur(false);
-      }
+      setIsConnectErrorOccur(false);
       setIsConnected(true);
     });
     socketInstance.on("disconnect", () => {
+      console.log("disconnected");
       setIsConnected(false);
     });
-    socketInstance.on("connect_error", () => {
-      setIsErrorOccur(true);
+    socketInstance.on("connect_error", (err) => {
+      console.log("connected error occur");
+      console.log(err);
+      setIsConnected(false);
+      setIsConnectErrorOccur(true);
     });
     return () => {
-      socketInstance.off();
+      socketInstance.off("connect");
+      socketInstance.off("disconnect");
+      socketInstance.off("connect_error");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isErrorOccur]);
+  }, [socketInstance]);
 
   return {
     socketInstance,
-    isErrorOccur,
+    isConnectErrorOccur,
     isConnected,
   };
 };

@@ -1,10 +1,10 @@
 import styled from "styled-components";
-import { MyFunction, IFontSize } from "../../../common/utils";
+import { AnyFunction, IFontSize } from "../../../common/utils";
 import { BasePanel, IPanel } from "./Base";
 
 export interface IGameOverPanel extends IPanel {
   isGameStart: boolean;
-  onGameStart: MyFunction;
+  onGameStart: AnyFunction;
 }
 
 const GameStartBtn = styled.button<IFontSize>`

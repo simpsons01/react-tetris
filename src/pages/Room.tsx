@@ -9,7 +9,7 @@ import Tetris, { ITetris } from "../components/Tetris";
 import Game from "../components/Game";
 import Next from "../components/Next";
 import Score from "../components/Score";
-import Room from "../components/Room";
+import Overlay from "../components/Overlay";
 import useTetris from "../hooks/tetris";
 import getSocketInstance from "../common/socket/index";
 import http from "../common/http";
@@ -58,7 +58,7 @@ const socket = getSocketInstance();
 const polyominoFallingTimer = new CountDownTimer(0.3, true);
 const polyominoCollideBottomTimer = new CountDownTimer(0.2, true);
 
-const Double = (): JSX.Element => {
+const Room = (): JSX.Element => {
   const {
     polyomino: selfPolyomino,
     tetris: selfTetris,
@@ -546,13 +546,13 @@ const Double = (): JSX.Element => {
       roomStateNotifier={() => {
         let notifier = null;
         if (roomState === ROOM_STATE.WAITING) {
-          notifier = <Room.Waiting>WAIT</Room.Waiting>;
+          notifier = <Overlay.Waiting>WAIT</Overlay.Waiting>;
         } else if (
           roomState === ROOM_STATE.READY ||
           roomState === ROOM_STATE.WAIT_OTHER_READY
         ) {
           notifier = (
-            <Room.Ready>
+            <Overlay.Ready>
               <div>JOIN GAME</div>
               <button className="nes-btn" onClick={handleReady}>
                 <span
@@ -564,15 +564,15 @@ const Double = (): JSX.Element => {
               <button onClick={handleBackToIndex} className="nes-btn">
                 QUIT
               </button>
-            </Room.Ready>
+            </Overlay.Ready>
           );
         } else if (roomState === ROOM_STATE.BEFORE_START) {
           notifier = (
-            <Room.BeforeStart>{beforeStartCountDown}</Room.BeforeStart>
+            <Overlay.BeforeStart>{beforeStartCountDown}</Overlay.BeforeStart>
           );
         } else if (roomState === ROOM_STATE.INTERRUPTED) {
           notifier = (
-            <Room.Interrupted>
+            <Overlay.Interrupted>
               <div>INTERRUPTED</div>
               <button onClick={handleNextGame} className="nes-btn">
                 NEXT
@@ -580,11 +580,11 @@ const Double = (): JSX.Element => {
               <button onClick={handleBackToIndex} className="nes-btn">
                 QUIT
               </button>
-            </Room.Interrupted>
+            </Overlay.Interrupted>
           );
         } else if (roomState === ROOM_STATE.END) {
           notifier = (
-            <Room.End>
+            <Overlay.End>
               <div>YOU WIN!</div>
               <button onClick={handleNextGame} className="nes-btn">
                 NEXT
@@ -592,16 +592,16 @@ const Double = (): JSX.Element => {
               <button onClick={handleBackToIndex} className="nes-btn">
                 QUIT
               </button>
-            </Room.End>
+            </Overlay.End>
           );
         } else if (roomState === ROOM_STATE.ERROR) {
           notifier = (
-            <Room.Error>
+            <Overlay.Error>
               <div>ERROR</div>
               <button onClick={handleBackToIndex} className="nes-btn">
                 QUIT
               </button>
-            </Room.Error>
+            </Overlay.Error>
           );
         }
 
@@ -611,4 +611,4 @@ const Double = (): JSX.Element => {
   );
 };
 
-export default Double;
+export default Room;

@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import styled from "styled-components";
-import { IFontSize } from "../../common/utils";
 import useGameSize from "../../hooks/gameSize";
+import Overlay from "../Overlay";
 import {
   IBaseGame,
   Frame,
@@ -61,19 +61,6 @@ const OpponentGame = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-`;
-
-const RoomStateNotifierContainer = styled.div<IFontSize>`
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  font-size: ${(props) => `${props.fontSize}px`};
 `;
 
 interface ISideGame extends IBaseGame {}
@@ -188,9 +175,9 @@ const DoubleGame = (props: IDoubleGame): JSX.Element => {
         </GameContainer>
       </OpponentGame>
       {hasRoomStateNotifier ? (
-        <RoomStateNotifierContainer fontSize={frameFontSize * 2}>
+        <Overlay.Container fontSize={frameFontSize * 2}>
           {roomStateNotifier}
-        </RoomStateNotifierContainer>
+        </Overlay.Container>
       ) : null}
     </DoubleGamePanel>
   );

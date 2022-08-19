@@ -1,4 +1,18 @@
 import styled, { keyframes, css } from "styled-components";
+import { IFontSize } from "../../common/utils";
+
+const Container = styled.div<IFontSize>`
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: ${(props) => `${props.fontSize}px`};
+`;
 
 const DotWaiting = css`
   &::before {
@@ -67,6 +81,7 @@ const Error = styled.div`
 const BeforeStart = styled.div``;
 
 export default {
+  Container,
   Error,
   BeforeStart,
   Interrupted,

@@ -1,6 +1,10 @@
-import React from "react";
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
+import Modal from "../components/Modal";
+import React from "react";
+import { KEYCODE } from "../common/keyboard";
+import { ISocketContext, SocketContext } from "../hooks/socket";
+import { ClientToServerCallback, createAlertModal } from "../common/utils";
 import http from "../common/http";
 
 const EntryContainer = styled.div`
@@ -20,15 +24,68 @@ const EntryContainer = styled.div`
 const Entry = (): JSX.Element => {
   const navigate = useNavigate();
 
-  const toDouble = React.useCallback(
+  const { socketInstance, isConnected } = React.useContext<
+    ISocketContext<
+      {},
+      {
+        set_name: (name: string, done: ClientToServerCallback<{}>) => void;
+        get_name: (done: ClientToServerCallback<{ name: string }>) => void;
+      }
+    >
+  >(SocketContext);
+
+  const [isCreateUsernameModalOpen, setIsCreateNameModalOpen] =
+    React.useState<boolean>(false);
+
+  const [userName, setUserName] = React.useState<string>("");
+
+  const saveName = React.useCallback(
+    (name: string) => {
+      const onFail = () => {
+        setIsCreateNameModalOpen(false);
+        createAlertModal("FAILED");
+      };
+      if (isConnected) {
+        socketInstance.emit(
+          "set_name",
+          name,
+          ({ metadata: { isSuccess, isError } }) => {
+            if (isError) {
+              onFail();
+              return;
+            }
+            if (isSuccess) {
+              navigate("/rooms");
+            } else {
+              onFail();
+            }
+          }
+        );
+      }
+    },
+    [isConnected, navigate, socketInstance]
+  );
+
+  const toRooms = React.useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
-      http.post("game/online").then(() => {
-        navigate("/double");
-      });
+      if (isConnected) {
+        socketInstance.emit("get_name", ({ data: { name } }) => {
+          if (name) {
+            navigate("/rooms");
+          } else {
+            setIsCreateNameModalOpen(true);
+          }
+        });
+      }
     },
-    [navigate]
+    [isConnected, navigate, socketInstance]
   );
+
+  React.useEffect(() => {
+    http.get("/health-check");
+  }, []);
+
   return (
     <EntryContainer>
       <h1>TETRIS GAME</h1>
@@ -37,9 +94,44 @@ const Entry = (): JSX.Element => {
           <Link to="/single">PLAY 1P</Link>
         </li>
         <li>
-          <a onClick={(e) => toDouble(e)}>PLAY 2P</a>
+          <a href={void 0} onClick={toRooms}>
+            PLAY 2P
+          </a>
         </li>
       </ul>
+      <Modal
+        isOpen={isCreateUsernameModalOpen}
+        title="ENTER YOUR NAME"
+        body={
+          <div className="nes-field">
+            <input
+              value={userName}
+              className="nes-input"
+              type="text"
+              onInput={(event: React.FormEvent<HTMLInputElement>) => {
+                setUserName(event.currentTarget.value);
+              }}
+              onKeyDown={(event: React.KeyboardEvent) => {
+                if (event.key === KEYCODE.ENTER) {
+                  saveName(userName);
+                }
+              }}
+            />
+          </div>
+        }
+        confirm={{
+          text: "CREATE",
+          onClick: () => {
+            saveName(userName);
+          },
+        }}
+        cancel={{
+          text: "CANCEL",
+          onClick: () => {
+            setIsCreateNameModalOpen(false);
+          },
+        }}
+      />
     </EntryContainer>
   );
 };

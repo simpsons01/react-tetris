@@ -1,10 +1,10 @@
 import { BasePanel, BasePanelText, IPanel } from "./Base";
 import styled from "styled-components";
-import { MyFunction } from "../../../common/utils";
+import { AnyFunction } from "../../../common/utils";
 
 export interface ITimesUp extends IPanel {
   isTimeUp: boolean;
-  onTimesUpBtn: MyFunction;
+  onTimesUpBtn: AnyFunction;
 }
 
 const TimeUpBtn = styled.button`

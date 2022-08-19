@@ -1,10 +1,26 @@
-import * as React from "react";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import Modal from "../../components/Modal";
+
+export type ClientToServerCallback<Data extends object = {}> = (payload: {
+  data: Data;
+  metadata: {
+    isSuccess: boolean;
+    isError: boolean;
+  };
+}) => void;
 
 export interface IFontSize {
   fontSize: number;
 }
 
-export type MyFunction<T = any> = (...args: Array<T>) => T;
+export interface AnyObject<T = any> {
+  [key: string]: T;
+}
+
+export type AnyFunction<T = any, K = any | undefined | void | unknown> = (
+  ...args: Array<T>
+) => K;
 
 export interface ISize {
   width: number;
@@ -16,6 +32,13 @@ export interface IPosition {
   top: number;
 }
 
+export interface IAnimation {
+  start: (timestamp: number) => void;
+  pause: () => void;
+  reset: () => void;
+  isStart: () => boolean;
+}
+
 export const setRef = <T = any>(ref: React.MutableRefObject<T>, val: T) => {
   ref.current = val;
 };
@@ -25,13 +48,6 @@ export const getKeys = <T extends object, K extends keyof T>(
 ): Array<K> => {
   return Object.keys(obj) as Array<K>;
 };
-
-export interface IAnimation {
-  start: (timestamp: number) => void;
-  pause: () => void;
-  reset: () => void;
-  isStart: () => boolean;
-}
 
 const ms = 1000;
 export const createAnimation = (
@@ -194,3 +210,42 @@ export class CountDownTimer extends Timer {
     this.create();
   }
 }
+
+let modalId = 0;
+export const createAlertModal = (
+  title: string,
+  confirm?: {
+    text: string;
+    onClick: (e: React.MouseEvent) => void;
+  }
+): AnyFunction => {
+  modalId += 1;
+  let modalApp: ReactDOM.Root | null = null;
+  let modalContainer: HTMLElement | null = document.createElement("div");
+  (modalContainer as HTMLElement).id = `modal-${modalId}`;
+
+  const clear = () => {
+    document.body.removeChild(modalContainer as HTMLElement);
+    (modalApp as ReactDOM.Root).unmount();
+    modalApp = null;
+    modalContainer = null;
+  };
+
+  document.body.appendChild(modalContainer);
+  modalApp = ReactDOM.createRoot(modalContainer);
+  modalApp.render(
+    React.createElement(Modal, {
+      portal: false,
+      isOpen: true,
+      title,
+      confirm: {
+        text: confirm ? confirm.text : "confirm",
+        onClick: (e) => {
+          clear();
+          if (confirm) confirm.onClick(e);
+        },
+      },
+    })
+  );
+  return clear;
+};

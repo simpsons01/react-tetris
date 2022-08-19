@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { MyFunction } from "../../../common/utils";
+import { AnyFunction } from "../../../common/utils";
 import { BasePanel, BasePanelText, IPanel } from "./Base";
 
 const GameOverBtn = styled.button`
@@ -8,7 +8,7 @@ const GameOverBtn = styled.button`
 
 export interface IGameOverPanel extends IPanel {
   isGameOver: boolean;
-  onGameOverBtnClick: MyFunction;
+  onGameOverBtnClick: AnyFunction;
 }
 
 const GameOver = (props: IGameOverPanel): JSX.Element | null => {
