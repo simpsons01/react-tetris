@@ -69,6 +69,9 @@ const Rooms = (): JSX.Element => {
         error_occur: AnyFunction;
       },
       {
+        get_socket_data: (
+          done: ClientToServerCallback<{ roomId: string; name: string }>
+        ) => void;
         get_rooms: (
           done: ClientToServerCallback<{ rooms: Array<IRoom> }>
         ) => void;
@@ -148,15 +151,22 @@ const Rooms = (): JSX.Element => {
 
   React.useEffect(() => {
     if (isConnected) {
-      getRooms();
-      socketInstance.on("error_occur", () => {});
+      socketInstance.emit("get_socket_data", ({ data: { name } }) => {
+        if (!name) {
+          navigate("/");
+        } else {
+          getRooms();
+        }
+      });
+    } else {
+      navigate("/");
     }
     return () => {
       if (isConnected) {
-        socketInstance.off("error_occur");
       }
     };
-  }, [isConnected, socketInstance, getRooms]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <RoomsContainer>

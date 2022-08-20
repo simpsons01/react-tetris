@@ -28,7 +28,9 @@ const Entry = (): JSX.Element => {
       {},
       {
         set_name: (name: string, done: ClientToServerCallback<{}>) => void;
-        get_name: (done: ClientToServerCallback<{ name: string }>) => void;
+        get_socket_data: (
+          done: ClientToServerCallback<{ roomId: string; name: string }>
+        ) => void;
       }
     >
   >(SocketContext);
@@ -69,7 +71,7 @@ const Entry = (): JSX.Element => {
     (e: React.MouseEvent) => {
       e.preventDefault();
       if (isConnected) {
-        socketInstance.emit("get_name", ({ data: { name } }) => {
+        socketInstance.emit("get_socket_data", ({ data: { name } }) => {
           if (name) {
             navigate("/rooms");
           } else {

@@ -42,10 +42,10 @@ enum ROOM_STATE {
 }
 
 enum GameDataType {
-  NEXT_POLYOMINO_TYPE,
-  POLYOMINO,
-  TETRIS,
-  SCORE,
+  NEXT_POLYOMINO_TYPE = "NEXT_POLYOMINO_TYPE",
+  POLYOMINO = "POLYOMINO",
+  TETRIS = "TETRIS",
+  SCORE = "SCORE",
 }
 
 type GameData = IPolyomino | ITetris["tetris"] | POLYOMINO_TYPE | number | null;
@@ -101,9 +101,13 @@ const Room = (): JSX.Element => {
         game_leftSec: (leftsec: number) => void;
         game_interrupted: () => void;
         game_over: () => void;
+        room_host_leave: () => void;
         other_game_data_updated: (updatedQueue: GameDataUpdatedQueue) => void;
       },
       {
+        get_socket_data: (
+          done: ClientToServerCallback<{ roomId: string; name: string }>
+        ) => void;
         ready: (done: ClientToServerCallback<{}>) => void;
         leave_room: (done: ClientToServerCallback<{}>) => void;
         force_leave_room: (done: ClientToServerCallback<{}>) => void;
@@ -332,6 +336,23 @@ const Room = (): JSX.Element => {
     ]
   );
 
+  React.useEffect(() => {
+    if (isConnected) {
+      socketInstance.emit("get_socket_data", ({ data: { name, roomId } }) => {
+        if (!name || !roomId) {
+          navigate("/");
+        }
+      });
+    } else {
+      navigate("/");
+    }
+    return () => {
+      if (isConnected) {
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   React.useEffect(
     function handleKeyDown() {
       const isRegisterKeyDownHandler =
@@ -513,6 +534,10 @@ const Room = (): JSX.Element => {
             });
           }
         );
+        socketInstance.on("room_host_leave", () => {
+          setGameState(GAME_STATE.GAME_OVER);
+          setRoomState(ROOM_STATE.INTERRUPTED);
+        });
       }
       return () => {
         if (isConnected) {

@@ -7,7 +7,6 @@ import Entry from "./pages/Entry";
 import Single from "./pages/Single";
 import Rooms from "./pages/Rooms";
 import Room from "./pages/Room";
-import RequiredName from "./components/RequiredName";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const root = ReactDOM.createRoot(
@@ -19,22 +18,8 @@ root.render(
       <Route path="/" element={<App />}>
         <Route index element={<Entry />} />
         <Route path="single" element={<Single />} />
-        <Route
-          path="room/:id"
-          element={
-            <RequiredName>
-              <Room />
-            </RequiredName>
-          }
-        />
-        <Route
-          path="rooms"
-          element={
-            <RequiredName>
-              <Rooms />
-            </RequiredName>
-          }
-        />
+        <Route path="room/:id" element={<Room />} />
+        <Route path="rooms" element={<Rooms />} />
       </Route>
     </Routes>
   </BrowserRouter>
