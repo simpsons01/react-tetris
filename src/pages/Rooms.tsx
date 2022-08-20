@@ -111,7 +111,7 @@ const Rooms = (): JSX.Element => {
       if (isConnected && socketInstance) {
         socketInstance.emit(
           "join_room",
-          `room:${roomId}`,
+          roomId,
           ({ data: {}, metadata: { isSuccess, isError } }) => {
             if (isError) return;
             if (isSuccess) {
@@ -191,9 +191,9 @@ const Rooms = (): JSX.Element => {
         title="OPS!"
         body="THERE IS NO ROOM AVAILABLE"
         cancel={{
-          text: "PLAY 1P",
+          text: "CANCEL",
           onClick: () => {
-            navigate("/single");
+            setIsNoRoomsModalOpen(false);
           },
         }}
         confirm={{

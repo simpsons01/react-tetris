@@ -38,35 +38,37 @@ function App() {
   return (
     <AppContainer>
       {isInitial ? (
-        <SocketContext.Provider
-          value={{
-            isConnected,
-            isConnectErrorOccur,
-            socketInstance,
-          }}
-        >
-          <ScreenSizeContext.Provider value={{ width, height }}>
-            <Outlet />
-          </ScreenSizeContext.Provider>
-        </SocketContext.Provider>
+        <React.Fragment>
+          <SocketContext.Provider
+            value={{
+              isConnected,
+              isConnectErrorOccur,
+              socketInstance,
+            }}
+          >
+            <ScreenSizeContext.Provider value={{ width, height }}>
+              <Outlet />
+            </ScreenSizeContext.Provider>
+          </SocketContext.Provider>
+          {isConnectErrorOccur || !isConnected ? (
+            <Overlay.Container fontSize={32}>
+              <Overlay.Error>
+                <div>CONNECT ERROR</div>
+                <button
+                  onClick={() => socketInstance.connect()}
+                  className="nes-btn"
+                >
+                  RETRY
+                </button>
+              </Overlay.Error>
+            </Overlay.Container>
+          ) : null}
+        </React.Fragment>
       ) : (
         <Overlay.Container background="#fff" fontSize={32}>
           <Overlay.Waiting>INITIAL</Overlay.Waiting>
         </Overlay.Container>
       )}
-      {isConnectErrorOccur && !isConnected ? (
-        <Overlay.Container fontSize={32}>
-          <Overlay.Error>
-            <div>CONNECT ERROR</div>
-            <button
-              onClick={() => socketInstance.connect()}
-              className="nes-btn"
-            >
-              RECONNECT
-            </button>
-          </Overlay.Error>
-        </Overlay.Container>
-      ) : null}
     </AppContainer>
   );
 }
