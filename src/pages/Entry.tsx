@@ -3,9 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import Modal from "../components/Modal";
 import React from "react";
 import { KEYCODE } from "../common/keyboard";
-import { ISocketContext, SocketContext } from "../hooks/socket";
+import { ISocketContext, SocketContext } from "../context/socket";
 import { ClientToServerCallback, createAlertModal } from "../common/utils";
-import http from "../common/http";
 
 const EntryContainer = styled.div`
   ul {
@@ -81,10 +80,6 @@ const Entry = (): JSX.Element => {
     },
     [isConnected, navigate, socketInstance]
   );
-
-  React.useEffect(() => {
-    http.get("/health-check");
-  }, []);
 
   return (
     <EntryContainer>

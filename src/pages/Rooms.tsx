@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import Modal from "../components/Modal";
-import { ISocketContext, SocketContext } from "../hooks/socket";
+import { ISocketContext, SocketContext } from "../context/socket";
 import { IRoom } from "../common/rooms";
 import { useNavigate } from "react-router-dom";
 import { KEYCODE } from "../common/keyboard";

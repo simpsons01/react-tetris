@@ -1,27 +1,11 @@
 import React from "react";
-import { Socket } from "socket.io-client";
 import getSocketInstance from "../common/socket";
-
-export interface ISocketContext<
-  ServerToClientEvt = {},
-  ClientToServerEvt = {}
-> {
-  isConnectErrorOccur: boolean;
-  isConnected: boolean;
-  socketInstance: Socket<ServerToClientEvt, ClientToServerEvt>;
-}
-
-export const SocketContext = React.createContext<ISocketContext>(
-  {} as ISocketContext
-);
 
 const useSocket = function () {
   const socketInstance = getSocketInstance();
-
   const [isConnected, setIsConnected] = React.useState<boolean>(
     socketInstance.connected
   );
-
   const [isConnectErrorOccur, setIsConnectErrorOccur] =
     React.useState<boolean>(false);
 

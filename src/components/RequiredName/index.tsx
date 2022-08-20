@@ -1,5 +1,5 @@
 import React from "react";
-import { SocketContext, ISocketContext } from "../../hooks/socket";
+import { SocketContext, ISocketContext } from "../../context/socket";
 import { ClientToServerCallback } from "../../common/utils";
 import { Navigate } from "react-router-dom";
 
@@ -8,7 +8,7 @@ interface IRequiredName {
 }
 
 const RequiredName = (props: IRequiredName): JSX.Element | null => {
-  const [isInitial, setIsInitial] = React.useState<boolean>(false);
+  const [isCheckComplete, setIsCheckComplete] = React.useState<boolean>(false);
   const [hasName, setHasName] = React.useState<boolean>(false);
 
   const { socketInstance, isConnected, isConnectErrorOccur } = React.useContext<
@@ -23,11 +23,11 @@ const RequiredName = (props: IRequiredName): JSX.Element | null => {
   React.useEffect(() => {
     if (isConnected) {
       socketInstance.emit("get_name", ({ data: { name } }) => {
-        setIsInitial(true);
+        setIsCheckComplete(true);
         setHasName(!!name);
       });
     } else {
-      setIsInitial(true);
+      setIsCheckComplete(true);
     }
     return () => {
       if (isConnected) {
@@ -37,7 +37,7 @@ const RequiredName = (props: IRequiredName): JSX.Element | null => {
 
   if (isConnectErrorOccur) return <Navigate to="/" />;
 
-  if (!isInitial) return null;
+  if (!isCheckComplete) return null;
 
   return hasName ? props.children : <Navigate to="/" />;
 };

@@ -19,5 +19,5 @@ export const BasePanel = styled.div`
 export const BasePanelText = styled.p<IPanel>`
   margin: 0;
   font-size: ${(props) => `${props.fontSize}px`};
-  color: white;
+  color: #fff;
 `;

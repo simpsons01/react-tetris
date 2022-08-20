@@ -1,7 +1,7 @@
 import styled, { keyframes, css } from "styled-components";
 import { IFontSize } from "../../common/utils";
 
-const Container = styled.div<IFontSize>`
+const Container = styled.div<IFontSize & { background?: string }>`
   position: fixed;
   width: 100%;
   height: 100%;
@@ -9,8 +9,9 @@ const Container = styled.div<IFontSize>`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
+  background-color: ${(props) =>
+    `${props.background ? props.background : "rgba(0, 0, 0, 0.6)"}`};
+  color: #fff;
   font-size: ${(props) => `${props.fontSize}px`};
 `;
 

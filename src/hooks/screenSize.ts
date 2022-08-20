@@ -1,12 +1,4 @@
-import { ISize } from "../common/utils/index";
 import React from "react";
-
-export interface IScreenSize extends ISize {}
-
-export const ScreenSizeContext = React.createContext<IScreenSize>({
-  width: 0,
-  height: 0,
-});
 
 const useScreenSize = function () {
   const [width, setWidth] = React.useState(0);
