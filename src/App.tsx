@@ -52,7 +52,7 @@ function App() {
           </SocketContext.Provider>
           {isConnectErrorOccur || !isConnected ? (
             <Overlay.Container fontSize={32}>
-              <Overlay.Error>
+              <Overlay.NormalWithButton>
                 <div>CONNECT ERROR</div>
                 <button
                   onClick={() => socketInstance.connect()}
@@ -60,13 +60,13 @@ function App() {
                 >
                   RETRY
                 </button>
-              </Overlay.Error>
+              </Overlay.NormalWithButton>
             </Overlay.Container>
           ) : null}
         </React.Fragment>
       ) : (
         <Overlay.Container background="#fff" fontSize={32}>
-          <Overlay.Waiting>INITIAL</Overlay.Waiting>
+          <Overlay.Normal>INITIAL</Overlay.Normal>
         </Overlay.Container>
       )}
     </AppContainer>

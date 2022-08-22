@@ -1,4 +1,4 @@
-import styled, { keyframes, css } from "styled-components";
+import styled from "styled-components";
 import { IFontSize } from "../../common/utils";
 
 const Container = styled.div<IFontSize & { background?: string }>`
@@ -15,37 +15,9 @@ const Container = styled.div<IFontSize & { background?: string }>`
   font-size: ${(props) => `${props.fontSize}px`};
 `;
 
-const DotWaiting = css`
-  &::before {
-    content: "";
-    display: block;
-    position: absolute;
-    right: 0;
-    bottom: 50%;
-    transform: translateX(100%) translateY(50%);
-    animation: ${keyframes`
-      33% { 
-        display: block;
-        content: "." 
-      }
-      66% { 
-        display: block;
-        content: ".." 
-      }
-      99% { 
-        display: block;
-        content: "..." 
-      }
-    `} 1.5s linear infinite;
-  }
-`;
+const Normal = styled.div``;
 
-const Waiting = styled.div`
-  position: relative;
-  ${DotWaiting}
-`;
-
-const NotifierWithButton = css`
+const NormalWithButton = styled(Normal)`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -57,36 +29,10 @@ const NotifierWithButton = css`
   }
 `;
 
-const Ready = styled.div`
-  ${NotifierWithButton}
-
-  .waiting {
-    position: relative;
-    left: -10px;
-    ${DotWaiting}
-  }
-`;
-
-const End = styled.div`
-  ${NotifierWithButton}
-`;
-
-const Interrupted = styled.div`
-  ${NotifierWithButton}
-`;
-
-const Error = styled.div`
-  ${NotifierWithButton}
-`;
-
-const BeforeStart = styled.div``;
-
-export default {
+const Overlay = {
   Container,
-  Error,
-  BeforeStart,
-  Interrupted,
-  End,
-  Ready,
-  Waiting,
+  Normal,
+  NormalWithButton,
 };
+
+export default Overlay;

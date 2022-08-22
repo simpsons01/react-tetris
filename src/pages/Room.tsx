@@ -10,6 +10,7 @@ import Game from "../components/Game";
 import Next from "../components/Next";
 import Score from "../components/Score";
 import Overlay from "../components/Overlay";
+import Loading from "../components/Loading";
 import useTetris from "../hooks/tetris";
 import { useNavigate } from "react-router-dom";
 import { IPolyomino } from "../hooks/polyomino";
@@ -606,36 +607,36 @@ const Room = (): JSX.Element => {
           roomState === ROOM_STATE.WAIT_OTHER_READY
         ) {
           notifier = (
-            <Overlay.Ready>
+            <Overlay.NormalWithButton>
               <div>READY OR NOT</div>
               <button className="nes-btn" onClick={handleReady}>
-                <span
-                  className={roomState === ROOM_STATE.READY ? "" : "waiting"}
-                >
-                  {roomState === ROOM_STATE.READY ? "READY" : "WAIT"}
+                <span>
+                  {roomState === ROOM_STATE.READY ? (
+                    "READY"
+                  ) : (
+                    <Loading.Dot>WAIT</Loading.Dot>
+                  )}
                 </span>
               </button>
               <button onClick={handleLeaveRoom} className="nes-btn">
                 QUIT
               </button>
-            </Overlay.Ready>
+            </Overlay.NormalWithButton>
           );
         } else if (roomState === ROOM_STATE.BEFORE_START) {
-          notifier = (
-            <Overlay.BeforeStart>{beforeStartCountDown}</Overlay.BeforeStart>
-          );
+          notifier = <Overlay.Normal>{beforeStartCountDown}</Overlay.Normal>;
         } else if (roomState === ROOM_STATE.INTERRUPTED) {
           notifier = (
-            <Overlay.Interrupted>
+            <Overlay.NormalWithButton>
               <div>INTERRUPTED</div>
               <button onClick={handleLeaveRoom} className="nes-btn">
                 QUIT
               </button>
-            </Overlay.Interrupted>
+            </Overlay.NormalWithButton>
           );
         } else if (roomState === ROOM_STATE.END) {
           notifier = (
-            <Overlay.End>
+            <Overlay.NormalWithButton>
               <div>YOU WIN!</div>
               <button onClick={handleNextGame} className="nes-btn">
                 NEXT
@@ -643,16 +644,16 @@ const Room = (): JSX.Element => {
               <button onClick={handleLeaveRoom} className="nes-btn">
                 QUIT
               </button>
-            </Overlay.End>
+            </Overlay.NormalWithButton>
           );
         } else if (roomState === ROOM_STATE.ERROR) {
           notifier = (
-            <Overlay.Error>
+            <Overlay.NormalWithButton>
               <div>ERROR</div>
               <button onClick={handleLeaveRoom} className="nes-btn">
                 QUIT
               </button>
-            </Overlay.Error>
+            </Overlay.NormalWithButton>
           );
         }
 
