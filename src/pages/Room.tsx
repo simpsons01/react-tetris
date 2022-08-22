@@ -38,7 +38,8 @@ enum ROOM_STATE {
   BEFORE_START,
   START,
   END,
-  INTERRUPTED,
+  PARTICIPANT_LEAVE,
+  HOST_LEAVE,
   ERROR,
 }
 
@@ -100,8 +101,8 @@ const Room = (): JSX.Element => {
         before_start_game: (leftsec: number) => void;
         game_start: () => void;
         game_leftSec: (leftsec: number) => void;
-        game_interrupted: () => void;
         game_over: () => void;
+        room_participant_leave: () => void;
         room_host_leave: () => void;
         other_game_data_updated: (updatedQueue: GameDataUpdatedQueue) => void;
       },
@@ -511,10 +512,6 @@ const Room = (): JSX.Element => {
         socketInstance.on("game_leftSec", (leftSec: number) => {
           setLeftSec(leftSec);
         });
-        socketInstance.on("game_interrupted", () => {
-          setGameState(GAME_STATE.GAME_OVER);
-          setRoomState(ROOM_STATE.INTERRUPTED);
-        });
         socketInstance.on("game_over", () => {
           setRoomState(ROOM_STATE.END);
           setGameState(GAME_STATE.GAME_OVER);
@@ -535,9 +532,13 @@ const Room = (): JSX.Element => {
             });
           }
         );
+        socketInstance.on("room_participant_leave", () => {
+          setGameState(GAME_STATE.GAME_OVER);
+          setRoomState(ROOM_STATE.PARTICIPANT_LEAVE);
+        });
         socketInstance.on("room_host_leave", () => {
           setGameState(GAME_STATE.GAME_OVER);
-          setRoomState(ROOM_STATE.INTERRUPTED);
+          setRoomState(ROOM_STATE.HOST_LEAVE);
         });
       }
       return () => {
@@ -545,9 +546,10 @@ const Room = (): JSX.Element => {
           socketInstance.off("before_start_game");
           socketInstance.off("game_start");
           socketInstance.off("game_leftSec");
-          socketInstance.off("game_interrupted");
           socketInstance.off("game_over");
           socketInstance.off("other_game_data_updated");
+          socketInstance.off("room_participant_leave");
+          socketInstance.off("room_host_leave");
         }
       };
     },
@@ -625,10 +627,22 @@ const Room = (): JSX.Element => {
           );
         } else if (roomState === ROOM_STATE.BEFORE_START) {
           notifier = <Overlay.Normal>{beforeStartCountDown}</Overlay.Normal>;
-        } else if (roomState === ROOM_STATE.INTERRUPTED) {
+        } else if (roomState === ROOM_STATE.PARTICIPANT_LEAVE) {
           notifier = (
             <Overlay.NormalWithButton>
-              <div>INTERRUPTED</div>
+              <div>GAME INTERRUPTED</div>
+              <button onClick={handleNextGame} className="nes-btn">
+                NEXT
+              </button>
+              <button onClick={handleLeaveRoom} className="nes-btn">
+                QUIT
+              </button>
+            </Overlay.NormalWithButton>
+          );
+        } else if (roomState === ROOM_STATE.HOST_LEAVE) {
+          notifier = (
+            <Overlay.NormalWithButton>
+              <div>HOST LEAVE</div>
               <button onClick={handleLeaveRoom} className="nes-btn">
                 QUIT
               </button>
