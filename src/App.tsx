@@ -54,10 +54,7 @@ function App() {
             <Overlay.Container fontSize={32}>
               <Overlay.NormalWithButton>
                 <div>CONNECT ERROR</div>
-                <button
-                  onClick={() => socketInstance.connect()}
-                  className="nes-btn"
-                >
+                <button onClick={() => socketInstance.connect()} className="nes-btn">
                   RETRY
                 </button>
               </Overlay.NormalWithButton>

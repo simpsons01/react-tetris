@@ -28,15 +28,12 @@ const Entry = (): JSX.Element => {
       {},
       {
         set_name: (name: string, done: ClientToServerCallback<{}>) => void;
-        get_socket_data: (
-          done: ClientToServerCallback<{ roomId: string; name: string }>
-        ) => void;
+        get_socket_data: (done: ClientToServerCallback<{ roomId: string; name: string }>) => void;
       }
     >
   >(SocketContext);
 
-  const [isCreateUsernameModalOpen, setIsCreateNameModalOpen] =
-    React.useState<boolean>(false);
+  const [isCreateUsernameModalOpen, setIsCreateNameModalOpen] = React.useState<boolean>(false);
 
   const [userName, setUserName] = React.useState<string>("");
 
@@ -47,21 +44,17 @@ const Entry = (): JSX.Element => {
         createAlertModal("FAILED");
       };
       if (isConnected) {
-        socketInstance.emit(
-          "set_name",
-          name,
-          ({ metadata: { isSuccess, isError } }) => {
-            if (isError) {
-              onFail();
-              return;
-            }
-            if (isSuccess) {
-              navigate("/rooms");
-            } else {
-              onFail();
-            }
+        socketInstance.emit("set_name", name, ({ metadata: { isSuccess, isError } }) => {
+          if (isError) {
+            onFail();
+            return;
           }
-        );
+          if (isSuccess) {
+            navigate("/rooms");
+          } else {
+            onFail();
+          }
+        });
       }
     },
     [isConnected, navigate, socketInstance]

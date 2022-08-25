@@ -37,20 +37,18 @@ export interface ICoordinate {
 }
 
 export interface ICube extends ICoordinate {
-  // strokeColor: string;
-  // fillColor: string;
   state?: CUBE_STATE;
 }
 
-export interface IPolyominoConfig<T = { anchorIndex: number; coordinate: Array<ICoordinate> }> {
+export interface IPolyominoConfig<
+  T = { anchorIndex: number; coordinate: Array<ICoordinate> }
+> {
   coordinate: {
     [POLYOMINO_SHAPE.FIRST]: T;
     [POLYOMINO_SHAPE.SECOND]: T;
     [POLYOMINO_SHAPE.THIRD]: T;
     [POLYOMINO_SHAPE.FOURTH]: T;
   };
-  // strokeColor: string;
-  // fillColor: string;
 }
 
 export const I: Readonly<IPolyominoConfig> = Object.freeze({
@@ -354,7 +352,9 @@ export const Z: Readonly<IPolyominoConfig> = Object.freeze({
   // fillColor: "#8080C0",
 });
 
-export const getPolyominoConfig = function (type?: POLYOMINO_TYPE): Readonly<IPolyominoConfig> {
+export const getPolyominoConfig = function (
+  type?: POLYOMINO_TYPE
+): Readonly<IPolyominoConfig> {
   const _ = {
     [POLYOMINO_TYPE.I]: I,
     [POLYOMINO_TYPE.J]: J,
@@ -419,9 +419,13 @@ export const getAnchorByAnchorAndShapeAndType = function (
 ): ICoordinate {
   const coordinateConfig = getPolyominoConfig(type);
   const { x: currentX, y: currentY } =
-    coordinateConfig.coordinate[shape].coordinate[coordinateConfig.coordinate[shape].anchorIndex];
+    coordinateConfig.coordinate[shape].coordinate[
+      coordinateConfig.coordinate[shape].anchorIndex
+    ];
   const { x: nextX, y: nextY } =
-    coordinateConfig.coordinate[shape].coordinate[coordinateConfig.coordinate[nextShape].anchorIndex];
+    coordinateConfig.coordinate[shape].coordinate[
+      coordinateConfig.coordinate[nextShape].anchorIndex
+    ];
   return {
     x: anchor.x + (nextX - currentX),
     y: anchor.y + (nextY - currentY),

@@ -17,11 +17,7 @@ const GameOver = (props: IGameOverPanel): JSX.Element | null => {
   if (!isGameStart) return null;
   return (
     <BasePanel>
-      <GameStartBtn
-        fontSize={fontSize}
-        onClick={onGameStart}
-        className="nes-btn"
-      >
+      <GameStartBtn fontSize={fontSize} onClick={onGameStart} className="nes-btn">
         START
       </GameStartBtn>
     </BasePanel>

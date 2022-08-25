@@ -7,6 +7,7 @@ export type ClientToServerCallback<Data extends object = {}> = (payload: {
   metadata: {
     isSuccess: boolean;
     isError: boolean;
+    message?: string;
   };
 }) => void;
 
@@ -18,9 +19,7 @@ export interface AnyObject<T = any> {
   [key: string]: T;
 }
 
-export type AnyFunction<T = any, K = any | undefined | void | unknown> = (
-  ...args: Array<T>
-) => K;
+export type AnyFunction<T = any, K = any | undefined | void | unknown> = (...args: Array<T>) => K;
 
 export interface ISize {
   width: number;
@@ -43,9 +42,7 @@ export const setRef = <T = any>(ref: React.MutableRefObject<T>, val: T) => {
   ref.current = val;
 };
 
-export const getKeys = <T extends object, K extends keyof T>(
-  obj: T
-): Array<K> => {
+export const getKeys = <T extends object, K extends keyof T>(obj: T): Array<K> => {
   return Object.keys(obj) as Array<K>;
 };
 
@@ -62,13 +59,8 @@ export const createAnimation = (
     _passed = 0;
   return {
     start: function startAnimation(timestamp: number) {
-      initialTimestamp =
-        initialTimestamp === undefined ? timestamp : initialTimestamp;
-      elapse = minMax(
-        (timestamp - initialTimestamp) / ms + _passed,
-        0,
-        _duration
-      );
+      initialTimestamp = initialTimestamp === undefined ? timestamp : initialTimestamp;
+      elapse = minMax((timestamp - initialTimestamp) / ms + _passed, 0, _duration);
       fn(elapse);
       console.log("elapse is " + elapse + "s");
       if (elapse !== _duration) {

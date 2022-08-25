@@ -5,11 +5,7 @@ import { ISocketContext, SocketContext } from "../context/socket";
 import { IRoom } from "../common/rooms";
 import { useNavigate } from "react-router-dom";
 import { KEYCODE } from "../common/keyboard";
-import {
-  ClientToServerCallback,
-  createAlertModal,
-  AnyFunction,
-} from "../common/utils";
+import { ClientToServerCallback, createAlertModal } from "../common/utils";
 
 const RoomsContainer = styled.div`
   width: 100%;
@@ -61,66 +57,54 @@ const Room = styled.button`
 `;
 
 const Rooms = (): JSX.Element => {
-  const navigate = useNavigate();
-
   const { socketInstance, isConnected } = React.useContext<
     ISocketContext<
       {
-        error_occur: AnyFunction;
+        error_occur: () => void;
       },
       {
-        get_socket_data: (
-          done: ClientToServerCallback<{ roomId: string; name: string }>
-        ) => void;
-        get_rooms: (
-          done: ClientToServerCallback<{ rooms: Array<IRoom> }>
-        ) => void;
+        get_socket_data: (done: ClientToServerCallback<{ roomId: string; name: string }>) => void;
+        get_rooms: (done: ClientToServerCallback<{ rooms: Array<IRoom> }>) => void;
         join_room: (roomId: string, done: ClientToServerCallback) => void;
-        create_room: (
-          roomName: string,
-          done: ClientToServerCallback<{ roomId: string | null }>
-        ) => void;
+        create_room: (roomName: string, done: ClientToServerCallback<{ roomId: string | null }>) => void;
       }
     >
   >(SocketContext);
 
-  const [isNoRoomsModalOpen, setIsNoRoomsModalOpen] =
-    React.useState<boolean>(false);
+  const [isNoRoomsModalOpen, setIsNoRoomsModalOpen] = React.useState<boolean>(false);
 
-  const [isCreateRoomModalOpen, setIsCreateRoomsModalOpen] =
-    React.useState<boolean>(false);
+  const [isCreateRoomModalOpen, setIsCreateRoomsModalOpen] = React.useState<boolean>(false);
 
   const [rooms, setRooms] = React.useState<Array<IRoom>>([]);
 
   const [roomName, setRoomName] = React.useState<string>("");
 
+  const navigate = useNavigate();
+
   const getRooms = React.useCallback(() => {
-    if (isConnected && socketInstance) {
-      socketInstance.emit(
-        "get_rooms",
-        ({ data: { rooms }, metadata: { isError } }) => {
-          if (isError) return;
-          setRooms(rooms);
-          if (rooms.length === 0) {
-            setIsNoRoomsModalOpen(true);
-          }
+    if (isConnected) {
+      socketInstance.emit("get_rooms", ({ data: { rooms }, metadata: { isError } }) => {
+        if (isError) return;
+        setRooms(rooms);
+        if (rooms.length === 0) {
+          setIsNoRoomsModalOpen(true);
         }
-      );
+      });
     }
   }, [isConnected, socketInstance]);
 
   const joinRoom = React.useCallback(
     (roomId: string) => {
-      if (isConnected && socketInstance) {
+      if (isConnected) {
         socketInstance.emit(
           "join_room",
           roomId,
-          ({ data: {}, metadata: { isSuccess, isError } }) => {
+          ({ data: {}, metadata: { isSuccess, isError, message } }) => {
             if (isError) return;
             if (isSuccess) {
               navigate(`/room/${roomId}`);
             } else {
-              createAlertModal("JOIN ROOM FAILED");
+              createAlertModal(message ? message : "JOIN ROOM FAILED");
             }
           }
         );
@@ -131,16 +115,16 @@ const Rooms = (): JSX.Element => {
 
   const createRoom = React.useCallback(
     (roomName: string) => {
-      if (isConnected && socketInstance && roomName) {
+      if (isConnected) {
         socketInstance.emit(
           "create_room",
           roomName,
-          ({ data: { roomId }, metadata: { isSuccess, isError } }) => {
+          ({ data: { roomId }, metadata: { isSuccess, isError, message } }) => {
             if (isError) return;
             if (isSuccess) {
               navigate(`/room/${roomId as string}`);
             } else {
-              createAlertModal("CREATE ROOM FAILED");
+              createAlertModal(message ? message : "CREATE ROOM FAILED");
             }
           }
         );
@@ -168,6 +152,26 @@ const Rooms = (): JSX.Element => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  React.useEffect(() => {
+    if (isConnected) {
+      socketInstance.on("error_occur", () => {
+        createAlertModal("ERROR OCCUR", {
+          text: "confirm",
+          onClick: () => {
+            navigate("/");
+          },
+        });
+      });
+    } else {
+      navigate("/");
+    }
+    return () => {
+      if (isConnected) {
+        socketInstance.off("error_occur");
+      }
+    };
+  }, [socketInstance, isConnected, navigate]);
+
   return (
     <RoomsContainer>
       <RoomsLeftPanel>
@@ -186,10 +190,7 @@ const Rooms = (): JSX.Element => {
       </RoomsLeftPanel>
       <RoomsPanelDivider />
       <RoomsRightPanel>
-        <button
-          onClick={() => setIsCreateRoomsModalOpen(true)}
-          className="nes-btn"
-        >
+        <button onClick={() => setIsCreateRoomsModalOpen(true)} className="nes-btn">
           CREATE ROOM
         </button>
         <button onClick={() => getRooms()} className="nes-btn">
@@ -242,9 +243,9 @@ const Rooms = (): JSX.Element => {
           },
         }}
         cancel={{
-          text: "PLAY 1P",
+          text: "CANCEL",
           onClick: () => {
-            navigate("/single");
+            setIsCreateRoomsModalOpen(false);
           },
         }}
       />

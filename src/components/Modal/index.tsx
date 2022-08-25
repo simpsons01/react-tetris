@@ -59,15 +59,7 @@ export interface IModal {
 }
 
 const Modal = (props: IModal): JSX.Element | null => {
-  const {
-    isOpen,
-    title,
-    body,
-    confirm,
-    cancel,
-    mountEl = document.body,
-    portal = true,
-  } = props;
+  const { isOpen, title, body, confirm, cancel, mountEl = document.body, portal = true } = props;
 
   if (!isOpen) return null;
 

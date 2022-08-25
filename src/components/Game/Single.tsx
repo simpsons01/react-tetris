@@ -1,12 +1,6 @@
 import { ReactNode } from "react";
 import useGameSize from "../../hooks/gameSize";
-import {
-  IBaseGame,
-  Frame,
-  FrameContainer,
-  FrameTitle,
-  GameContainer,
-} from "./Base";
+import { IBaseGame, Frame, FrameContainer, FrameTitle, GameContainer } from "./Base";
 
 export interface ISingleGame extends IBaseGame {
   countdown: (fontSize: number) => ReactNode;
@@ -37,33 +31,18 @@ const SingleGame = (props: ISingleGame): JSX.Element => {
     <GameContainer width={gameWidth} height={gameHeight}>
       <FrameContainer left={0} top={0}>
         <FrameTitle fontSize={frameFontSize}>SCORE</FrameTitle>
-        <Frame
-          borderWidth={frameBorderWidth}
-          width={frameWidth}
-          height={frameHeight}
-        >
+        <Frame borderWidth={frameBorderWidth} width={frameWidth} height={frameHeight}>
           {props.score(frameFontSize * 2)}
         </Frame>
       </FrameContainer>
-      <FrameContainer
-        left={0}
-        top={frameHeight + frameLineHeight + gapBetweenFrameAndFrame}
-      >
+      <FrameContainer left={0} top={frameHeight + frameLineHeight + gapBetweenFrameAndFrame}>
         <FrameTitle fontSize={frameFontSize}>NEXT</FrameTitle>
-        <Frame
-          borderWidth={frameBorderWidth}
-          width={frameWidth}
-          height={frameHeight}
-        >
+        <Frame borderWidth={frameBorderWidth} width={frameWidth} height={frameHeight}>
           {props.next(cubeDistance)}
         </Frame>
       </FrameContainer>
       <FrameContainer left={frameWidth + gapBetweenTetrisAndFrame} top={0}>
-        <Frame
-          borderWidth={tetrisBorderWidth}
-          width={tetrisFrameWidth}
-          height={tetrisFrameHeight}
-        >
+        <Frame borderWidth={tetrisBorderWidth} width={tetrisFrameWidth} height={tetrisFrameHeight}>
           {props.tetris(cubeDistance)}
           {props.pause(frameFontSize)}
           {props.gameover(frameFontSize)}
@@ -71,16 +50,9 @@ const SingleGame = (props: ISingleGame): JSX.Element => {
           {props.gamestart(frameFontSize)}
         </Frame>
       </FrameContainer>
-      <FrameContainer
-        left={frameWidth + tetrisFrameWidth + gapBetweenTetrisAndFrame * 2}
-        top={0}
-      >
+      <FrameContainer left={frameWidth + tetrisFrameWidth + gapBetweenTetrisAndFrame * 2} top={0}>
         <FrameTitle fontSize={frameFontSize}>SEC</FrameTitle>
-        <Frame
-          borderWidth={frameBorderWidth}
-          width={frameWidth}
-          height={frameHeight}
-        >
+        <Frame borderWidth={frameBorderWidth} width={frameWidth} height={frameHeight}>
           {props.countdown(frameFontSize * 2)}
         </Frame>
       </FrameContainer>

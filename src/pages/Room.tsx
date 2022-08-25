@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  DIRECTION,
-  getRandomPolyominoType,
-  POLYOMINO_TYPE,
-  ICube,
-} from "../common/polyomino";
+import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE, ICube } from "../common/polyomino";
 import Tetris, { ITetris } from "../components/Tetris";
 import Game from "../components/Game";
 import Next from "../components/Next";
@@ -16,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { IPolyomino } from "../hooks/polyomino";
 import { CountDownTimer, createAlertModal, setRef } from "../common/utils";
 import { ISocketContext, SocketContext } from "../context/socket";
-import { ClientToServerCallback, AnyFunction } from "../common/utils";
+import { ClientToServerCallback } from "../common/utils";
 
 enum GAME_STATE {
   BEFORE_START,
@@ -50,6 +45,12 @@ enum GameDataType {
   SCORE = "SCORE",
 }
 
+enum RESULT {
+  WIN,
+  LOSE,
+  TIE,
+}
+
 type GameData = IPolyomino | ITetris["tetris"] | POLYOMINO_TYPE | number | null;
 
 type GameDataUpdatedQueue = Array<{ data: GameData; type: GameDataType }>;
@@ -72,8 +73,7 @@ const Room = (): JSX.Element => {
     getRowFilledWithCube: getSelfRowFilledWithCube,
     getEmptyRow: getSelfEmptyRow,
     fillEmptyRow: fillSelfEmptyRow,
-    getPolyominoIsCollideWithNearbyCube:
-      getSelfPolyominoIsCollideWithNearbyCube,
+    getPolyominoIsCollideWithNearbyCube: getSelfPolyominoIsCollideWithNearbyCube,
     getCoordinateIsCollideWithTetris: getSelfCoordinateIsCollideWithTetris,
     pauseClearRowAnimation: pauseSelfClearRowAnimation,
     pauseFillRowAnimation: pauseSelfFillRowAnimation,
@@ -97,19 +97,17 @@ const Room = (): JSX.Element => {
   const { socketInstance, isConnected } = React.useContext<
     ISocketContext<
       {
-        error_occur: AnyFunction;
+        error_occur: () => void;
         before_start_game: (leftsec: number) => void;
         game_start: () => void;
         game_leftSec: (leftsec: number) => void;
-        game_over: () => void;
+        game_over: (result: { isTie: boolean; winnerId: string; loserId: string }) => void;
         room_participant_leave: () => void;
         room_host_leave: () => void;
         other_game_data_updated: (updatedQueue: GameDataUpdatedQueue) => void;
       },
       {
-        get_socket_data: (
-          done: ClientToServerCallback<{ roomId: string; name: string }>
-        ) => void;
+        get_socket_data: (done: ClientToServerCallback<{ roomId: string; name: string }>) => void;
         ready: (done: ClientToServerCallback<{}>) => void;
         leave_room: (done: ClientToServerCallback<{}>) => void;
         force_leave_room: (done: ClientToServerCallback<{}>) => void;
@@ -121,28 +119,25 @@ const Room = (): JSX.Element => {
 
   const navigate = useNavigate();
 
-  const [beforeStartCountDown, setBeforeStartCountDown] =
-    React.useState<number>(0);
+  const [beforeStartCountDown, setBeforeStartCountDown] = React.useState<number>(0);
+
+  const [result, setResult] = React.useState<number>(RESULT.LOSE);
 
   const [leftSec, setLeftSec] = React.useState<number | null>(null);
 
-  const [roomState, setRoomState] = React.useState<ROOM_STATE>(
-    ROOM_STATE.READY
-  );
+  const [roomState, setRoomState] = React.useState<ROOM_STATE>(ROOM_STATE.READY);
 
-  const [selfNextPolyominoType, setSelfNextPolyominoType] =
-    React.useState<POLYOMINO_TYPE | null>(null);
+  const [selfNextPolyominoType, setSelfNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
 
   const [selfScore, setSelfScore] = React.useState<number>(0);
 
-  const [opponentNextPolyominoType, setOpponentNextPolyominoType] =
-    React.useState<POLYOMINO_TYPE | null>(null);
+  const [opponentNextPolyominoType, setOpponentNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(
+    null
+  );
 
   const [opponentScore, setOpponentScore] = React.useState<number>(0);
 
-  const [gameState, setGameState] = React.useState<GAME_STATE>(
-    GAME_STATE.BEFORE_START
-  );
+  const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
   const prevSelfPolyomino = React.useRef<IPolyomino>(selfPolyomino);
 
@@ -150,9 +145,7 @@ const Room = (): JSX.Element => {
 
   const prevSelfScore = React.useRef<number | undefined>(selfScore);
 
-  const prevSelfNextPolyominoType = React.useRef<POLYOMINO_TYPE>(
-    selfNextPolyominoType
-  );
+  const prevSelfNextPolyominoType = React.useRef<POLYOMINO_TYPE>(selfNextPolyominoType);
 
   const selfPreviewPolyomino = React.useMemo((): Array<ICube> | null => {
     const previewCoordinate = getSelfPolyominoPreviewCoordinate();
@@ -178,10 +171,12 @@ const Room = (): JSX.Element => {
 
   const handleReady = React.useCallback(() => {
     if (isConnected) {
-      socketInstance.emit("ready", ({ metadata: { isSuccess, isError } }) => {
+      socketInstance.emit("ready", ({ metadata: { isSuccess, isError, message } }) => {
         if (isError) return;
         if (isSuccess) {
           setRoomState(ROOM_STATE.WAIT_OTHER_READY);
+        } else {
+          createAlertModal(message ? message : "READY FAIL");
         }
       });
     }
@@ -189,29 +184,26 @@ const Room = (): JSX.Element => {
 
   const handleNextGame = React.useCallback(() => {
     if (isConnected) {
-      socketInstance.emit(
-        "reset_room",
-        ({ metadata: { isSuccess, isError } }) => {
-          if (isError) return;
-          if (isSuccess) {
-            resetOpponentPolyomino();
-            resetOpponentTetris();
-            resetSelfPolyomino();
-            resetSelfTetris();
-            setSelfScore(0);
-            setOpponentScore(0);
-            setLeftSec(null);
-            setSelfNextPolyominoType(null);
-            setOpponentNextPolyominoType(null);
-            setRoomState(ROOM_STATE.READY);
-          } else {
-            createAlertModal("OOPS!", {
-              text: "TO ROOMS",
-              onClick: () => navigate("/rooms"),
-            });
-          }
+      socketInstance.emit("reset_room", ({ metadata: { isSuccess, isError, message } }) => {
+        if (isError) return;
+        if (isSuccess) {
+          resetOpponentPolyomino();
+          resetOpponentTetris();
+          resetSelfPolyomino();
+          resetSelfTetris();
+          setSelfScore(0);
+          setOpponentScore(0);
+          setLeftSec(null);
+          setSelfNextPolyominoType(null);
+          setOpponentNextPolyominoType(null);
+          setRoomState(ROOM_STATE.READY);
+        } else {
+          createAlertModal(message ? message : "OOPS", {
+            text: "TO ROOMS",
+            onClick: () => navigate("/rooms"),
+          });
         }
-      );
+      });
     }
   }, [
     isConnected,
@@ -253,11 +245,7 @@ const Room = (): JSX.Element => {
         });
       }
     });
-  }, [
-    getSelfPolyominoIsCollideWithNearbyCube,
-    moveSelfPolyomino,
-    setSelfPolyominoToTetris,
-  ]);
+  }, [getSelfPolyominoIsCollideWithNearbyCube, moveSelfPolyomino, setSelfPolyominoToTetris]);
 
   const handlePolyominoCreate = React.useCallback(() => {
     if (selfPolyominoCoordinate == null && selfNextPolyominoType !== null) {
@@ -276,18 +264,11 @@ const Room = (): JSX.Element => {
     pauseSelfFillAllRowAnimation();
     pauseSelfClearRowAnimation();
     pauseSelfFillRowAnimation();
-  }, [
-    pauseSelfClearRowAnimation,
-    pauseSelfFillRowAnimation,
-    pauseSelfFillAllRowAnimation,
-  ]);
+  }, [pauseSelfClearRowAnimation, pauseSelfFillRowAnimation, pauseSelfFillAllRowAnimation]);
 
   const checkIsPolyominoCollideWithTetris = React.useCallback(() => {
     let isCollide = false;
-    if (
-      selfPolyominoCoordinate !== null &&
-      getSelfCoordinateIsCollideWithTetris(selfPolyominoCoordinate)
-    ) {
+    if (selfPolyominoCoordinate !== null && getSelfCoordinateIsCollideWithTetris(selfPolyominoCoordinate)) {
       isCollide = true;
     }
     return isCollide;
@@ -328,14 +309,7 @@ const Room = (): JSX.Element => {
         socketInstance.emit("game_data_updated", updatedQueue);
       }
     },
-    [
-      selfTetris,
-      selfScore,
-      selfPolyomino,
-      selfNextPolyominoType,
-      socketInstance,
-      isConnected,
-    ]
+    [selfTetris, selfScore, selfPolyomino, selfNextPolyominoType, socketInstance, isConnected]
   );
 
   React.useEffect(() => {
@@ -385,13 +359,7 @@ const Room = (): JSX.Element => {
         }
       };
     },
-    [
-      roomState,
-      gameState,
-      changeSelfPolyominoShape,
-      moveSelfPolyomino,
-      moveSelfPolyominoToPreview,
-    ]
+    [roomState, gameState, changeSelfPolyominoShape, moveSelfPolyomino, moveSelfPolyominoToPreview]
   );
 
   React.useEffect(
@@ -453,8 +421,7 @@ const Room = (): JSX.Element => {
         case GAME_STATE.CHECK_IS_ROW_EMPTY:
           const emptyRowGap = getSelfEmptyRow();
           const isGapNotExist =
-            emptyRowGap.length === 0 ||
-            (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
+            emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
           if (!isGapNotExist) {
             //console.log("fill empty row!");
             setGameState(GAME_STATE.ROW_EMPTY_FILLING);
@@ -512,26 +479,32 @@ const Room = (): JSX.Element => {
         socketInstance.on("game_leftSec", (leftSec: number) => {
           setLeftSec(leftSec);
         });
-        socketInstance.on("game_over", () => {
+        socketInstance.on("game_over", ({ isTie, winnerId }) => {
+          if (isTie) {
+            setResult(RESULT.TIE);
+          } else {
+            if (socketInstance.id === winnerId) {
+              setResult(RESULT.WIN);
+            } else {
+              setResult(RESULT.LOSE);
+            }
+          }
           setRoomState(ROOM_STATE.END);
           setGameState(GAME_STATE.GAME_OVER);
         });
-        socketInstance.on(
-          "other_game_data_updated",
-          (updatedQueue: GameDataUpdatedQueue) => {
-            updatedQueue.forEach(({ type, data }) => {
-              if (type === GameDataType.NEXT_POLYOMINO_TYPE) {
-                setOpponentNextPolyominoType(data as POLYOMINO_TYPE);
-              } else if (type === GameDataType.SCORE) {
-                setOpponentScore(data as number);
-              } else if (type === GameDataType.TETRIS) {
-                setOpponentTetris(data as ITetris["tetris"]);
-              } else if (type === GameDataType.POLYOMINO) {
-                setOpponentPolyomino(data as IPolyomino);
-              }
-            });
-          }
-        );
+        socketInstance.on("other_game_data_updated", (updatedQueue: GameDataUpdatedQueue) => {
+          updatedQueue.forEach(({ type, data }) => {
+            if (type === GameDataType.NEXT_POLYOMINO_TYPE) {
+              setOpponentNextPolyominoType(data as POLYOMINO_TYPE);
+            } else if (type === GameDataType.SCORE) {
+              setOpponentScore(data as number);
+            } else if (type === GameDataType.TETRIS) {
+              setOpponentTetris(data as ITetris["tetris"]);
+            } else if (type === GameDataType.POLYOMINO) {
+              setOpponentPolyomino(data as IPolyomino);
+            }
+          });
+        });
         socketInstance.on("room_participant_leave", () => {
           setGameState(GAME_STATE.GAME_OVER);
           setRoomState(ROOM_STATE.PARTICIPANT_LEAVE);
@@ -540,6 +513,15 @@ const Room = (): JSX.Element => {
           setGameState(GAME_STATE.GAME_OVER);
           setRoomState(ROOM_STATE.HOST_LEAVE);
         });
+        socketInstance.on("error_occur", () => {
+          setGameState(GAME_STATE.GAME_OVER);
+          setRoomState(ROOM_STATE.ERROR);
+        });
+      } else {
+        if (roomState === ROOM_STATE.START) {
+          setGameState(GAME_STATE.GAME_OVER);
+          setRoomState(ROOM_STATE.ERROR);
+        }
       }
       return () => {
         if (isConnected) {
@@ -553,26 +535,14 @@ const Room = (): JSX.Element => {
         }
       };
     },
-    [
-      setRoomState,
-      roomState,
-      setOpponentTetris,
-      setOpponentPolyomino,
-      socketInstance,
-      isConnected,
-    ]
+    [setRoomState, setOpponentTetris, setOpponentPolyomino, socketInstance, isConnected, roomState]
   );
 
   return (
     <Game.Double
       self={{
         score: (fontSize) => <Score fontSize={fontSize} score={selfScore} />,
-        next: (cubeDistance) => (
-          <Next
-            cubeDistance={cubeDistance}
-            polyominoType={selfNextPolyominoType}
-          />
-        ),
+        next: (cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={selfNextPolyominoType} />,
         tetris: (cubeDistance) => (
           <Tetris
             cubeDistance={cubeDistance}
@@ -583,14 +553,9 @@ const Room = (): JSX.Element => {
         ),
       }}
       opponent={{
-        score: (fontSize) => (
-          <Score fontSize={fontSize} score={opponentScore} />
-        ),
+        score: (fontSize) => <Score fontSize={fontSize} score={opponentScore} />,
         next: (cubeDistance) => (
-          <Next
-            cubeDistance={cubeDistance}
-            polyominoType={opponentNextPolyominoType}
-          />
+          <Next cubeDistance={cubeDistance} polyominoType={opponentNextPolyominoType} />
         ),
         tetris: (cubeDistance) => (
           <Tetris
@@ -604,21 +569,12 @@ const Room = (): JSX.Element => {
       countdown={() => <div>{leftSec}</div>}
       roomStateNotifier={() => {
         let notifier = null;
-        if (
-          roomState === ROOM_STATE.READY ||
-          roomState === ROOM_STATE.WAIT_OTHER_READY
-        ) {
+        if (roomState === ROOM_STATE.READY || roomState === ROOM_STATE.WAIT_OTHER_READY) {
           notifier = (
             <Overlay.NormalWithButton>
               <div>READY OR NOT</div>
               <button className="nes-btn" onClick={handleReady}>
-                <span>
-                  {roomState === ROOM_STATE.READY ? (
-                    "READY"
-                  ) : (
-                    <Loading.Dot>WAIT</Loading.Dot>
-                  )}
-                </span>
+                <span>{roomState === ROOM_STATE.READY ? "READY" : <Loading.Dot>WAIT</Loading.Dot>}</span>
               </button>
               <button onClick={handleLeaveRoom} className="nes-btn">
                 QUIT
@@ -649,9 +605,17 @@ const Room = (): JSX.Element => {
             </Overlay.NormalWithButton>
           );
         } else if (roomState === ROOM_STATE.END) {
+          let text = "";
+          if (result === RESULT.TIE) {
+            text = "GAME IS TIE";
+          } else if (result === RESULT.WIN) {
+            text = "YOU WIN";
+          } else if (result === RESULT.LOSE) {
+            text = "YOU LOSE";
+          }
           notifier = (
             <Overlay.NormalWithButton>
-              <div>YOU WIN!</div>
+              <div>{text}</div>
               <button onClick={handleNextGame} className="nes-btn">
                 NEXT
               </button>
@@ -664,7 +628,7 @@ const Room = (): JSX.Element => {
           notifier = (
             <Overlay.NormalWithButton>
               <div>ERROR</div>
-              <button onClick={handleLeaveRoom} className="nes-btn">
+              <button onClick={() => navigate("/")} className="nes-btn">
                 QUIT
               </button>
             </Overlay.NormalWithButton>

@@ -107,7 +107,8 @@ const Tetris = (props: ITetris): JSX.Element => {
     <TetrisPanel>
       {tetris.map((cube) => {
         const { x, y, state, id } = cube;
-        const isPolyominoCube = polyomino === null ? false : polyomino.some((cube) => cube.x === x && cube.y === y);
+        const isPolyominoCube =
+          polyomino === null ? false : polyomino.some((cube) => cube.x === x && cube.y === y);
         const isPreviewPolyominoCube =
           previewPolyomino === null ? false : previewPolyomino.some((cube) => cube.x === x && cube.y === y);
         const isFilled = isPolyominoCube || isPreviewPolyominoCube || state === CUBE_STATE.FILLED;
