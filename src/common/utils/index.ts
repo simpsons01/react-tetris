@@ -62,7 +62,7 @@ export const createAnimation = (
       initialTimestamp = initialTimestamp === undefined ? timestamp : initialTimestamp;
       elapse = minMax((timestamp - initialTimestamp) / ms + _passed, 0, _duration);
       fn(elapse);
-      console.log("elapse is " + elapse + "s");
+      // console.log("elapse is " + elapse + "s");
       if (elapse !== _duration) {
         id = window.requestAnimationFrame(startAnimation);
       } else {
