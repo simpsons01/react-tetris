@@ -38,6 +38,27 @@ const RoomsPanelDivider = styled.div`
 const RoomsLeftPanel = styled.div`
   flex: 0 0 calc(80% - 23px);
   padding-right: 5px;
+  position: relative;
+`;
+
+const RoomsEmpty = styled.div`
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-top: 32px;
+
+  p {
+    font-size: 36px;
+  }
+
+  button {
+    width: 200px;
+  }
 `;
 
 const Room = styled.button`
@@ -56,8 +77,19 @@ const Room = styled.button`
   }
 `;
 
+enum ROOM_STATE {
+  CREATED,
+  WAITING_ROOM_FULL,
+  GAME_BEFORE_START,
+  GAME_START,
+  GAME_INTERRUPT,
+  GAME_END,
+}
+
 const Rooms = (): JSX.Element => {
-  const { socketInstance, isConnected } = React.useContext<
+  const navigate = useNavigate();
+
+  const { socketInstance, isConnected, isConnectErrorOccur } = React.useContext<
     ISocketContext<
       {
         error_occur: () => void;
@@ -79,21 +111,22 @@ const Rooms = (): JSX.Element => {
 
   const [roomName, setRoomName] = React.useState<string>("");
 
-  const navigate = useNavigate();
+  const [isCheckComplete, setIsCheckComplete] = React.useState(false);
 
-  const getRooms = React.useCallback(() => {
+  const handleGetRooms = React.useCallback(() => {
     if (isConnected) {
       socketInstance.emit("get_rooms", ({ data: { rooms }, metadata: { isError } }) => {
         if (isError) return;
-        setRooms(rooms);
-        if (rooms.length === 0) {
+        const waitingOtherJoinRooms = rooms.filter((room) => room.state === ROOM_STATE.WAITING_ROOM_FULL);
+        setRooms(waitingOtherJoinRooms);
+        if (waitingOtherJoinRooms.length === 0) {
           setIsNoRoomsModalOpen(true);
         }
       });
     }
   }, [isConnected, socketInstance]);
 
-  const joinRoom = React.useCallback(
+  const handleJoinRoom = React.useCallback(
     (roomId: string) => {
       if (isConnected) {
         socketInstance.emit(
@@ -113,7 +146,7 @@ const Rooms = (): JSX.Element => {
     [isConnected, socketInstance, navigate]
   );
 
-  const createRoom = React.useCallback(
+  const handleCreateRoom = React.useCallback(
     (roomName: string) => {
       if (isConnected) {
         socketInstance.emit(
@@ -133,13 +166,23 @@ const Rooms = (): JSX.Element => {
     [isConnected, socketInstance, navigate]
   );
 
+  const handleOnError = React.useCallback(() => {
+    createAlertModal("ERROR OCCUR", {
+      text: "confirm",
+      onClick: () => {
+        navigate("/");
+      },
+    });
+  }, [navigate]);
+
   React.useEffect(() => {
     if (isConnected) {
       socketInstance.emit("get_socket_data", ({ data: { name } }) => {
+        setIsCheckComplete(true);
         if (!name) {
           navigate("/");
         } else {
-          getRooms();
+          handleGetRooms();
         }
       });
     } else {
@@ -155,45 +198,51 @@ const Rooms = (): JSX.Element => {
   React.useEffect(() => {
     if (isConnected) {
       socketInstance.on("error_occur", () => {
-        createAlertModal("ERROR OCCUR", {
-          text: "confirm",
-          onClick: () => {
-            navigate("/");
-          },
-        });
+        handleOnError();
       });
     } else {
-      navigate("/");
+      if (isCheckComplete) {
+        handleOnError();
+      }
     }
     return () => {
       if (isConnected) {
         socketInstance.off("error_occur");
       }
     };
-  }, [socketInstance, isConnected, navigate]);
+  }, [socketInstance, isConnected, isConnectErrorOccur, isCheckComplete, handleOnError]);
 
   return (
     <RoomsContainer>
       <RoomsLeftPanel>
-        {rooms.map((room) => (
-          <Room
-            onClick={() => {
-              joinRoom(room.id);
-            }}
-            key={room.id}
-            className="nes-btn"
-          >
-            <p>ROOM NAME: {room.name}</p>
-            <p>HOST NAME: {room.host.name}</p>
-          </Room>
-        ))}
+        {rooms.length > 0 ? (
+          rooms.map((room) => (
+            <Room
+              onClick={() => {
+                handleJoinRoom(room.id);
+              }}
+              key={room.id}
+              className="nes-btn"
+            >
+              <p>ROOM NAME: {room.name}</p>
+              <p>HOST NAME: {room.host.name}</p>
+            </Room>
+          ))
+        ) : (
+          <RoomsEmpty>
+            <p>NO ROOM AVAILABLE</p>
+            <button onClick={() => navigate("/single")} className="nes-btn">
+              PLAY 1P
+            </button>
+          </RoomsEmpty>
+        )}
       </RoomsLeftPanel>
       <RoomsPanelDivider />
       <RoomsRightPanel>
         <button onClick={() => setIsCreateRoomsModalOpen(true)} className="nes-btn">
           CREATE ROOM
         </button>
-        <button onClick={() => getRooms()} className="nes-btn">
+        <button onClick={() => handleGetRooms()} className="nes-btn">
           UPDATE ROOM
         </button>
       </RoomsRightPanel>
@@ -230,7 +279,7 @@ const Rooms = (): JSX.Element => {
               }}
               onKeyDown={(event: React.KeyboardEvent) => {
                 if (event.key === KEYCODE.ENTER) {
-                  createRoom(roomName);
+                  handleCreateRoom(roomName);
                 }
               }}
             />
@@ -239,7 +288,7 @@ const Rooms = (): JSX.Element => {
         confirm={{
           text: "CREATE",
           onClick: () => {
-            createRoom(roomName);
+            handleCreateRoom(roomName);
           },
         }}
         cancel={{
