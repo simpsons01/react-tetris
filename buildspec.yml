@@ -9,15 +9,31 @@ phases:
       nodejs: 16
     on-failure: ABORT
     commands:
-      - npm install
+      - ls
+      - echo "install here"
+  pre_build:
+    on-failure: ABORT
+    commands:
+      - |
+        if [[ ($GITHUB_EVENT_NAME == "pull_request") ]]; then 
+          echo "do dome test here!"
+        fi
   build:
     on-failure: ABORT
     commands:
-      - npm run build
+      - |
+        if [[ ($GITHUB_EVENT_NAME == "push") ]]; then 
+          echo "do dome build"
+        fi
   post_build:
     on-failure: ABORT
     commands:
-      - aws s3 cp public s3://${DEPLOY_S3_ARN}  --recursive
+      - |
+        if [[ ($GITHUB_EVENT_NAME == "push") ]]; then 
+          echo "do dome post build stuff with push event"
+        elif [[ ($GITHUB_EVENT_NAME == "pull_request") ]]; then 
+          echo "do dome post build stuff with pull request event"
+        fi
 
 cache:
   paths:

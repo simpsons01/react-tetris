@@ -5,6 +5,10 @@ on:
     branches:
       - develop
   pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
     branches:
       - develop
 
@@ -28,4 +32,6 @@ jobs:
           aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
           aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY_ID"
           aws configure set default.region "$AWS_DEFAULT_REGION"
-          aws codebuild start-build --project-name TetrisFrontendBuildProject --source-version "$BRANCH_NAME"
+          aws codebuild start-build --project-name TetrisFrontendBuildProject \
+              --source-version "$BRANCH_NAME" \
+              --environment-variables-override GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME"
