@@ -34,4 +34,4 @@ jobs:
           aws configure set default.region "$AWS_DEFAULT_REGION"
           aws codebuild start-build --project-name TetrisFrontendBuildProject \
               --source-version "$BRANCH_NAME" \
-              --environment-variables-override GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME"
+              --environment-variables-override name=GITHUB_EVENT_NAME,value="$GITHUB_EVENT_NAME"
