@@ -25,7 +25,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ap-south-1"
         run: |
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ID
-          aws configure set default.region $AWS_DEFAULT_REGION
-          aws codebuild start-build --project-name TetrisFrontendBuildProject --source-version $BRANCH_NAME
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY_ID"
+          aws configure set default.region "$AWS_DEFAULT_REGION"
+          aws codebuild start-build --project-name TetrisFrontendBuildProject --source-version "$BRANCH_NAME"
