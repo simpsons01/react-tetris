@@ -24,7 +24,7 @@ jobs:
           if [[ $GITHUB_EVENT_NAME = "push" ]]; then
             echo SOURCE_VERSION=$(echo $GITHUB_REF | sed  -e 's/refs\/heads\///g') >> $GITHUB_ENV
           else
-            echo SOURCE_VERSION="pr/$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+            echo SOURCE_VERSION=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH) >> $GITHUB_ENV
           fi
       - name: "notify codebuild"
         env:
