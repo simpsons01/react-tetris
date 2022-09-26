@@ -17,6 +17,8 @@ jobs:
   notify-codebuild:
     runs-on: "ubuntu-18.04"
     steps:
+      - name: "dump GITHUB_CONTEXT"
+        run: echo '${{ toJSON(github) }}'
       - name: "export SOURCE_VERSION to env"
         run: |
           if [[ $GITHUB_EVENT_NAME = "push" ]]; then
