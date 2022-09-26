@@ -1,0 +1,28 @@
+name: "Github Actions to notify aws codebuild execute"
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  notify-codebuild:
+    runs-on: "ubuntu-18.04"
+    steps:
+      - name: "export BRANCH_NAME to env"
+        run: |
+          if [[ $GITHUB_EVENT_NAME = "push" ]]; then
+            echo "BRANCH_NAME=$(echo $GITHUB_REF | sed  -e 's/refs\/heads\///g')" >> $GITHUB_ENV
+          else
+            echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF | sed  -e 's/refs\/heads\///g')" >> $GITHUB_ENV
+          fi
+      - name: "notify codebuild"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-south-1"
+        run: |
+          aws codebuild start-build --project-name TetrisFrontendBuildProject --source-version $BRANCH_NAME

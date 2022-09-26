@@ -3,10 +3,6 @@ version: 0.2
 env:
   shell: bash
 
-cache:
-  paths:
-    - node_modules/**/*
-
 phases:
   install:
     runtime-versions:
@@ -22,3 +18,7 @@ phases:
     on-failure: ABORT
     commands:
       - aws s3 cp public s3://${DEPLOY_S3_ARN}  --recursive
+
+cache:
+  paths:
+    - node_modules/**/*
