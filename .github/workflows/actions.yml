@@ -17,6 +17,8 @@ jobs:
   notify-codebuild:
     runs-on: "ubuntu-18.04"
     steps:
+      - name: "list source code file"
+        run: ls
       - name: "dump GITHUB_CONTEXT"
         run: echo '${{ toJSON(github) }}'
       - name: "export COMMIT_ID to env"
