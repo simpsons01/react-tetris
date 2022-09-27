@@ -19,12 +19,13 @@ jobs:
     steps:
       - name: "dump GITHUB_CONTEXT"
         run: echo '${{ toJSON(github) }}'
-      - name: "export SOURCE_VERSION to env"
+      - name: "export COMMIT_ID to env"
+
         run: |
           if [[ $GITHUB_EVENT_NAME = "push" ]]; then
-            echo SOURCE_VERSION=$(echo $GITHUB_REF | sed  -e 's/refs\/heads\///g') >> $GITHUB_ENV
+            echo COMMIT_ID=${{ github.sha }} >> $GITHUB_ENV
           else
-            echo SOURCE_VERSION=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH) >> $GITHUB_ENV
+            echo COMMIT_ID=${{ github.event.pull_request.head.sha }} >> $GITHUB_ENV
           fi
       - name: "notify codebuild"
         env:
@@ -36,5 +37,5 @@ jobs:
           aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY_ID"
           aws configure set default.region "$AWS_DEFAULT_REGION"
           aws codebuild start-build --project-name TetrisFrontendBuildProject \
-              --source-version "$SOURCE_VERSION" \
+              --source-version "$COMMIT_ID" \
               --environment-variables-override name=GITHUB_EVENT_NAME,value="$GITHUB_EVENT_NAME"
