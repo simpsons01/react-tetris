@@ -9,21 +9,20 @@ phases:
       nodejs: 16
     on-failure: ABORT
     commands:
-      - ls
-      - echo "install here"
+      - npm install
   pre_build:
     on-failure: ABORT
     commands:
       - |
         if [[ ($GITHUB_EVENT_NAME == "pull_request") ]]; then 
-          echo "do dome test here!"
+          echo "do some test or lint check here!"
         fi
   build:
     on-failure: ABORT
     commands:
       - |
         if [[ ($GITHUB_EVENT_NAME == "push") ]]; then 
-          echo "do dome build"
+          npm run build
         fi
   post_build:
     on-failure: ABORT
