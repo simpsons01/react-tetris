@@ -1,0 +1,40 @@
+name: "Github Actions to notify aws codebuild execute"
+
+on:
+  push:
+    branches:
+      - production
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+    branches:
+      - production
+
+jobs:
+  notify-codebuild:
+    runs-on: "ubuntu-18.04"
+    steps:
+      - name: "dump GITHUB_CONTEXT"
+        run: echo '${{ toJSON(github) }}'
+      - name: "export COMMIT_ID to env"
+        run: |
+          if [[ $GITHUB_EVENT_NAME = "push" ]]; then
+            echo COMMIT_ID=${{ github.sha }} >> $GITHUB_ENV
+          else
+            echo COMMIT_ID=${{ github.event.pull_request.head.sha }} >> $GITHUB_ENV
+          fi
+      - name: "notify codebuild"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-1"
+        run: |
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY_ID"
+          aws configure set default.region "$AWS_DEFAULT_REGION"
+          aws codebuild start-build --project-name TetrisFrontendBuildProject \
+              --source-version "$COMMIT_ID" \
+              --environment-variables-override name=GITHUB_EVENT_NAME,value="$GITHUB_EVENT_NAME"
