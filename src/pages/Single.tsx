@@ -1,5 +1,11 @@
 import React from "react";
-import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE, ICube } from "../common/polyomino";
+import {
+  DIRECTION,
+  getRandomPolyominoType,
+  POLYOMINO_TYPE,
+  ICube,
+  POLYOMINO_ROTATION,
+} from "../common/polyomino";
 import { setRef, CountDownTimer } from "../common/utils";
 import Tetris from "../components/Tetris";
 import Game from "../components/Game";
@@ -179,7 +185,7 @@ const Single = (): JSX.Element => {
           } else if (e.keyCode === 40) {
             movePolyomino(DIRECTION.DOWN);
           } else if (e.keyCode === 38) {
-            changePolyominoShape();
+            changePolyominoShape(POLYOMINO_ROTATION.CLOCK_WISE);
           } else if (e.keyCode === 32) {
             movePolyominoToPreview();
           }

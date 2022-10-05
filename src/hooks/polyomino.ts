@@ -1,10 +1,10 @@
 import React from "react";
 import {
-  getPolyominoConfig,
   ICoordinate,
   POLYOMINO_SHAPE,
   POLYOMINO_TYPE,
   DEFAULT_POLYOMINO_SHAPE,
+  getCoordinateByAnchorAndShapeAndType,
 } from "../common/polyomino";
 
 const createInitialPolyominoState = () => ({
@@ -20,33 +20,12 @@ export interface IPolyomino {
 }
 
 const usePolyomino = function () {
-  const [polyomino, setPolyomino] = React.useState<IPolyomino>(
-    createInitialPolyominoState()
-  );
+  const [polyomino, setPolyomino] = React.useState<IPolyomino>(createInitialPolyominoState());
 
   const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
     if (polyomino.type == null) return null;
-    const polyominoConfig = getPolyominoConfig(polyomino.type);
-    return polyominoConfig.coordinate[polyomino.shape].coordinate.map(
-      ({ x, y }) => {
-        return {
-          x: x + polyomino.anchor.x,
-          y: y + polyomino.anchor.y,
-        };
-      }
-    ) as Array<ICoordinate>;
+    return getCoordinateByAnchorAndShapeAndType(polyomino.anchor, polyomino.type, polyomino.shape);
   }, [polyomino]);
-
-  // const polyominoInfo = React.useMemo<Array<ICube> | null>(() => {
-  //   if (polyomino.type == null || polyominoCoordinate == null) return null;
-  //   const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
-  //   return polyominoCoordinate.map(({ x, y }) => ({
-  //     x,
-  //     y,
-  //     strokeColor,
-  //     fillColor,
-  //   })) as Array<ICube>;
-  // }, [polyomino, polyominoCoordinate]);
 
   const resetPolyomino = React.useCallback((): void => {
     setPolyomino(createInitialPolyominoState());
@@ -55,7 +34,6 @@ const usePolyomino = function () {
   return {
     polyomino,
     polyominoCoordinate,
-    //polyominoInfo,
     setPolyomino,
     resetPolyomino,
   };

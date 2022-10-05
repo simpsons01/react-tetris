@@ -1,5 +1,11 @@
 import React from "react";
-import { DIRECTION, getRandomPolyominoType, POLYOMINO_TYPE, ICube } from "../common/polyomino";
+import {
+  DIRECTION,
+  getRandomPolyominoType,
+  POLYOMINO_TYPE,
+  ICube,
+  POLYOMINO_ROTATION,
+} from "../common/polyomino";
 import Tetris, { ITetris } from "../components/Tetris";
 import Game from "../components/Game";
 import Next from "../components/Next";
@@ -348,7 +354,7 @@ const Room = (): JSX.Element => {
         } else if (e.keyCode === 40) {
           moveSelfPolyomino(DIRECTION.DOWN);
         } else if (e.keyCode === 38) {
-          changeSelfPolyominoShape();
+          changeSelfPolyominoShape(POLYOMINO_ROTATION.CLOCK_WISE);
         } else if (e.keyCode === 32) {
           moveSelfPolyominoToPreview();
         }
