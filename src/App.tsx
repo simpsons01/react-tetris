@@ -26,7 +26,7 @@ function App() {
   const location = useLocation();
 
   const isScreenSizePlayable = React.useMemo(() => {
-    const heightRation = 0.8;
+    const heightRation = 1;
     const isDoubleGamePlayable =
       sizeConfig.mode.double.playable &&
       sizeConfig.mode.double.playField.height < screenSize.height * heightRation;
