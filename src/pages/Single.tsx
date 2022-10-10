@@ -74,6 +74,7 @@ const Single = (): JSX.Element => {
 
   const {
     mode: { single: singleSizeConfig },
+    font: fontConfig,
   } = useSizeConfigContext();
 
   const { leftsec, stopCountDown, startCountdown, resetCountDown } = useCountdown(60);
@@ -372,6 +373,7 @@ const Single = (): JSX.Element => {
           }}
         >
           <Widget.DisplayNumber
+            fontSize={fontConfig.level.three}
             width={singleSizeConfig.widget.displayNumber.width}
             height={singleSizeConfig.widget.displayNumber.height}
             title={"SCORE"}
@@ -379,7 +381,8 @@ const Single = (): JSX.Element => {
           />
         </div>
         <Widget.NextPolyomino
-          cubeDistance={singleSizeConfig.cube}
+          fontSize={fontConfig.level.three}
+          cubeDistance={singleSizeConfig.widget.nextPolyomino.cube}
           polyominoType={nextPolyominoType}
           width={singleSizeConfig.widget.nextPolyomino.width}
           height={singleSizeConfig.widget.nextPolyomino.height}
@@ -397,7 +400,7 @@ const Single = (): JSX.Element => {
           height={singleSizeConfig.playField.height}
         >
           <PlayField.Renderer
-            cubeDistance={singleSizeConfig.cube}
+            cubeDistance={singleSizeConfig.playField.cube}
             tetris={tetris}
             polyomino={polyominoCoordinate}
             previewPolyomino={previewPolyomino}
@@ -420,6 +423,7 @@ const Single = (): JSX.Element => {
           }}
         >
           <Widget.DisplayNumber
+            fontSize={fontConfig.level.three}
             width={singleSizeConfig.widget.displayNumber.width}
             height={singleSizeConfig.widget.displayNumber.height}
             title={"SEC"}

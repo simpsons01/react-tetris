@@ -8,8 +8,8 @@ const allSizeConfig = {
     mode: {
       single: {
         playable: true,
-        cube: 36,
         playField: {
+          cube: 36,
           width: 36 * 10 + 4 * 2, // 368
           height: 36 * 20 + 4 * 2, // 728
         },
@@ -19,6 +19,7 @@ const allSizeConfig = {
             height: 36 * 4 + 5 * 2 + 4 * 2, // 162,
           },
           nextPolyomino: {
+            cube: 36,
             width: 36 * 4 + 5 * 2 + 4 * 2, // 162,
             height: 36 * 4 + 5 * 2 + 4 * 2, // 162,
           },
@@ -28,23 +29,24 @@ const allSizeConfig = {
       },
       double: {
         playable: true,
-        cube: 36,
         playField: {
+          cube: 36,
           width: 36 * 10 + 4 * 2, // 368
           height: 36 * 20 + 4 * 2, // 728
         },
         widget: {
           displayNumber: {
-            width: 36 * 4 + 5 * 2 + 4 * 2, // 162,
-            height: 36 * 4 + 5 * 2 + 4 * 2, // 162,
+            width: 24 * 4 + 5 * 2 + 4 * 2, // 114,
+            height: 24 * 4 + 5 * 2 + 4 * 2, // 114,
           },
           nextPolyomino: {
-            width: 36 * 4 + 5 * 2 + 4 * 2, // 162,
-            height: 36 * 4 + 5 * 2 + 4 * 2, // 162,
+            cube: 24,
+            width: 24 * 4 + 5 * 2 + 4 * 2, // 114,
+            height: 24 * 4 + 5 * 2 + 4 * 2, // 114,
           },
         },
-        distanceBetweenPlayFieldAndWidget: 32,
-        distanceBetweenWidgetAndWidget: 32,
+        distanceBetweenPlayFieldAndWidget: 24,
+        distanceBetweenWidgetAndWidget: 24,
       },
     },
     font: {
@@ -63,8 +65,8 @@ const allSizeConfig = {
     mode: {
       single: {
         playable: true,
-        cube: 32,
         playField: {
+          cube: 32,
           width: 32 * 10 + 4 * 2, // 328
           height: 32 * 20 + 4 * 2, // 648
         },
@@ -74,6 +76,7 @@ const allSizeConfig = {
             height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
           },
           nextPolyomino: {
+            cube: 32,
             width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
             height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
           },
@@ -85,21 +88,23 @@ const allSizeConfig = {
         playable: true,
         cube: 32,
         playField: {
+          cube: 32,
           width: 32 * 10 + 4 * 2, // 328
           height: 32 * 20 + 4 * 2, // 648
         },
         widget: {
           displayNumber: {
-            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            width: 20 * 4 + 5 * 2 + 4 * 2, // 98,
+            height: 20 * 4 + 5 * 2 + 4 * 2, // 98,
           },
           nextPolyomino: {
-            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            cube: 20,
+            width: 20 * 4 + 5 * 2 + 4 * 2, // 98,
+            height: 20 * 4 + 5 * 2 + 4 * 2, // 98,
           },
         },
-        distanceBetweenPlayFieldAndWidget: 28,
-        distanceBetweenWidgetAndWidget: 28,
+        distanceBetweenPlayFieldAndWidget: 20,
+        distanceBetweenWidgetAndWidget: 20,
       },
     },
     font: {
@@ -118,8 +123,8 @@ const allSizeConfig = {
     mode: {
       single: {
         playable: true,
-        cube: 28,
         playField: {
+          cube: 28,
           width: 28 * 10 + 4 * 2, // 288
           height: 28 * 20 + 4 * 2, // 568
         },
@@ -129,6 +134,7 @@ const allSizeConfig = {
             height: 28 * 4 + 5 * 2 + 4 * 2, // 130,
           },
           nextPolyomino: {
+            cube: 28,
             width: 28 * 4 + 5 * 2 + 4 * 2, // 130,
             height: 28 * 4 + 5 * 2 + 4 * 2, // 130,
           },
@@ -138,23 +144,24 @@ const allSizeConfig = {
       },
       double: {
         playable: true,
-        cube: 28,
         playField: {
+          cube: 28,
           width: 28 * 10 + 4 * 2, // 288
           height: 28 * 20 + 4 * 2, // 568
         },
         widget: {
           displayNumber: {
-            width: 28 * 4 + 5 * 2 + 4 * 2, // 130,
-            height: 28 * 4 + 5 * 2 + 4 * 2, // 130,
+            width: 16 * 4 + 5 * 2 + 4 * 2, // 82,
+            height: 16 * 4 + 5 * 2 + 4 * 2, // 82,,
           },
           nextPolyomino: {
-            width: 28 * 4 + 5 * 2 + 4 * 2, // 130,
-            height: 28 * 4 + 5 * 2 + 4 * 2, // 130,
+            cube: 16,
+            width: 16 * 4 + 5 * 2 + 4 * 2, // 82,
+            height: 16 * 4 + 5 * 2 + 4 * 2, // 82,
           },
         },
-        distanceBetweenPlayFieldAndWidget: 24,
-        distanceBetweenWidgetAndWidget: 24,
+        distanceBetweenPlayFieldAndWidget: 12,
+        distanceBetweenWidgetAndWidget: 12,
       },
     },
     font: {
@@ -173,8 +180,8 @@ const allSizeConfig = {
     mode: {
       single: {
         playable: true,
-        cube: 32,
         playField: {
+          cube: 32,
           width: 32 * 10 + 4 * 2, // 328
           height: 32 * 20 + 4 * 2, // 648
         },
@@ -184,6 +191,7 @@ const allSizeConfig = {
             height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
           },
           nextPolyomino: {
+            cube: 32,
             width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
             height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
           },
@@ -193,8 +201,8 @@ const allSizeConfig = {
       },
       double: {
         playable: false,
-        cube: 0,
         playField: {
+          cube: 0,
           width: 0,
           height: 0,
         },
@@ -204,6 +212,7 @@ const allSizeConfig = {
             height: 0,
           },
           nextPolyomino: {
+            cube: 0,
             width: 0,
             height: 0,
           },
@@ -228,8 +237,8 @@ const allSizeConfig = {
     mode: {
       single: {
         playable: false,
-        cube: 0,
         playField: {
+          cube: 0,
           width: 0,
           height: 0,
         },
@@ -239,6 +248,7 @@ const allSizeConfig = {
             height: 0,
           },
           nextPolyomino: {
+            cube: 0,
             width: 0,
             height: 0,
           },
@@ -248,8 +258,8 @@ const allSizeConfig = {
       },
       double: {
         playable: false,
-        cube: 0,
         playField: {
+          cube: 0,
           width: 0,
           height: 0,
         },
@@ -259,6 +269,7 @@ const allSizeConfig = {
             height: 0,
           },
           nextPolyomino: {
+            cube: 0,
             width: 0,
             height: 0,
           },

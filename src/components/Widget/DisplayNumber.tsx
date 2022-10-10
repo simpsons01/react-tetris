@@ -1,8 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import Font from "../Font";
-import { useSizeConfigContext } from "../../context/sizeConfig";
-import { ISize } from "../../common/utils";
+import { ISize, IFontSize } from "../../common/utils";
 
 const Wrapper = styled.div``;
 
@@ -20,33 +19,32 @@ const Panel = styled.div<ISize>`
   }
 `;
 
-export interface INumberWidget extends ISize {
+export interface INumberWidget extends ISize, IFontSize {
   title: string;
   displayValue: number;
 }
 
 const NumberWidget: React.FC<INumberWidget> = (props) => {
-  const { displayValue, title, width, height } = props;
-  const sizeConfigContext = useSizeConfigContext();
+  const { fontSize, displayValue, title, width, height } = props;
   const calcDisplayValueFontSize = React.useMemo<number>(() => {
-    let fontSize = 0;
+    let ratio = 0;
     if (displayValue < 9) {
-      fontSize = sizeConfigContext.font.level.two;
+      ratio = 2.5;
     } else if (displayValue < 99) {
-      fontSize = sizeConfigContext.font.level.three;
+      ratio = 2;
     } else if (displayValue < 999) {
-      fontSize = sizeConfigContext.font.level.four;
+      ratio = 1.5;
     } else if (displayValue < 9999) {
-      fontSize = sizeConfigContext.font.level.five;
+      ratio = 1.2;
     } else {
-      fontSize = sizeConfigContext.font.level.six;
+      ratio = 1;
     }
-    return fontSize * 2;
-  }, [displayValue, sizeConfigContext]);
+    return Math.floor(fontSize * ratio);
+  }, [displayValue, fontSize]);
 
   return (
     <Wrapper>
-      <Font fontSize={sizeConfigContext.font.level.three}>{title}</Font>
+      <Font fontSize={fontSize}>{title}</Font>
       <Panel className={"nes-container is-rounded"} width={width} height={height}>
         <Font fontSize={calcDisplayValueFontSize}>{displayValue}</Font>
       </Panel>

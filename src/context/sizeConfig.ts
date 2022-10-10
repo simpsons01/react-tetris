@@ -4,8 +4,8 @@ export interface ISizeConfig {
   mode: {
     single: {
       playable: boolean;
-      cube: number;
       playField: {
+        cube: number;
         width: number;
         height: number;
       };
@@ -15,6 +15,7 @@ export interface ISizeConfig {
           height: number;
         };
         nextPolyomino: {
+          cube: number;
           width: number;
           height: number;
         };
@@ -24,8 +25,8 @@ export interface ISizeConfig {
     };
     double: {
       playable: boolean;
-      cube: number;
       playField: {
+        cube: number;
         width: number;
         height: number;
       };
@@ -35,6 +36,7 @@ export interface ISizeConfig {
           height: number;
         };
         nextPolyomino: {
+          cube: number;
           width: number;
           height: number;
         };

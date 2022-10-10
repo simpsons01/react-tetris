@@ -653,14 +653,56 @@ const Room = (): JSX.Element => {
             }}
           >
             <Widget.DisplayNumber
+              fontSize={fontConfig.level.five}
               width={doubleSizeConfig.widget.displayNumber.width}
               height={doubleSizeConfig.widget.displayNumber.height}
               title={"SCORE"}
               displayValue={selfScore}
             />
           </div>
+        </Column>
+        <Column
+          width={doubleSizeConfig.playField.width}
+          height={doubleSizeConfig.playField.height}
+          style={{
+            margin: `0 ${doubleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
+          }}
+        >
+          <PlayField.Wrapper
+            width={doubleSizeConfig.playField.width}
+            height={doubleSizeConfig.playField.height}
+          >
+            <PlayField.Renderer
+              cubeDistance={doubleSizeConfig.playField.cube}
+              tetris={selfTetris}
+              polyomino={selfPolyominoCoordinate}
+              previewPolyomino={selfPreviewPolyomino}
+            />
+          </PlayField.Wrapper>
+        </Column>
+        <Column
+          width={doubleSizeConfig.widget.displayNumber.width}
+          height={doubleSizeConfig.playField.height}
+        >
           <Widget.NextPolyomino
-            cubeDistance={doubleSizeConfig.cube}
+            fontSize={fontConfig.level.five}
+            cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
+            polyominoType={selfNextPolyominoType}
+            width={doubleSizeConfig.widget.nextPolyomino.width}
+            height={doubleSizeConfig.widget.nextPolyomino.height}
+          />
+        </Column>
+      </SelfGame>
+      <Divider></Divider>
+      <CountDown className="nes-container">{leftSec}</CountDown>
+      <OpponentGame>
+        <Column
+          width={doubleSizeConfig.widget.displayNumber.width}
+          height={doubleSizeConfig.playField.height}
+        >
+          <Widget.NextPolyomino
+            fontSize={fontConfig.level.five}
+            cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
             polyominoType={selfNextPolyominoType}
             width={doubleSizeConfig.widget.nextPolyomino.width}
             height={doubleSizeConfig.widget.nextPolyomino.height}
@@ -678,30 +720,7 @@ const Room = (): JSX.Element => {
             height={doubleSizeConfig.playField.height}
           >
             <PlayField.Renderer
-              cubeDistance={doubleSizeConfig.cube}
-              tetris={selfTetris}
-              polyomino={selfPolyominoCoordinate}
-              previewPolyomino={selfPreviewPolyomino}
-            />
-          </PlayField.Wrapper>
-        </Column>
-      </SelfGame>
-      <Divider></Divider>
-      <CountDown className="nes-container">{leftSec}</CountDown>
-      <OpponentGame>
-        <Column
-          width={doubleSizeConfig.playField.width}
-          height={doubleSizeConfig.playField.height}
-          style={{
-            margin: `0 ${doubleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
-          }}
-        >
-          <PlayField.Wrapper
-            width={doubleSizeConfig.playField.width}
-            height={doubleSizeConfig.playField.height}
-          >
-            <PlayField.Renderer
-              cubeDistance={doubleSizeConfig.cube}
+              cubeDistance={doubleSizeConfig.playField.cube}
               tetris={opponentTetris}
               polyomino={opponentPolyominoCoordinate}
               previewPolyomino={opponentPreviewPolyomino}
@@ -718,18 +737,13 @@ const Room = (): JSX.Element => {
             }}
           >
             <Widget.DisplayNumber
+              fontSize={fontConfig.level.five}
               width={doubleSizeConfig.widget.displayNumber.width}
               height={doubleSizeConfig.widget.displayNumber.height}
               title={"SCORE"}
               displayValue={opponentScore}
             />
           </div>
-          <Widget.NextPolyomino
-            cubeDistance={doubleSizeConfig.cube}
-            polyominoType={opponentNextPolyominoType}
-            width={doubleSizeConfig.widget.nextPolyomino.width}
-            height={doubleSizeConfig.widget.nextPolyomino.height}
-          />
         </Column>
       </OpponentGame>
       {(() => {
@@ -757,7 +771,13 @@ const Room = (): JSX.Element => {
               </NotifierWithButton>
             );
           } else if (roomState === ROOM_STATE.BEFORE_START) {
-            notifier = <Notifier>{beforeStartCountDown}</Notifier>;
+            notifier = (
+              <Notifier>
+                <Font fontSize={fontConfig.level.one} color="#fff">
+                  {beforeStartCountDown}
+                </Font>
+              </Notifier>
+            );
           } else if (roomState === ROOM_STATE.PARTICIPANT_LEAVE) {
             notifier = (
               <NotifierWithButton>
