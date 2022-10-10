@@ -2,15 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import Modal from "../../components/Modal";
 
-export type ClientToServerCallback<Data extends object = {}> = (payload: {
-  data: Data;
-  metadata: {
-    isSuccess: boolean;
-    isError: boolean;
-    message?: string;
-  };
-}) => void;
-
 export interface IFontSize {
   fontSize: number;
 }
@@ -226,7 +217,7 @@ export const createAlertModal = (
   document.body.appendChild(modalContainer);
   modalApp = ReactDOM.createRoot(modalContainer);
   modalApp.render(
-    React.createElement(Modal, {
+    React.createElement(Modal.Base, {
       portal: false,
       isOpen: true,
       title,

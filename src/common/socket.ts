@@ -1,5 +1,14 @@
 import { io, Socket } from "socket.io-client";
 
+export type ClientToServerCallback<Data extends object = {}> = (payload: {
+  data: Data;
+  metadata: {
+    isSuccess: boolean;
+    isError: boolean;
+    message?: string;
+  };
+}) => void;
+
 let instance: Socket;
 
 const getSocketInstance = (): Socket => {

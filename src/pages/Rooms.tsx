@@ -5,7 +5,8 @@ import { ISocketContext, SocketContext } from "../context/socket";
 import { IRoom } from "../common/rooms";
 import { useNavigate } from "react-router-dom";
 import { KEYCODE } from "../common/keyboard";
-import { ClientToServerCallback, createAlertModal } from "../common/utils";
+import { createAlertModal } from "../common/utils";
+import { ClientToServerCallback } from "../common/socket";
 
 const RoomsContainer = styled.div`
   width: 100%;
@@ -246,7 +247,7 @@ const Rooms = (): JSX.Element => {
           UPDATE ROOM
         </button>
       </RoomsRightPanel>
-      <Modal
+      <Modal.Base
         isOpen={isNoRoomsModalOpen}
         title="OPS!"
         body="THERE IS NO ROOM AVAILABLE"
@@ -264,7 +265,7 @@ const Rooms = (): JSX.Element => {
           },
         }}
       />
-      <Modal
+      <Modal.Base
         isOpen={isCreateRoomModalOpen}
         title="ENTER ROOM NAME"
         body={

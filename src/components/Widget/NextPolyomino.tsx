@@ -11,20 +11,30 @@ import { getRangeByCoordinate } from "../../common/polyomino/index";
 import { nanoid } from "nanoid";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
+import { useSizeConfigContext } from "../../context/sizeConfig";
+import Font from "../Font";
 
-const NextPanel = styled.div`
-  width: 100%;
-  height: 100%;
+const Wrapper = styled.div``;
+
+const Panel = styled.div<ISize>`
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  width: ${(props) => `${props.width}px`};
+  height: ${(props) => `${props.height}px`};
+  background-color: #eeeeee;
+
+  &&& {
+    padding: 0;
+    margin: 0;
+  }
 `;
 
-interface INextPanelContainer extends ISize {}
-const NextPanelContainer = styled.div<INextPanelContainer>`
+const PanelContainer = styled.div<ISize>`
   position: relative;
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.height}px`};
+  background-color: #eeeeee;
 `;
 
 interface INextCubeBlock extends ISize, IPosition {
@@ -78,15 +88,18 @@ const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
   }
 `;
 
-export interface INext {
+export interface INext extends ISize {
   polyominoType: POLYOMINO_TYPE | null;
   cubeDistance: number;
 }
 
-const Next = (props: INext): JSX.Element => {
-  const { polyominoType, cubeDistance } = props;
+const Next: React.FC<INext> = (props) => {
+  const { polyominoType, cubeDistance, width, height } = props;
+
+  const sizeConfigContext = useSizeConfigContext();
   // todo: 修正命名
   const { current: xxxxxxx } = React.useRef(new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()));
+
   const polyominoAnchor = React.useMemo<ICoordinate | null>(() => {
     if (polyominoType !== null) {
       const polyominoConfig = getPolyominoConfig(polyominoType);
@@ -110,23 +123,26 @@ const Next = (props: INext): JSX.Element => {
   }, [polyominoAnchor, polyominoType]);
 
   return (
-    <NextPanel>
-      <NextPanelContainer
-        width={PER_POLYOMINO_CUBE_NUM * cubeDistance}
-        height={PER_POLYOMINO_CUBE_NUM * cubeDistance}
-      >
-        {xxxxxxx.map((id, index) => (
-          <NextCube
-            key={id}
-            isFilled={polyominoCoordinate !== null}
-            left={polyominoCoordinate !== null ? polyominoCoordinate[index].x * cubeDistance : 0}
-            top={polyominoCoordinate !== null ? polyominoCoordinate[index].y * cubeDistance : 0}
-            width={cubeDistance}
-            height={cubeDistance}
-          />
-        ))}
-      </NextPanelContainer>
-    </NextPanel>
+    <Wrapper>
+      <Font fontSize={sizeConfigContext.font.level.three}>NEXT</Font>
+      <Panel className={"nes-container is-rounded"} width={width} height={height}>
+        <PanelContainer
+          width={PER_POLYOMINO_CUBE_NUM * cubeDistance}
+          height={PER_POLYOMINO_CUBE_NUM * cubeDistance}
+        >
+          {xxxxxxx.map((id, index) => (
+            <NextCube
+              key={id}
+              isFilled={polyominoCoordinate !== null}
+              left={polyominoCoordinate !== null ? polyominoCoordinate[index].x * cubeDistance : 0}
+              top={polyominoCoordinate !== null ? polyominoCoordinate[index].y * cubeDistance : 0}
+              width={cubeDistance}
+              height={cubeDistance}
+            />
+          ))}
+        </PanelContainer>
+      </Panel>
+    </Wrapper>
   );
 };
 

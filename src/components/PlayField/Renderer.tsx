@@ -3,7 +3,7 @@ import { ICube, CUBE_STATE } from "../../common/polyomino";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
 
-const TetrisPanel = styled.div`
+const Wrapper = styled.div`
   position: absolute;
   width: 100%;
   height: 100%;
@@ -66,7 +66,7 @@ const Cube = styled.div.attrs<ICubeBlock>((props) => ({
   }
 `;
 
-export interface ITetris {
+export interface IPlayFieldRenderer {
   cubeDistance: number;
   tetris: Array<ICube & { id: string }>;
   polyomino: Array<ICube> | null;
@@ -100,11 +100,11 @@ const makeCube = ({
   );
 };
 
-const Tetris = (props: ITetris): JSX.Element => {
+const Renderer: React.FC<IPlayFieldRenderer> = (props) => {
   const { tetris, polyomino, previewPolyomino, cubeDistance } = props;
 
   return (
-    <TetrisPanel>
+    <Wrapper>
       {tetris.map((cube) => {
         const { x, y, state, id } = cube;
         const isPolyominoCube =
@@ -122,8 +122,8 @@ const Tetris = (props: ITetris): JSX.Element => {
         });
         return React.cloneElement(cubeEl, { key: id });
       })}
-    </TetrisPanel>
+    </Wrapper>
   );
 };
 
-export default Tetris;
+export default Renderer;

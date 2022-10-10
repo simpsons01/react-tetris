@@ -1,5 +1,5 @@
 import React from "react";
-import { ITetris } from "../components/Tetris";
+import { IPlayFieldRenderer as ITetris } from "../components/PlayField/Renderer";
 import {
   CUBE_STATE,
   DEFAULT_POLYOMINO_SHAPE,

@@ -1,6 +1,8 @@
-import { BasePanel, BasePanelText, IPanel } from "./Base";
+import { BasePanel, IPanel } from "./Base";
 import styled from "styled-components";
 import { AnyFunction } from "../../../common/utils";
+import { useSizeConfigContext } from "../../../context/sizeConfig";
+import Font from "../../Font";
 
 export interface ITimesUp extends IPanel {
   isTimeUp: boolean;
@@ -12,11 +14,14 @@ const TimeUpBtn = styled.button`
 `;
 
 const Pause = (props: ITimesUp): JSX.Element | null => {
-  const { fontSize, isTimeUp, onTimesUpBtn } = props;
+  const { isTimeUp, onTimesUpBtn } = props;
+  const sizeConfigContext = useSizeConfigContext();
   if (!isTimeUp) return null;
   return (
     <BasePanel>
-      <BasePanelText fontSize={fontSize}>TIME UP</BasePanelText>
+      <Font fontSize={sizeConfigContext.font.level.three} color={"#fff"}>
+        TIME UP
+      </Font>
       <TimeUpBtn onClick={onTimesUpBtn} className="nes-btn">
         TRY AGAIN
       </TimeUpBtn>

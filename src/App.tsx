@@ -1,12 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import useScreenSize from "./hooks/screenSize";
+import useSizeConfig from "./hooks/size";
 import useSocket from "./hooks/socket";
 import Overlay from "./components/Overlay";
 import http from "./common/http";
 import React from "react";
 import { SocketContext } from "./context/socket";
+import { SizeConfigContext } from "./context/sizeConfig";
 import { ScreenSizeContext } from "./context/screen";
+import Font from "./components/Font";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -19,8 +21,28 @@ const AppContainer = styled.div`
 function App() {
   const [isHealthCheckFail, setIsHealthCheckFail] = React.useState(false);
   const [isInitial, setInitial] = React.useState(false);
-  const { width, height } = useScreenSize();
   const { isConnected, isConnectErrorOccur, socketInstance } = useSocket();
+  const { sizeConfig, screenSize } = useSizeConfig();
+  const location = useLocation();
+
+  const isScreenSizePlayable = React.useMemo(() => {
+    const heightRation = 0.8;
+    const isDoubleGamePlayable =
+      sizeConfig.mode.double.playable &&
+      sizeConfig.mode.double.playField.height < screenSize.height * heightRation;
+    const isSingleGamePlayable =
+      sizeConfig.mode.single.playable &&
+      sizeConfig.mode.single.playField.height < screenSize.height * heightRation;
+    let isPlayable = false;
+    if (location.pathname.match(/room\/\d+/)) {
+      isPlayable = isDoubleGamePlayable;
+    } else if (location.pathname === "single") {
+      isPlayable = isSingleGamePlayable;
+    } else {
+      isPlayable = isDoubleGamePlayable || isSingleGamePlayable;
+    }
+    return isPlayable;
+  }, [sizeConfig, location, screenSize]);
 
   React.useEffect(() => {
     http
@@ -37,27 +59,38 @@ function App() {
 
   return (
     <AppContainer>
-      {isInitial ? (
-        !isHealthCheckFail ? (
-          <React.Fragment>
-            <SocketContext.Provider
-              value={{
-                isConnected,
-                isConnectErrorOccur,
-                socketInstance,
-              }}
-            >
-              <ScreenSizeContext.Provider value={{ width, height }}>
-                <Outlet />
-              </ScreenSizeContext.Provider>
-            </SocketContext.Provider>
-          </React.Fragment>
+      {isInitial &&
+        (!isHealthCheckFail ? (
+          isScreenSizePlayable ? (
+            <React.Fragment>
+              <SocketContext.Provider
+                value={{
+                  isConnected,
+                  isConnectErrorOccur,
+                  socketInstance,
+                }}
+              >
+                <ScreenSizeContext.Provider value={screenSize}>
+                  <SizeConfigContext.Provider value={sizeConfig}>
+                    <Outlet />
+                  </SizeConfigContext.Provider>
+                </ScreenSizeContext.Provider>
+              </SocketContext.Provider>
+            </React.Fragment>
+          ) : (
+            <Overlay background="#fff">
+              <Font align="center" color="#292929" fontSize={sizeConfig.font.level.one}>
+                OOPS! THE SIZE IS NOT SUPPORTED
+              </Font>
+            </Overlay>
+          )
         ) : (
-          <Overlay.Container background="#fff" color="#292929" fontSize={32}>
-            <Overlay.Normal>OOPS! THE PAGE IS NOT WORKING</Overlay.Normal>
-          </Overlay.Container>
-        )
-      ) : null}
+          <Overlay background="#fff" color="#292929">
+            <Font align="center" color="#292929" fontSize={sizeConfig.font.level.one}>
+              OOPS! THE SIZE IS NOT SUPPORTED
+            </Font>
+          </Overlay>
+        ))}
     </AppContainer>
   );
 }

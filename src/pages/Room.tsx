@@ -6,10 +6,7 @@ import {
   ICube,
   POLYOMINO_ROTATION,
 } from "../common/polyomino";
-import Tetris, { ITetris } from "../components/Tetris";
-import Game from "../components/Game";
-import Next from "../components/Next";
-import Score from "../components/Score";
+import { IPlayFieldRenderer as ITetris } from "../components/PlayField/Renderer";
 import Overlay from "../components/Overlay";
 import Loading from "../components/Loading";
 import useTetris from "../hooks/tetris";
@@ -17,7 +14,90 @@ import { useNavigate } from "react-router-dom";
 import { IPolyomino } from "../hooks/polyomino";
 import { CountDownTimer, createAlertModal, setRef } from "../common/utils";
 import { ISocketContext, SocketContext } from "../context/socket";
-import { ClientToServerCallback } from "../common/utils";
+import { ISize } from "../common/utils";
+import { ClientToServerCallback } from "../common/socket";
+import styled from "styled-components";
+import { useSizeConfigContext } from "../context/sizeConfig";
+import Widget from "../components/Widget";
+import PlayField from "../components/PlayField";
+import Font from "../components/Font";
+
+const Wrapper = styled.div`
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+`;
+
+const SelfGame = styled.div`
+  width: calc(50% - 2px);
+  height: 100%;
+  left: 0;
+  top: 0;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Divider = styled.div`
+  width: 4px;
+  position: absolute;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #212529;
+`;
+
+const CountDown = styled.div`
+  width: 50px;
+  height: 50px;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  z-index: 1;
+  position: absolute;
+  color: #212521;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  font-size: 1.5rem;
+`;
+
+const OpponentGame = styled.div`
+  width: calc(50% - 2px);
+  height: 100%;
+  left: calc(50%);
+  top: 0;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Column = styled.div<ISize>`
+  position: relative;
+  flex: ${(props) => `0 0 ${props.width}px`};
+  height: ${(props) => `${props.height}px`};
+`;
+
+const Notifier = styled.div`
+  text-align: center;
+`;
+
+const NotifierWithButton = styled(Notifier)`
+  text-align: center;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: left;
+
+  button {
+    font-size: 16px;
+    width: 150px;
+    margin-top: 16px;
+  }
+`;
 
 enum GAME_STATE {
   BEFORE_START,
@@ -101,6 +181,11 @@ const Room = (): JSX.Element => {
   } = useTetris();
 
   const navigate = useNavigate();
+
+  const {
+    mode: { double: doubleSizeConfig },
+    font: fontConfig,
+  } = useSizeConfigContext();
 
   const { socketInstance, isConnected } = React.useContext<
     ISocketContext<
@@ -556,112 +641,188 @@ const Room = (): JSX.Element => {
   );
 
   return (
-    <Game.Double
-      self={{
-        score: (fontSize) => <Score fontSize={fontSize} score={selfScore} />,
-        next: (cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={selfNextPolyominoType} />,
-        tetris: (cubeDistance) => (
-          <Tetris
-            cubeDistance={cubeDistance}
-            tetris={selfTetris}
-            polyomino={selfPolyominoCoordinate}
-            previewPolyomino={selfPreviewPolyomino}
+    <Wrapper>
+      <SelfGame>
+        <Column
+          width={doubleSizeConfig.widget.displayNumber.width}
+          height={doubleSizeConfig.playField.height}
+        >
+          <div
+            style={{
+              marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+            }}
+          >
+            <Widget.DisplayNumber
+              width={doubleSizeConfig.widget.displayNumber.width}
+              height={doubleSizeConfig.widget.displayNumber.height}
+              title={"SCORE"}
+              displayValue={selfScore}
+            />
+          </div>
+          <Widget.NextPolyomino
+            cubeDistance={doubleSizeConfig.cube}
+            polyominoType={selfNextPolyominoType}
+            width={doubleSizeConfig.widget.nextPolyomino.width}
+            height={doubleSizeConfig.widget.nextPolyomino.height}
           />
-        ),
-      }}
-      opponent={{
-        score: (fontSize) => <Score fontSize={fontSize} score={opponentScore} />,
-        next: (cubeDistance) => (
-          <Next cubeDistance={cubeDistance} polyominoType={opponentNextPolyominoType} />
-        ),
-        tetris: (cubeDistance) => (
-          <Tetris
-            cubeDistance={cubeDistance}
-            tetris={opponentTetris}
-            polyomino={opponentPolyominoCoordinate}
-            previewPolyomino={opponentPreviewPolyomino}
+        </Column>
+        <Column
+          width={doubleSizeConfig.playField.width}
+          height={doubleSizeConfig.playField.height}
+          style={{
+            margin: `0 ${doubleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
+          }}
+        >
+          <PlayField.Wrapper
+            width={doubleSizeConfig.playField.width}
+            height={doubleSizeConfig.playField.height}
+          >
+            <PlayField.Renderer
+              cubeDistance={doubleSizeConfig.cube}
+              tetris={selfTetris}
+              polyomino={selfPolyominoCoordinate}
+              previewPolyomino={selfPreviewPolyomino}
+            />
+          </PlayField.Wrapper>
+        </Column>
+      </SelfGame>
+      <Divider></Divider>
+      <CountDown className="nes-container">{leftSec}</CountDown>
+      <OpponentGame>
+        <Column
+          width={doubleSizeConfig.playField.width}
+          height={doubleSizeConfig.playField.height}
+          style={{
+            margin: `0 ${doubleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
+          }}
+        >
+          <PlayField.Wrapper
+            width={doubleSizeConfig.playField.width}
+            height={doubleSizeConfig.playField.height}
+          >
+            <PlayField.Renderer
+              cubeDistance={doubleSizeConfig.cube}
+              tetris={opponentTetris}
+              polyomino={opponentPolyominoCoordinate}
+              previewPolyomino={opponentPreviewPolyomino}
+            />
+          </PlayField.Wrapper>
+        </Column>
+        <Column
+          width={doubleSizeConfig.widget.displayNumber.width}
+          height={doubleSizeConfig.playField.height}
+        >
+          <div
+            style={{
+              marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+            }}
+          >
+            <Widget.DisplayNumber
+              width={doubleSizeConfig.widget.displayNumber.width}
+              height={doubleSizeConfig.widget.displayNumber.height}
+              title={"SCORE"}
+              displayValue={opponentScore}
+            />
+          </div>
+          <Widget.NextPolyomino
+            cubeDistance={doubleSizeConfig.cube}
+            polyominoType={opponentNextPolyominoType}
+            width={doubleSizeConfig.widget.nextPolyomino.width}
+            height={doubleSizeConfig.widget.nextPolyomino.height}
           />
-        ),
-      }}
-      countdown={() => <div>{leftSec}</div>}
-      roomStateNotifier={() => {
-        let notifier = null;
-        if (roomState === ROOM_STATE.READY || roomState === ROOM_STATE.WAIT_OTHER_READY) {
-          notifier = (
-            <Overlay.NormalWithButton>
-              <div>READY OR NOT</div>
-              <button className="nes-btn" onClick={handleReady}>
-                <span
-                  style={{
-                    position: "relative",
-                    left: roomState === ROOM_STATE.READY ? "0" : "-16px",
-                  }}
-                >
-                  {roomState === ROOM_STATE.READY ? "READY" : <Loading.Dot>WAIT</Loading.Dot>}
-                </span>
-              </button>
-              <button onClick={handleLeaveRoom} className="nes-btn">
-                QUIT
-              </button>
-            </Overlay.NormalWithButton>
-          );
-        } else if (roomState === ROOM_STATE.BEFORE_START) {
-          notifier = <Overlay.Normal>{beforeStartCountDown}</Overlay.Normal>;
-        } else if (roomState === ROOM_STATE.PARTICIPANT_LEAVE) {
-          notifier = (
-            <Overlay.NormalWithButton>
-              <div>GAME INTERRUPTED</div>
-              <button onClick={handleNextGame} className="nes-btn">
-                NEXT
-              </button>
-              <button onClick={handleLeaveRoom} className="nes-btn">
-                QUIT
-              </button>
-            </Overlay.NormalWithButton>
-          );
-        } else if (roomState === ROOM_STATE.HOST_LEAVE) {
-          notifier = (
-            <Overlay.NormalWithButton>
-              <div>HOST LEAVE</div>
-              <button onClick={handleLeaveRoom} className="nes-btn">
-                QUIT
-              </button>
-            </Overlay.NormalWithButton>
-          );
-        } else if (roomState === ROOM_STATE.END) {
-          let text = "";
-          if (result === RESULT.TIE) {
-            text = "GAME IS TIE";
-          } else if (result === RESULT.WIN) {
-            text = "YOU WIN";
-          } else if (result === RESULT.LOSE) {
-            text = "YOU LOSE";
+        </Column>
+      </OpponentGame>
+      {(() => {
+        const roomStateNotifier = (() => {
+          let notifier = null;
+          if (roomState === ROOM_STATE.READY || roomState === ROOM_STATE.WAIT_OTHER_READY) {
+            notifier = (
+              <NotifierWithButton>
+                <Font fontSize={fontConfig.level.one} color="#fff">
+                  READY OR NOT
+                </Font>
+                <button className="nes-btn" onClick={handleReady}>
+                  <span
+                    style={{
+                      position: "relative",
+                      left: roomState === ROOM_STATE.READY ? "0" : "-16px",
+                    }}
+                  >
+                    {roomState === ROOM_STATE.READY ? "READY" : <Loading.Dot>WAIT</Loading.Dot>}
+                  </span>
+                </button>
+                <button onClick={handleLeaveRoom} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.BEFORE_START) {
+            notifier = <Notifier>{beforeStartCountDown}</Notifier>;
+          } else if (roomState === ROOM_STATE.PARTICIPANT_LEAVE) {
+            notifier = (
+              <NotifierWithButton>
+                <Font fontSize={fontConfig.level.one} color="#fff">
+                  GAME INTERRUPTED
+                </Font>
+                <button onClick={handleNextGame} className="nes-btn">
+                  NEXT
+                </button>
+                <button onClick={handleLeaveRoom} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.HOST_LEAVE) {
+            notifier = (
+              <NotifierWithButton>
+                <Font fontSize={fontConfig.level.one} color="#fff">
+                  HOST LEAVE
+                </Font>
+                <button onClick={handleLeaveRoom} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.END) {
+            let text = "";
+            if (result === RESULT.TIE) {
+              text = "GAME IS TIE";
+            } else if (result === RESULT.WIN) {
+              text = "YOU WIN";
+            } else if (result === RESULT.LOSE) {
+              text = "YOU LOSE";
+            }
+            notifier = (
+              <NotifierWithButton>
+                <Font fontSize={fontConfig.level.one} color="#fff">
+                  {text}
+                </Font>
+                <button onClick={handleNextGame} className="nes-btn">
+                  NEXT
+                </button>
+                <button onClick={handleLeaveRoom} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.ERROR) {
+            notifier = (
+              <NotifierWithButton>
+                <Font fontSize={fontConfig.level.one} color="#fff">
+                  ERROR
+                </Font>
+                <button onClick={() => navigate("/")} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
           }
-          notifier = (
-            <Overlay.NormalWithButton>
-              <div>{text}</div>
-              <button onClick={handleNextGame} className="nes-btn">
-                NEXT
-              </button>
-              <button onClick={handleLeaveRoom} className="nes-btn">
-                QUIT
-              </button>
-            </Overlay.NormalWithButton>
-          );
-        } else if (roomState === ROOM_STATE.ERROR) {
-          notifier = (
-            <Overlay.NormalWithButton>
-              <div>ERROR</div>
-              <button onClick={() => navigate("/")} className="nes-btn">
-                QUIT
-              </button>
-            </Overlay.NormalWithButton>
-          );
-        }
 
-        return notifier;
-      }}
-    />
+          return notifier;
+        })();
+        return roomStateNotifier !== null ? <Overlay>{roomStateNotifier}</Overlay> : null;
+      })()}
+    </Wrapper>
   );
 };
 

@@ -1,7 +1,6 @@
 import styled from "styled-components";
-import { IFontSize } from "../../../common/utils";
 
-export interface IPanel extends IFontSize {}
+export interface IPanel {}
 
 export const BasePanel = styled.div`
   display: flex;
@@ -14,10 +13,4 @@ export const BasePanel = styled.div`
   top: -4px;
   position: absolute;
   background-color: rgba(0, 0, 0, 0.6);
-`;
-
-export const BasePanelText = styled.p<IPanel>`
-  margin: 0;
-  font-size: ${(props) => `${props.fontSize}px`};
-  color: #fff;
 `;

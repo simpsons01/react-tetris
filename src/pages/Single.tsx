@@ -1,4 +1,12 @@
 import React from "react";
+import { setRef, CountDownTimer } from "../common/utils";
+import useCountdown from "../hooks/countdown";
+import useTetris from "../hooks/tetris";
+import styled from "styled-components";
+import Widget from "../components/Widget";
+import PlayField from "../components/PlayField";
+import { ISize } from "../common/utils";
+import { useSizeConfigContext } from "../context/sizeConfig";
 import {
   DIRECTION,
   getRandomPolyominoType,
@@ -6,15 +14,19 @@ import {
   ICube,
   POLYOMINO_ROTATION,
 } from "../common/polyomino";
-import { setRef, CountDownTimer } from "../common/utils";
-import Tetris from "../components/Tetris";
-import Game from "../components/Game";
-import Next from "../components/Next";
-import Score from "../components/Score";
-import TetrisPanel from "../components/Tetris/Panel";
-import CountDown from "../components/CountDown";
-import useCountdown from "../hooks/countdown";
-import useTetris from "../hooks/tetris";
+
+const Wrapper = styled.div<ISize>`
+  position: relative;
+  width: ${(props) => `${props.width}px`};
+  height: ${(props) => `${props.height}px`};
+  display: flex;
+`;
+
+const Column = styled.div<ISize>`
+  position: relative;
+  flex: ${(props) => `0 0 ${props.width}px`};
+  height: ${(props) => `${props.height}px`};
+`;
 
 export enum GAME_STATE {
   BEFORE_START,
@@ -59,6 +71,10 @@ const Single = (): JSX.Element => {
     resetPolyomino,
     resetTetris,
   } = useTetris();
+
+  const {
+    mode: { single: singleSizeConfig },
+  } = useSizeConfigContext();
 
   const { leftsec, stopCountDown, startCountdown, resetCountDown } = useCountdown(60);
 
@@ -340,39 +356,78 @@ const Single = (): JSX.Element => {
   );
 
   return (
-    <Game.Single
-      score={(fontSize) => <Score fontSize={fontSize} score={score} />}
-      next={(cubeDistance) => <Next cubeDistance={cubeDistance} polyominoType={nextPolyominoType} />}
-      countdown={(fontSize) => <CountDown fontSize={fontSize} sec={leftsec} />}
-      tetris={(cubeDistance) => (
-        <Tetris
-          cubeDistance={cubeDistance}
-          tetris={tetris}
-          polyomino={polyominoCoordinate}
-          previewPolyomino={previewPolyomino}
-        />
-      )}
-      gameover={(fontSize) => (
-        <TetrisPanel.GameOver
-          fontSize={fontSize}
-          isGameOver={isGameOver}
-          onGameOverBtnClick={handleNextGame}
-        />
-      )}
-      pause={(fontSize) => <TetrisPanel.Pause isPausing={isPausing} fontSize={fontSize} />}
-      timeup={(fontSize) => (
-        <TetrisPanel.TimeUp isTimeUp={isTimeUp} fontSize={fontSize} onTimesUpBtn={handleNextGame} />
-      )}
-      gamestart={(fontSize) => (
-        <TetrisPanel.GameStart
-          onGameStart={() => {
-            setGameState(GAME_STATE.START);
+    <Wrapper
+      width={
+        singleSizeConfig.playField.width +
+        singleSizeConfig.distanceBetweenPlayFieldAndWidget * 2 +
+        singleSizeConfig.widget.displayNumber.width +
+        singleSizeConfig.widget.displayNumber.width
+      }
+      height={singleSizeConfig.playField.height}
+    >
+      <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
+        <div
+          style={{
+            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
           }}
-          isGameStart={!isGameStart}
-          fontSize={fontSize}
+        >
+          <Widget.DisplayNumber
+            width={singleSizeConfig.widget.displayNumber.width}
+            height={singleSizeConfig.widget.displayNumber.height}
+            title={"SCORE"}
+            displayValue={score}
+          />
+        </div>
+        <Widget.NextPolyomino
+          cubeDistance={singleSizeConfig.cube}
+          polyominoType={nextPolyominoType}
+          width={singleSizeConfig.widget.nextPolyomino.width}
+          height={singleSizeConfig.widget.nextPolyomino.height}
         />
-      )}
-    />
+      </Column>
+      <Column
+        width={singleSizeConfig.playField.width}
+        height={singleSizeConfig.playField.height}
+        style={{
+          margin: `0 ${singleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
+        }}
+      >
+        <PlayField.Wrapper
+          width={singleSizeConfig.playField.width}
+          height={singleSizeConfig.playField.height}
+        >
+          <PlayField.Renderer
+            cubeDistance={singleSizeConfig.cube}
+            tetris={tetris}
+            polyomino={polyominoCoordinate}
+            previewPolyomino={previewPolyomino}
+          />
+          <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
+          <PlayField.PausePanel isPausing={isPausing} />
+          <PlayField.TimeUpPanel isTimeUp={isTimeUp} onTimesUpBtn={handleNextGame} />
+          <PlayField.GameStartPanel
+            onGameStart={() => {
+              setGameState(GAME_STATE.START);
+            }}
+            isGameStart={!isGameStart}
+          />
+        </PlayField.Wrapper>
+      </Column>
+      <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
+        <div
+          style={{
+            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+          }}
+        >
+          <Widget.DisplayNumber
+            width={singleSizeConfig.widget.displayNumber.width}
+            height={singleSizeConfig.widget.displayNumber.height}
+            title={"SEC"}
+            displayValue={leftsec}
+          />
+        </div>
+      </Column>
+    </Wrapper>
   );
 };
 

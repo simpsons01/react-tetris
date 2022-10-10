@@ -4,7 +4,8 @@ import Modal from "../components/Modal";
 import React from "react";
 import { KEYCODE } from "../common/keyboard";
 import { ISocketContext, SocketContext } from "../context/socket";
-import { ClientToServerCallback, createAlertModal } from "../common/utils";
+import { createAlertModal } from "../common/utils";
+import { ClientToServerCallback } from "../common/socket";
 
 const EntryContainer = styled.div`
   ul {
@@ -89,7 +90,7 @@ const Entry = (): JSX.Element => {
           </a>
         </li>
       </ul>
-      <Modal
+      <Modal.Base
         isOpen={isCreateUsernameModalOpen}
         title="ENTER YOUR NAME"
         body={

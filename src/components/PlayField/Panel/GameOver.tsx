@@ -1,6 +1,8 @@
 import styled from "styled-components";
 import { AnyFunction } from "../../../common/utils";
-import { BasePanel, BasePanelText, IPanel } from "./Base";
+import { useSizeConfigContext } from "../../../context/sizeConfig";
+import Font from "../../Font";
+import { BasePanel, IPanel } from "./Base";
 
 const GameOverBtn = styled.button`
   margin-top: 16px;
@@ -12,11 +14,14 @@ export interface IGameOverPanel extends IPanel {
 }
 
 const GameOver = (props: IGameOverPanel): JSX.Element | null => {
-  const { fontSize, isGameOver, onGameOverBtnClick } = props;
+  const { isGameOver, onGameOverBtnClick } = props;
+  const sizeConfigContext = useSizeConfigContext();
   if (!isGameOver) return null;
   return (
     <BasePanel>
-      <BasePanelText fontSize={fontSize}>GAME OVER</BasePanelText>
+      <Font fontSize={sizeConfigContext.font.level.three} color={"#fff"}>
+        GAME OVER
+      </Font>
       <GameOverBtn onClick={onGameOverBtnClick} className="nes-btn">
         TRY AGAIN
       </GameOverBtn>
