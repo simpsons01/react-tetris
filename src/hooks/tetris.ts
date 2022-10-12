@@ -19,7 +19,8 @@ import {
   getAnchorByCoordinatesAndTypeAndShape,
 } from "../common/polyomino";
 import usePolyomino from "./polyomino";
-import { createAnimation, getKeys, IAnimation, minMax, setRef } from "../common/utils";
+import { getKeys, minMax, setRef } from "../common/utils";
+import { createAnimation } from "../common/animation";
 import { nanoid } from "nanoid";
 import { PER_ROW_CUBE_NUM, PER_COL_CUBE_NUM } from "../common/tetris";
 
@@ -43,9 +44,9 @@ const createTetris = () =>
 const useTetris = function () {
   const { polyomino, setPolyomino, resetPolyomino, polyominoCoordinate } = usePolyomino();
   const [tetris, setTetris] = React.useState<ITetris["tetris"]>(createTetris());
-  const fillAllRowAnimationRef = React.useRef<IAnimation | null>(null);
-  const clearRowAnimationRef = React.useRef<IAnimation | null>(null);
-  const fillRowAnimationRef = React.useRef<IAnimation | null>(null);
+  const fillAllRowAnimationRef = React.useRef<ReturnType<typeof createAnimation> | null>(null);
+  const clearRowAnimationRef = React.useRef<ReturnType<typeof createAnimation> | null>(null);
+  const fillRowAnimationRef = React.useRef<ReturnType<typeof createAnimation> | null>(null);
 
   const findCube = React.useCallback(
     (coordinate: ICoordinate): ICube | null => {
@@ -428,7 +429,9 @@ const useTetris = function () {
             duration
           )
         );
-        window.requestAnimationFrame((clearRowAnimationRef.current as IAnimation).start);
+        window.requestAnimationFrame(
+          (clearRowAnimationRef.current as ReturnType<typeof createAnimation>).start
+        );
       });
     },
     [getRowFilledWithCube]
@@ -469,7 +472,9 @@ const useTetris = function () {
           duration
         )
       );
-      window.requestAnimationFrame((fillAllRowAnimationRef.current as IAnimation).start);
+      window.requestAnimationFrame(
+        (fillAllRowAnimationRef.current as ReturnType<typeof createAnimation>).start
+      );
     });
   }, []);
 
@@ -580,7 +585,9 @@ const useTetris = function () {
             duration
           )
         );
-        window.requestAnimationFrame((fillRowAnimationRef.current as IAnimation).start);
+        window.requestAnimationFrame(
+          (fillRowAnimationRef.current as ReturnType<typeof createAnimation>).start
+        );
       });
     },
     []

@@ -87,7 +87,7 @@ function App() {
         ) : (
           <Overlay background="#fff" color="#292929">
             <Font align="center" color="#292929" fontSize={sizeConfig.font.level.one}>
-              OOPS! THE SIZE IS NOT SUPPORTED
+              OOPS! THE PAGE IS NOT WORKED
             </Font>
           </Overlay>
         ))}

@@ -12,7 +12,9 @@ import Loading from "../components/Loading";
 import useTetris from "../hooks/tetris";
 import { useNavigate } from "react-router-dom";
 import { IPolyomino } from "../hooks/polyomino";
-import { CountDownTimer, createAlertModal, setRef } from "../common/utils";
+import { setRef } from "../common/utils";
+import { createAlertModal } from "../common/alert";
+import { createCountDownTimer } from "../common/timer";
 import { ISocketContext, SocketContext } from "../context/socket";
 import { ISize } from "../common/utils";
 import { ClientToServerCallback } from "../common/socket";
@@ -141,9 +143,6 @@ type GameData = IPolyomino | ITetris["tetris"] | POLYOMINO_TYPE | number | null;
 
 type GameDataUpdatedPayloads = Array<{ data: GameData; type: GameDataType }>;
 
-const polyominoFallingTimer = new CountDownTimer(0.3, true);
-const polyominoCollideBottomTimer = new CountDownTimer(0.2, true);
-
 const Room = (): JSX.Element => {
   const {
     polyomino: selfPolyomino,
@@ -227,6 +226,10 @@ const Room = (): JSX.Element => {
   const [opponentNextPolyominoType, setOpponentNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(
     null
   );
+
+  const { current: polyominoFallingTimer } = React.useRef(createCountDownTimer());
+
+  const { current: polyominoCollideBottomTimer } = React.useRef(createCountDownTimer());
 
   const [opponentScore, setOpponentScore] = React.useState<number>(0);
 
@@ -330,15 +333,21 @@ const Room = (): JSX.Element => {
         polyominoCollideBottomTimer.start(() => {
           setSelfPolyominoToTetris();
           resolve(isBottomCollide);
-        });
+        }, 500);
       } else {
         polyominoFallingTimer.start(() => {
           moveSelfPolyomino(DIRECTION.DOWN);
           resolve(isBottomCollide);
-        });
+        }, 500);
       }
     });
-  }, [getSelfPolyominoIsCollideWithNearbyCube, moveSelfPolyomino, setSelfPolyominoToTetris]);
+  }, [
+    getSelfPolyominoIsCollideWithNearbyCube,
+    moveSelfPolyomino,
+    polyominoCollideBottomTimer,
+    polyominoFallingTimer,
+    setSelfPolyominoToTetris,
+  ]);
 
   const handlePolyominoCreate = React.useCallback(() => {
     if (selfPolyominoCoordinate == null && selfNextPolyominoType !== null) {
@@ -357,7 +366,13 @@ const Room = (): JSX.Element => {
     pauseSelfFillAllRowAnimation();
     pauseSelfClearRowAnimation();
     pauseSelfFillRowAnimation();
-  }, [pauseSelfClearRowAnimation, pauseSelfFillRowAnimation, pauseSelfFillAllRowAnimation]);
+  }, [
+    polyominoFallingTimer,
+    polyominoCollideBottomTimer,
+    pauseSelfFillAllRowAnimation,
+    pauseSelfClearRowAnimation,
+    pauseSelfFillRowAnimation,
+  ]);
 
   const checkIsPolyominoCollideWithTetris = React.useCallback(() => {
     let isCollide = false;
@@ -550,6 +565,8 @@ const Room = (): JSX.Element => {
       fillSelfAllRow,
       resetSelfPolyomino,
       resetSelfTetris,
+      polyominoCollideBottomTimer,
+      polyominoFallingTimer,
     ]
   );
 

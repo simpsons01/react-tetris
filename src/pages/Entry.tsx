@@ -4,7 +4,7 @@ import Modal from "../components/Modal";
 import React from "react";
 import { KEYCODE } from "../common/keyboard";
 import { ISocketContext, SocketContext } from "../context/socket";
-import { createAlertModal } from "../common/utils";
+import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
 
 const EntryContainer = styled.div`

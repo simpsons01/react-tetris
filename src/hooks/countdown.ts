@@ -1,13 +1,12 @@
 import React from "react";
-import { CountDownTimer } from "../common/utils";
+import { createCountDownTimer } from "../common/timer";
 
 const useCountdown = function (sec: number) {
-  const { current: countDownTimer } = React.useRef<CountDownTimer>(
-    new CountDownTimer(1)
+  const { current: countDownTimer } = React.useRef<ReturnType<typeof createCountDownTimer>>(
+    createCountDownTimer()
   );
   const [leftsec, setLeftsec] = React.useState<number>(sec);
-  const [isStartCountDown, setIsStartCountDown] =
-    React.useState<boolean>(false);
+  const [isStartCountDown, setIsStartCountDown] = React.useState<boolean>(false);
 
   const startCountdown = React.useCallback(() => {
     if (!isStartCountDown) {
@@ -18,7 +17,7 @@ const useCountdown = function (sec: number) {
 
   const stopCountDown = React.useCallback(() => {
     if (isStartCountDown) {
-      countDownTimer.pause();
+      countDownTimer.clear();
       setIsStartCountDown(false);
     }
   }, [countDownTimer, isStartCountDown]);
@@ -33,7 +32,7 @@ const useCountdown = function (sec: number) {
     if (leftsec !== 0 && isStartCountDown) {
       countDownTimer.start(() => {
         setLeftsec(leftsec - 1);
-      });
+      }, 1000);
     }
     return () => {
       if (leftsec !== 0 && isStartCountDown) {

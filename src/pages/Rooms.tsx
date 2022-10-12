@@ -5,7 +5,7 @@ import { ISocketContext, SocketContext } from "../context/socket";
 import { IRoom } from "../common/rooms";
 import { useNavigate } from "react-router-dom";
 import { KEYCODE } from "../common/keyboard";
-import { createAlertModal } from "../common/utils";
+import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
 
 const RoomsContainer = styled.div`

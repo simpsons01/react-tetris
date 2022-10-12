@@ -1,5 +1,6 @@
 import React from "react";
-import { setRef, CountDownTimer } from "../common/utils";
+import { setRef } from "../common/utils";
+import { createCountDownTimer } from "../common/timer";
 import useCountdown from "../hooks/countdown";
 import useTetris from "../hooks/tetris";
 import styled from "styled-components";
@@ -44,9 +45,6 @@ export enum GAME_STATE {
   TIME_UP,
 }
 
-const polyominoFallingTimer = new CountDownTimer(0.5, true);
-const polyominoCollideBottomTimer = new CountDownTimer(0.2, true);
-
 const Single = (): JSX.Element => {
   const {
     polyominoCoordinate,
@@ -78,6 +76,10 @@ const Single = (): JSX.Element => {
   } = useSizeConfigContext();
 
   const { leftsec, stopCountDown, startCountdown, resetCountDown } = useCountdown(60);
+
+  const { current: polyominoFallingTimer } = React.useRef(createCountDownTimer());
+
+  const { current: polyominoCollideBottomTimer } = React.useRef(createCountDownTimer());
 
   const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
 
@@ -123,21 +125,33 @@ const Single = (): JSX.Element => {
     // console.log("pause game!");
     pauseClearRowAnimation();
     pauseFillRowAnimation();
-    polyominoFallingTimer.pause();
-    polyominoCollideBottomTimer.pause();
+    polyominoFallingTimer.clear();
+    polyominoCollideBottomTimer.clear();
     stopCountDown();
-  }, [pauseClearRowAnimation, pauseFillRowAnimation, stopCountDown]);
+  }, [
+    polyominoCollideBottomTimer,
+    polyominoFallingTimer,
+    pauseClearRowAnimation,
+    pauseFillRowAnimation,
+    stopCountDown,
+  ]);
 
   const continueGame = React.useCallback(() => {
     // console.log("continue game!");
     continueClearRowAnimation();
     continueFillRowAnimation();
-    polyominoFallingTimer.pause();
-    polyominoCollideBottomTimer.pause();
+    polyominoFallingTimer.clear();
+    polyominoCollideBottomTimer.clear();
     // console.log("gameState is " + gameState);
     // console.log("prevGameState state is " + prevGameState);
     startCountdown();
-  }, [continueClearRowAnimation, continueFillRowAnimation, startCountdown]);
+  }, [
+    polyominoCollideBottomTimer,
+    polyominoFallingTimer,
+    continueClearRowAnimation,
+    continueFillRowAnimation,
+    startCountdown,
+  ]);
 
   const handlePolyominoCreate = React.useCallback(() => {
     if (polyominoCoordinate == null && nextPolyominoType !== null) {
@@ -156,7 +170,13 @@ const Single = (): JSX.Element => {
     polyominoFallingTimer.clear();
     polyominoCollideBottomTimer.clear();
     stopCountDown();
-  }, [pauseClearRowAnimation, pauseFillRowAnimation, stopCountDown]);
+  }, [
+    polyominoCollideBottomTimer,
+    polyominoFallingTimer,
+    pauseClearRowAnimation,
+    pauseFillRowAnimation,
+    stopCountDown,
+  ]);
 
   const handleNextGame = React.useCallback(() => {
     resetTetris();
@@ -175,15 +195,21 @@ const Single = (): JSX.Element => {
         polyominoCollideBottomTimer.start(() => {
           setPolyominoToTetris();
           resolve(isBottomCollide);
-        });
+        }, 500);
       } else {
         polyominoFallingTimer.start(() => {
           movePolyomino(DIRECTION.DOWN);
           resolve(isBottomCollide);
-        });
+        }, 500);
       }
     });
-  }, [setPolyominoToTetris, getPolyominoIsCollideWithNearbyCube, movePolyomino]);
+  }, [
+    getPolyominoIsCollideWithNearbyCube,
+    polyominoCollideBottomTimer,
+    setPolyominoToTetris,
+    polyominoFallingTimer,
+    movePolyomino,
+  ]);
 
   React.useEffect(
     function handleKeyDown() {
@@ -337,6 +363,8 @@ const Single = (): JSX.Element => {
     [
       gameState,
       score,
+      polyominoCollideBottomTimer,
+      polyominoFallingTimer,
       prevGameState,
       nextPolyominoType,
       handlePolyominoCreate,
