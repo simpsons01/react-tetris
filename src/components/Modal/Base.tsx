@@ -1,16 +1,9 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
-
-const Overlay = styled.div`
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-`;
+import { useSizeConfigContext } from "../../context/sizeConfig";
+import Font from "../Font";
+import Overlay from "../Overlay";
 
 const Container = styled.div`
   position: absolute;
@@ -24,10 +17,7 @@ const Container = styled.div`
   z-index: 1;
 `;
 
-const Header = styled.div`
-  font-size: 24px;
-  line-height: 24px;
-`;
+const Header = styled.div``;
 
 const Body = styled.div`
   margin-top: 24px;
@@ -60,14 +50,23 @@ export interface IBaseModal {
 
 const BaseModal: React.FC<IBaseModal> = (props) => {
   const { isOpen, title, body, confirm, cancel, mountEl = document.body, portal = true } = props;
+  const { font: fontConfig } = useSizeConfigContext();
 
   if (!isOpen) return null;
 
   const modalElement = (
     <Overlay>
       <Container className="nes-dialog is-rounded">
-        {title ? <Header>{title}</Header> : null}
-        {body ? <Body>{body}</Body> : null}
+        {title ? (
+          <Header>
+            <Font fontSize={fontConfig.level.four}>{title}</Font>
+          </Header>
+        ) : null}
+        {body ? (
+          <Body>
+            <Font fontSize={fontConfig.level.six}>{body}</Font>
+          </Body>
+        ) : null}
         {confirm || cancel ? (
           <Footer>
             {cancel ? (

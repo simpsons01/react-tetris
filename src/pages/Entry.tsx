@@ -6,6 +6,8 @@ import { KEYCODE } from "../common/keyboard";
 import { ISocketContext, SocketContext } from "../context/socket";
 import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
+import Font from "../components/Font";
+import { useSizeConfigContext } from "../context/sizeConfig";
 
 const EntryContainer = styled.div`
   ul {
@@ -14,15 +16,17 @@ const EntryContainer = styled.div`
 
     li {
       text-align: center;
+
       a {
-        font-size: 2rem;
-        color: #212529;
+        text-decoration: none;
       }
     }
   }
 `;
 const Entry = (): JSX.Element => {
   const navigate = useNavigate();
+
+  const { font: fontConfig } = useSizeConfigContext();
 
   const { socketInstance, isConnected } = React.useContext<
     ISocketContext<
@@ -79,14 +83,20 @@ const Entry = (): JSX.Element => {
 
   return (
     <EntryContainer>
-      <h1>TETRIS GAME</h1>
+      <Font fontSize={fontConfig.level.one}>TETRIS GAME</Font>
       <ul className="nes-list is-circle">
         <li>
-          <Link to="/single">PLAY 1P</Link>
+          <Link to="/single">
+            <Font inline={true} fontSize={fontConfig.level.three}>
+              PLAY 1P
+            </Font>
+          </Link>
         </li>
         <li>
           <a href={void 0} onClick={toRooms}>
-            PLAY 2P
+            <Font inline={true} fontSize={fontConfig.level.three}>
+              PLAY 2P
+            </Font>
           </a>
         </li>
       </ul>

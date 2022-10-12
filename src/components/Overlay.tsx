@@ -8,6 +8,8 @@ const Overlay = styled.div<{ background?: string; color?: string }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  left: 0;
+  top: 0;
   background-color: ${(props) => `${props.background ? props.background : "rgba(0, 0, 0, 0.6)"}`};
   color: ${(props) => `${props.color ? props.color : "#fff"}`};
 `;

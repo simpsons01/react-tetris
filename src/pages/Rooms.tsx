@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { KEYCODE } from "../common/keyboard";
 import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
+import Font from "../components/Font";
+import { useSizeConfigContext } from "../context/sizeConfig";
 
 const RoomsContainer = styled.div`
   width: 100%;
@@ -53,10 +55,6 @@ const RoomsEmpty = styled.div`
   right: 0;
   padding-top: 32px;
 
-  p {
-    font-size: 36px;
-  }
-
   button {
     width: 200px;
   }
@@ -87,8 +85,10 @@ enum ROOM_STATE {
   GAME_END,
 }
 
-const Rooms = (): JSX.Element => {
+const Rooms: React.FC<{}> = () => {
   const navigate = useNavigate();
+
+  const { font: fontConfig } = useSizeConfigContext();
 
   const { socketInstance, isConnected, isConnectErrorOccur } = React.useContext<
     ISocketContext<
@@ -225,13 +225,13 @@ const Rooms = (): JSX.Element => {
               key={room.id}
               className="nes-btn"
             >
-              <p>ROOM NAME: {room.name}</p>
-              <p>HOST NAME: {room.host.name}</p>
+              <Font fontSize={fontConfig.level.six}>ROOM NAME: {room.name}</Font>
+              <Font fontSize={fontConfig.level.six}>HOST NAME: {room.host.name}</Font>
             </Room>
           ))
         ) : (
           <RoomsEmpty>
-            <p>NO ROOM AVAILABLE</p>
+            <Font fontSize={fontConfig.level.three}>NO ROOM AVAILABLE</Font>
             <button onClick={() => navigate("/single")} className="nes-btn">
               PLAY 1P
             </button>

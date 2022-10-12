@@ -63,7 +63,6 @@ const CountDown = styled.div`
   align-items: center;
   justify-content: center;
   background-color: #fff;
-  font-size: 1.5rem;
 `;
 
 const OpponentGame = styled.div`
@@ -711,7 +710,9 @@ const Room = (): JSX.Element => {
         </Column>
       </SelfGame>
       <Divider></Divider>
-      <CountDown className="nes-container">{leftSec}</CountDown>
+      <CountDown className="nes-container">
+        <Font fontSize={fontConfig.level.three}>{leftSec}</Font>
+      </CountDown>
       <OpponentGame>
         <Column
           width={doubleSizeConfig.widget.displayNumber.width}
