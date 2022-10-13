@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import Font from "../Font";
-import { ISize, IFontSize } from "../../common/utils";
+import { ISize } from "../../common/utils";
 
 const Wrapper = styled.div``;
 
@@ -19,14 +19,19 @@ const Panel = styled.div<ISize>`
   }
 `;
 
-export interface INumberWidget extends ISize, IFontSize {
+const DisplayNumber = styled.div<{ ratio: number }>`
+  transform: ${(props) => `scale(${props.ratio})`};
+`;
+
+export interface INumberWidget extends ISize {
+  fontLevel: string | Array<string>;
   title: string;
   displayValue: number;
 }
 
 const NumberWidget: React.FC<INumberWidget> = (props) => {
-  const { fontSize, displayValue, title, width, height } = props;
-  const calcDisplayValueFontSize = React.useMemo<number>(() => {
+  const { fontLevel, displayValue, title, width, height } = props;
+  const calcDisplayValueRatio = React.useMemo<number>(() => {
     let ratio = 0;
     if (displayValue < 9) {
       ratio = 2.5;
@@ -39,14 +44,16 @@ const NumberWidget: React.FC<INumberWidget> = (props) => {
     } else {
       ratio = 1;
     }
-    return Math.floor(fontSize * ratio);
-  }, [displayValue, fontSize]);
+    return ratio;
+  }, [displayValue]);
 
   return (
     <Wrapper>
-      <Font fontSize={fontSize}>{title}</Font>
+      <Font level={fontLevel}>{title}</Font>
       <Panel className={"nes-container is-rounded"} width={width} height={height}>
-        <Font fontSize={calcDisplayValueFontSize}>{displayValue}</Font>
+        <DisplayNumber ratio={calcDisplayValueRatio}>
+          <Font level={fontLevel}>{displayValue}</Font>
+        </DisplayNumber>
       </Panel>
     </Wrapper>
   );

@@ -7,7 +7,6 @@ import { ISocketContext, SocketContext } from "../context/socket";
 import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
 import Font from "../components/Font";
-import { useSizeConfigContext } from "../context/sizeConfig";
 
 const EntryContainer = styled.div`
   ul {
@@ -25,8 +24,6 @@ const EntryContainer = styled.div`
 `;
 const Entry = (): JSX.Element => {
   const navigate = useNavigate();
-
-  const { font: fontConfig } = useSizeConfigContext();
 
   const { socketInstance, isConnected } = React.useContext<
     ISocketContext<
@@ -83,18 +80,18 @@ const Entry = (): JSX.Element => {
 
   return (
     <EntryContainer>
-      <Font fontSize={fontConfig.level.one}>TETRIS GAME</Font>
+      <Font level={"one"}>TETRIS GAME</Font>
       <ul className="nes-list is-circle">
         <li>
           <Link to="/single">
-            <Font inline={true} fontSize={fontConfig.level.three}>
+            <Font inline={true} level={"two"}>
               PLAY 1P
             </Font>
           </Link>
         </li>
         <li>
           <a href={void 0} onClick={toRooms}>
-            <Font inline={true} fontSize={fontConfig.level.three}>
+            <Font inline={true} level={"two"}>
               PLAY 2P
             </Font>
           </a>

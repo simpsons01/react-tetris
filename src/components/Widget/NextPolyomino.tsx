@@ -10,7 +10,7 @@ import {
 import { getRangeByCoordinate } from "../../common/polyomino/index";
 import { nanoid } from "nanoid";
 import styled from "styled-components";
-import { ISize, IPosition, IFontSize } from "../../common/utils";
+import { ISize, IPosition } from "../../common/utils";
 import Font from "../Font";
 
 const Wrapper = styled.div``;
@@ -87,13 +87,14 @@ const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
   }
 `;
 
-export interface INext extends ISize, IFontSize {
+export interface INext extends ISize {
+  fontLevel: string | Array<string>;
   polyominoType: POLYOMINO_TYPE | null;
   cubeDistance: number;
 }
 
 const Next: React.FC<INext> = (props) => {
-  const { fontSize, polyominoType, cubeDistance, width, height } = props;
+  const { fontLevel, polyominoType, cubeDistance, width, height } = props;
   // todo: 修正命名
   const { current: xxxxxxx } = React.useRef(new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()));
 
@@ -121,7 +122,7 @@ const Next: React.FC<INext> = (props) => {
 
   return (
     <Wrapper>
-      <Font fontSize={fontSize}>NEXT</Font>
+      <Font level={fontLevel}>NEXT</Font>
       <Panel className={"nes-container is-rounded"} width={width} height={height}>
         <PanelContainer
           width={PER_POLYOMINO_CUBE_NUM * cubeDistance}

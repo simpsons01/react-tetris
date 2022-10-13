@@ -50,8 +50,6 @@ export interface IBaseModal {
 
 const BaseModal: React.FC<IBaseModal> = (props) => {
   const { isOpen, title, body, confirm, cancel, mountEl = document.body, portal = true } = props;
-  const { font: fontConfig } = useSizeConfigContext();
-
   if (!isOpen) return null;
 
   const modalElement = (
@@ -59,12 +57,12 @@ const BaseModal: React.FC<IBaseModal> = (props) => {
       <Container className="nes-dialog is-rounded">
         {title ? (
           <Header>
-            <Font fontSize={fontConfig.level.four}>{title}</Font>
+            <Font level={"four"}>{title}</Font>
           </Header>
         ) : null}
         {body ? (
           <Body>
-            <Font fontSize={fontConfig.level.six}>{body}</Font>
+            <Font level={"five"}>{body}</Font>
           </Body>
         ) : null}
         {confirm || cancel ? (

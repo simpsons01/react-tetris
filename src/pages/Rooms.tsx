@@ -88,8 +88,6 @@ enum ROOM_STATE {
 const Rooms: React.FC<{}> = () => {
   const navigate = useNavigate();
 
-  const { font: fontConfig } = useSizeConfigContext();
-
   const { socketInstance, isConnected, isConnectErrorOccur } = React.useContext<
     ISocketContext<
       {
@@ -225,13 +223,13 @@ const Rooms: React.FC<{}> = () => {
               key={room.id}
               className="nes-btn"
             >
-              <Font fontSize={fontConfig.level.six}>ROOM NAME: {room.name}</Font>
-              <Font fontSize={fontConfig.level.six}>HOST NAME: {room.host.name}</Font>
+              <Font level={"six"}>ROOM NAME: {room.name}</Font>
+              <Font level={"six"}>HOST NAME: {room.host.name}</Font>
             </Room>
           ))
         ) : (
           <RoomsEmpty>
-            <Font fontSize={fontConfig.level.three}>NO ROOM AVAILABLE</Font>
+            <Font level={"three"}>NO ROOM AVAILABLE</Font>
             <button onClick={() => navigate("/single")} className="nes-btn">
               PLAY 1P
             </button>

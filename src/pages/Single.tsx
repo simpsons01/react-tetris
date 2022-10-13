@@ -72,10 +72,9 @@ const Single = (): JSX.Element => {
 
   const {
     mode: { single: singleSizeConfig },
-    font: fontConfig,
   } = useSizeConfigContext();
 
-  const { leftsec, stopCountDown, startCountdown, resetCountDown } = useCountdown(60);
+  const { leftsec, stopCountDown, startCountdown, resetCountDown } = useCountdown(9999);
 
   const { current: polyominoFallingTimer } = React.useRef(createCountDownTimer());
 
@@ -401,7 +400,7 @@ const Single = (): JSX.Element => {
           }}
         >
           <Widget.DisplayNumber
-            fontSize={fontConfig.level.three}
+            fontLevel={"three"}
             width={singleSizeConfig.widget.displayNumber.width}
             height={singleSizeConfig.widget.displayNumber.height}
             title={"SCORE"}
@@ -409,7 +408,7 @@ const Single = (): JSX.Element => {
           />
         </div>
         <Widget.NextPolyomino
-          fontSize={fontConfig.level.three}
+          fontLevel={"three"}
           cubeDistance={singleSizeConfig.widget.nextPolyomino.cube}
           polyominoType={nextPolyominoType}
           width={singleSizeConfig.widget.nextPolyomino.width}
@@ -451,7 +450,7 @@ const Single = (): JSX.Element => {
           }}
         >
           <Widget.DisplayNumber
-            fontSize={fontConfig.level.three}
+            fontLevel={"three"}
             width={singleSizeConfig.widget.displayNumber.width}
             height={singleSizeConfig.widget.displayNumber.height}
             title={"SEC"}

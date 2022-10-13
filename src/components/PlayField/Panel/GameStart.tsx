@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import { AnyFunction, IFontSize } from "../../../common/utils";
-import { useSizeConfigContext } from "../../../context/sizeConfig";
+import { AnyFunction } from "../../../common/utils";
+import Font from "../../Font";
 import { BasePanel, IPanel } from "./Base";
 
 export interface IGameOverPanel extends IPanel {
@@ -8,19 +8,17 @@ export interface IGameOverPanel extends IPanel {
   onGameStart: AnyFunction;
 }
 
-const GameStartBtn = styled.button<IFontSize>`
-  font-size: ${(props) => `${props.fontSize}px`};
+const GameStartBtn = styled.button`
   margin-top: 16px;
 `;
 
 const GameOver = (props: IGameOverPanel): JSX.Element | null => {
   const { isGameStart, onGameStart } = props;
-  const sizeConfigContext = useSizeConfigContext();
   if (!isGameStart) return null;
   return (
     <BasePanel>
-      <GameStartBtn fontSize={sizeConfigContext.font.level.three} onClick={onGameStart} className="nes-btn">
-        START
+      <GameStartBtn onClick={onGameStart} className="nes-btn">
+        <Font level={"three"}>START</Font>
       </GameStartBtn>
     </BasePanel>
   );

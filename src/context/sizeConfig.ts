@@ -45,17 +45,6 @@ export interface ISizeConfig {
       distanceBetweenWidgetAndWidget: number;
     };
   };
-  font: {
-    level: {
-      one: number;
-      two: number;
-      three: number;
-      four: number;
-      five: number;
-      six: number;
-    };
-    lineHeight: number;
-  };
 }
 
 export const SizeConfigContext = React.createContext<ISizeConfig>({} as ISizeConfig);

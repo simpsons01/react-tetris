@@ -49,17 +49,6 @@ const allSizeConfig = {
         distanceBetweenWidgetAndWidget: 24,
       },
     },
-    font: {
-      level: {
-        one: 40,
-        two: 36,
-        three: 32,
-        four: 28,
-        five: 24,
-        six: 20,
-      },
-      lineHeight: 1.5,
-    },
   },
   extraLarge: {
     mode: {
@@ -164,17 +153,6 @@ const allSizeConfig = {
         distanceBetweenWidgetAndWidget: 12,
       },
     },
-    font: {
-      level: {
-        one: 40,
-        two: 36,
-        three: 32,
-        four: 28,
-        five: 24,
-        six: 20,
-      },
-      lineHeight: 1.5,
-    },
   },
   medium: {
     mode: {
@@ -221,17 +199,6 @@ const allSizeConfig = {
         distanceBetweenWidgetAndWidget: 0,
       },
     },
-    font: {
-      level: {
-        one: 36,
-        two: 28,
-        three: 24,
-        four: 20,
-        five: 16,
-        six: 12,
-      },
-      lineHeight: 1.5,
-    },
   },
   belowMedium: {
     mode: {
@@ -277,17 +244,6 @@ const allSizeConfig = {
         distanceBetweenPlayFieldAndWidget: 0,
         distanceBetweenWidgetAndWidget: 0,
       },
-    },
-    font: {
-      level: {
-        one: 36,
-        two: 28,
-        three: 24,
-        four: 20,
-        five: 16,
-        six: 12,
-      },
-      lineHeight: 1.5,
     },
   },
 };

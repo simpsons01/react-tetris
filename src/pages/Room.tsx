@@ -182,7 +182,6 @@ const Room = (): JSX.Element => {
 
   const {
     mode: { double: doubleSizeConfig },
-    font: fontConfig,
   } = useSizeConfigContext();
 
   const { socketInstance, isConnected } = React.useContext<
@@ -669,7 +668,7 @@ const Room = (): JSX.Element => {
             }}
           >
             <Widget.DisplayNumber
-              fontSize={fontConfig.level.five}
+              fontLevel={["six", "xl-five"]}
               width={doubleSizeConfig.widget.displayNumber.width}
               height={doubleSizeConfig.widget.displayNumber.height}
               title={"SCORE"}
@@ -701,7 +700,7 @@ const Room = (): JSX.Element => {
           height={doubleSizeConfig.playField.height}
         >
           <Widget.NextPolyomino
-            fontSize={fontConfig.level.five}
+            fontLevel={["six", "xl-five"]}
             cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
             polyominoType={selfNextPolyominoType}
             width={doubleSizeConfig.widget.nextPolyomino.width}
@@ -711,7 +710,7 @@ const Room = (): JSX.Element => {
       </SelfGame>
       <Divider></Divider>
       <CountDown className="nes-container">
-        <Font fontSize={fontConfig.level.three}>{leftSec}</Font>
+        <Font level={"three"}>{leftSec}</Font>
       </CountDown>
       <OpponentGame>
         <Column
@@ -719,7 +718,7 @@ const Room = (): JSX.Element => {
           height={doubleSizeConfig.playField.height}
         >
           <Widget.NextPolyomino
-            fontSize={fontConfig.level.five}
+            fontLevel={["six", "xl-five"]}
             cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
             polyominoType={selfNextPolyominoType}
             width={doubleSizeConfig.widget.nextPolyomino.width}
@@ -755,7 +754,7 @@ const Room = (): JSX.Element => {
             }}
           >
             <Widget.DisplayNumber
-              fontSize={fontConfig.level.five}
+              fontLevel={["six", "xl-five"]}
               width={doubleSizeConfig.widget.displayNumber.width}
               height={doubleSizeConfig.widget.displayNumber.height}
               title={"SCORE"}
@@ -770,7 +769,7 @@ const Room = (): JSX.Element => {
           if (roomState === ROOM_STATE.READY || roomState === ROOM_STATE.WAIT_OTHER_READY) {
             notifier = (
               <NotifierWithButton>
-                <Font fontSize={fontConfig.level.one} color="#fff">
+                <Font level={"one"} color="#fff">
                   READY OR NOT
                 </Font>
                 <button className="nes-btn" onClick={handleReady}>
@@ -791,7 +790,7 @@ const Room = (): JSX.Element => {
           } else if (roomState === ROOM_STATE.BEFORE_START) {
             notifier = (
               <Notifier>
-                <Font fontSize={fontConfig.level.one} color="#fff">
+                <Font level={"one"} color="#fff">
                   {beforeStartCountDown}
                 </Font>
               </Notifier>
@@ -799,7 +798,7 @@ const Room = (): JSX.Element => {
           } else if (roomState === ROOM_STATE.PARTICIPANT_LEAVE) {
             notifier = (
               <NotifierWithButton>
-                <Font fontSize={fontConfig.level.one} color="#fff">
+                <Font level={"one"} color="#fff">
                   GAME INTERRUPTED
                 </Font>
                 <button onClick={handleNextGame} className="nes-btn">
@@ -813,7 +812,7 @@ const Room = (): JSX.Element => {
           } else if (roomState === ROOM_STATE.HOST_LEAVE) {
             notifier = (
               <NotifierWithButton>
-                <Font fontSize={fontConfig.level.one} color="#fff">
+                <Font level={"one"} color="#fff">
                   HOST LEAVE
                 </Font>
                 <button onClick={handleLeaveRoom} className="nes-btn">
@@ -832,7 +831,7 @@ const Room = (): JSX.Element => {
             }
             notifier = (
               <NotifierWithButton>
-                <Font fontSize={fontConfig.level.one} color="#fff">
+                <Font level={"one"} color="#fff">
                   {text}
                 </Font>
                 <button onClick={handleNextGame} className="nes-btn">
@@ -846,7 +845,7 @@ const Room = (): JSX.Element => {
           } else if (roomState === ROOM_STATE.ERROR) {
             notifier = (
               <NotifierWithButton>
-                <Font fontSize={fontConfig.level.one} color="#fff">
+                <Font level={"one"} color="#fff">
                   ERROR
                 </Font>
                 <button onClick={() => navigate("/")} className="nes-btn">

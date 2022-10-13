@@ -79,14 +79,14 @@ function App() {
             </React.Fragment>
           ) : (
             <Overlay background="#fff">
-              <Font align="center" color="#292929" fontSize={sizeConfig.font.level.one}>
+              <Font align="center" color="#292929" level={"one"}>
                 OOPS! THE SIZE IS NOT SUPPORTED
               </Font>
             </Overlay>
           )
         ) : (
           <Overlay background="#fff" color="#292929">
-            <Font align="center" color="#292929" fontSize={sizeConfig.font.level.one}>
+            <Font align="center" color="#292929" level={"one"}>
               OOPS! THE PAGE IS NOT WORKED
             </Font>
           </Overlay>
