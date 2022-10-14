@@ -45,6 +45,10 @@ export enum GAME_STATE {
   TIME_UP,
 }
 
+const polyominoFallingTimer = createCountDownTimer();
+
+const polyominoCollideBottomTimer = createCountDownTimer();
+
 const Single = (): JSX.Element => {
   const {
     polyominoCoordinate,
@@ -76,9 +80,9 @@ const Single = (): JSX.Element => {
 
   const { leftsec, stopCountDown, startCountdown, resetCountDown } = useCountdown(9999);
 
-  const { current: polyominoFallingTimer } = React.useRef(createCountDownTimer());
+  const polyominoFallingTimerHandler = React.useRef(() => {});
 
-  const { current: polyominoCollideBottomTimer } = React.useRef(createCountDownTimer());
+  const isHardDrop = React.useRef(false);
 
   const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
 
@@ -127,13 +131,7 @@ const Single = (): JSX.Element => {
     polyominoFallingTimer.clear();
     polyominoCollideBottomTimer.clear();
     stopCountDown();
-  }, [
-    polyominoCollideBottomTimer,
-    polyominoFallingTimer,
-    pauseClearRowAnimation,
-    pauseFillRowAnimation,
-    stopCountDown,
-  ]);
+  }, [pauseClearRowAnimation, pauseFillRowAnimation, stopCountDown]);
 
   const continueGame = React.useCallback(() => {
     // console.log("continue game!");
@@ -144,13 +142,7 @@ const Single = (): JSX.Element => {
     // console.log("gameState is " + gameState);
     // console.log("prevGameState state is " + prevGameState);
     startCountdown();
-  }, [
-    polyominoCollideBottomTimer,
-    polyominoFallingTimer,
-    continueClearRowAnimation,
-    continueFillRowAnimation,
-    startCountdown,
-  ]);
+  }, [continueClearRowAnimation, continueFillRowAnimation, startCountdown]);
 
   const handlePolyominoCreate = React.useCallback(() => {
     if (polyominoCoordinate == null && nextPolyominoType !== null) {
@@ -169,13 +161,7 @@ const Single = (): JSX.Element => {
     polyominoFallingTimer.clear();
     polyominoCollideBottomTimer.clear();
     stopCountDown();
-  }, [
-    polyominoCollideBottomTimer,
-    polyominoFallingTimer,
-    pauseClearRowAnimation,
-    pauseFillRowAnimation,
-    stopCountDown,
-  ]);
+  }, [pauseClearRowAnimation, pauseFillRowAnimation, stopCountDown]);
 
   const handleNextGame = React.useCallback(() => {
     resetTetris();
@@ -185,30 +171,6 @@ const Single = (): JSX.Element => {
     setNextPolyominoType(null);
     setGameState(GAME_STATE.BEFORE_START);
   }, [resetCountDown, resetPolyomino, resetTetris]);
-
-  const handlePolyominoFalling = React.useCallback((): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
-      // console.log("isBottomCollide " + isBottomCollide);
-      if (isBottomCollide) {
-        polyominoCollideBottomTimer.start(() => {
-          setPolyominoToTetris();
-          resolve(isBottomCollide);
-        }, 500);
-      } else {
-        polyominoFallingTimer.start(() => {
-          movePolyomino(DIRECTION.DOWN);
-          resolve(isBottomCollide);
-        }, 500);
-      }
-    });
-  }, [
-    getPolyominoIsCollideWithNearbyCube,
-    polyominoCollideBottomTimer,
-    setPolyominoToTetris,
-    polyominoFallingTimer,
-    movePolyomino,
-  ]);
 
   React.useEffect(
     function handleKeyDown() {
@@ -229,6 +191,7 @@ const Single = (): JSX.Element => {
           } else if (e.keyCode === 38) {
             changePolyominoShape(POLYOMINO_ROTATION.CLOCK_WISE);
           } else if (e.keyCode === 32) {
+            setRef(isHardDrop, true);
             movePolyominoToPreview();
           }
         }
@@ -314,15 +277,39 @@ const Single = (): JSX.Element => {
           handleGameOver();
           break;
         case GAME_STATE.POLYOMINO_FALLING:
-          handlePolyominoFalling().then((isBottomCollide) => {
-            if (isBottomCollide) {
-              setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+          const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
+          if (isBottomCollide) {
+            if (polyominoFallingTimer.isPending()) {
+              polyominoFallingTimer.clear();
             }
-          });
-          effectCleaner = () => {
-            polyominoCollideBottomTimer.clear();
-            polyominoFallingTimer.clear();
-          };
+            if (polyominoCollideBottomTimer.isPending()) {
+              polyominoCollideBottomTimer.clear();
+            }
+            const _ = () => {
+              setPolyominoToTetris();
+              setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+            };
+            if (isHardDrop.current) {
+              setRef(isHardDrop, false);
+              _();
+            } else {
+              polyominoCollideBottomTimer.start(() => {
+                _();
+              }, 500);
+            }
+          } else {
+            if (polyominoCollideBottomTimer.isPending()) {
+              polyominoCollideBottomTimer.clear();
+            }
+            if (polyominoFallingTimer.isPending()) {
+              setRef(polyominoFallingTimerHandler, () => movePolyomino(DIRECTION.DOWN));
+            } else {
+              setRef(polyominoFallingTimerHandler, () => movePolyomino(DIRECTION.DOWN));
+              polyominoFallingTimer.start(() => {
+                polyominoFallingTimerHandler.current();
+              }, 500);
+            }
+          }
           break;
         case GAME_STATE.CHECK_IS_ROW_FILLED:
           const filledRow = getRowFilledWithCube();
@@ -362,12 +349,9 @@ const Single = (): JSX.Element => {
     [
       gameState,
       score,
-      polyominoCollideBottomTimer,
-      polyominoFallingTimer,
       prevGameState,
       nextPolyominoType,
       handlePolyominoCreate,
-      handlePolyominoFalling,
       handleGameOver,
       checkIsPolyominoCollideWithTetris,
       setGameState,
@@ -380,6 +364,9 @@ const Single = (): JSX.Element => {
       getEmptyRow,
       clearRowFilledWithCube,
       fillEmptyRow,
+      getPolyominoIsCollideWithNearbyCube,
+      setPolyominoToTetris,
+      movePolyomino,
     ]
   );
 
