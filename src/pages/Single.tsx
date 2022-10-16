@@ -15,6 +15,7 @@ import {
   ICube,
   POLYOMINO_ROTATION,
 } from "../common/polyomino";
+import { DEFAULT_START_LEVEL, getLevelByLine, getPolyominoFallingDelayByLevel } from "../common/tetris";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -88,7 +89,15 @@ const Single = (): JSX.Element => {
 
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
-  const [score, setScore] = React.useState<number>(0);
+  const [line, setLine] = React.useState<number>(291);
+
+  const [level, setLevel] = React.useState<number>(DEFAULT_START_LEVEL);
+
+  const [score, setScore] = React.useState<number>(29);
+
+  const [polyominoFallingDelay, setPolyominoFallingDelay] = React.useState(
+    getPolyominoFallingDelayByLevel(29)
+  );
 
   const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
 
@@ -167,7 +176,7 @@ const Single = (): JSX.Element => {
     resetTetris();
     resetPolyomino();
     resetCountDown();
-    setScore(0);
+    setLine(0);
     setNextPolyominoType(null);
     setGameState(GAME_STATE.BEFORE_START);
   }, [resetCountDown, resetPolyomino, resetTetris]);
@@ -279,6 +288,13 @@ const Single = (): JSX.Element => {
         case GAME_STATE.POLYOMINO_FALLING:
           const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
           if (isBottomCollide) {
+            // @ts-ignore
+            if (!window.b) {
+              // @ts-ignore
+              window.b = performance.now();
+              // @ts-ignore
+              console.log(window.b - window.a);
+            }
             if (polyominoFallingTimer.isPending()) {
               polyominoFallingTimer.clear();
             }
@@ -298,6 +314,12 @@ const Single = (): JSX.Element => {
               }, 500);
             }
           } else {
+            // @ts-ignore
+            if (!window.a) {
+              console.log(polyominoFallingDelay);
+              // @ts-ignore
+              window.a = performance.now();
+            }
             if (polyominoCollideBottomTimer.isPending()) {
               polyominoCollideBottomTimer.clear();
             }
@@ -307,7 +329,7 @@ const Single = (): JSX.Element => {
               setRef(polyominoFallingTimerHandler, () => movePolyomino(DIRECTION.DOWN));
               polyominoFallingTimer.start(() => {
                 polyominoFallingTimerHandler.current();
-              }, 500);
+              }, polyominoFallingDelay);
             }
           }
           break;
@@ -315,7 +337,11 @@ const Single = (): JSX.Element => {
           const filledRow = getRowFilledWithCube();
           if (filledRow) {
             setGameState(GAME_STATE.ROW_FILLED_CLEARING);
-            setScore(score + filledRow.length);
+            const nextLineValue = line + filledRow.length;
+            const nextLevel = getLevelByLine(nextLineValue);
+            setLine(nextLineValue);
+            setLevel(getLevelByLine(nextLineValue));
+            setPolyominoFallingDelay(getPolyominoFallingDelayByLevel(nextLevel));
             clearRowFilledWithCube(filledRow).then(() => {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
@@ -348,14 +374,14 @@ const Single = (): JSX.Element => {
     },
     [
       gameState,
-      score,
+      line,
       prevGameState,
       nextPolyominoType,
       handlePolyominoCreate,
       handleGameOver,
       checkIsPolyominoCollideWithTetris,
       setGameState,
-      setScore,
+      setLine,
       startCountdown,
       handleNextPolyominoTypeCreate,
       continueGame,
@@ -367,6 +393,7 @@ const Single = (): JSX.Element => {
       getPolyominoIsCollideWithNearbyCube,
       setPolyominoToTetris,
       movePolyomino,
+      polyominoFallingDelay,
     ]
   );
 
@@ -390,16 +417,29 @@ const Single = (): JSX.Element => {
             fontLevel={"three"}
             width={singleSizeConfig.widget.displayNumber.width}
             height={singleSizeConfig.widget.displayNumber.height}
-            title={"SCORE"}
-            displayValue={score}
+            title={"LINE"}
+            displayValue={line}
           />
         </div>
-        <Widget.NextPolyomino
+        <div
+          style={{
+            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+          }}
+        >
+          <Widget.DisplayNumber
+            fontLevel={"three"}
+            width={singleSizeConfig.widget.displayNumber.width}
+            height={singleSizeConfig.widget.displayNumber.height}
+            title={"LEVEL"}
+            displayValue={level}
+          />
+        </div>
+        <Widget.DisplayNumber
           fontLevel={"three"}
-          cubeDistance={singleSizeConfig.widget.nextPolyomino.cube}
-          polyominoType={nextPolyominoType}
-          width={singleSizeConfig.widget.nextPolyomino.width}
-          height={singleSizeConfig.widget.nextPolyomino.height}
+          width={singleSizeConfig.widget.displayNumber.width}
+          height={singleSizeConfig.widget.displayNumber.height}
+          title={"SCORE"}
+          displayValue={score}
         />
       </Column>
       <Column
@@ -444,6 +484,13 @@ const Single = (): JSX.Element => {
             displayValue={leftsec}
           />
         </div>
+        <Widget.NextPolyomino
+          fontLevel={"three"}
+          cubeDistance={singleSizeConfig.widget.nextPolyomino.cube}
+          polyominoType={nextPolyominoType}
+          width={singleSizeConfig.widget.nextPolyomino.width}
+          height={singleSizeConfig.widget.nextPolyomino.height}
+        />
       </Column>
     </Wrapper>
   );
