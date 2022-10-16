@@ -3,6 +3,7 @@ import {
   getCoordinateByAnchorAndShapeAndType,
   getPolyominoConfig,
   ICoordinate,
+  NEXT_POLYOMINO_BAGS_NUM,
   PER_POLYOMINO_CUBE_NUM,
   POLYOMINO_SHAPE,
   POLYOMINO_TYPE,
@@ -16,129 +17,136 @@ import Font from "../Font";
 const Wrapper = styled.div``;
 
 const Panel = styled.div<ISize>`
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.height}px`};
   background-color: #eeeeee;
 
   &&& {
-    padding: 0;
+    padding: 4px;
     margin: 0;
   }
 `;
 
-const PanelContainer = styled.div<ISize>`
+const NextCubeContainer = styled.div<ISize & { isFirstCube: boolean }>`
   position: relative;
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.height}px`};
-  background-color: #eeeeee;
+  margin-top: ${(props) => `${props.isFirstCube ? "0px" : "20px"}`};
 `;
 
-interface INextCubeBlock extends ISize, IPosition {
-  isFilled: boolean;
-}
-const NextCube = styled.div.attrs<INextCubeBlock>((props) => ({
-  className: `${props.className !== undefined ? props.className : ""} ${props.isFilled ? "filled" : ""}`,
-  style: {
-    left: `${props.left}px`,
-    top: `${props.top}px`,
-    width: `${props.width}px`,
-    height: `${props.height}px`,
-  },
-}))<INextCubeBlock>`
+interface INextCubeBlock extends ISize, IPosition {}
+const NextCube = styled.div<INextCubeBlock>`
+  left: ${(props) => `${props.left}px`};
+  top: ${(props) => `${props.top}px`};
+  width: ${(props) => `${props.width}px`};
+  height: ${(props) => `${props.height}px`};
   border-width: 3px;
   border-style: solid;
   border-color: transparent;
+  background-color: #212529;
+  border-width: 35%;
+  border-top-color: #fcfcfc;
+  border-left-color: #fcfcfc;
+  border-right-color: #7c7c7c;
+  border-bottom-color: #7c7c7c;
+
+  &::before {
+    content: "";
+    display: block;
+    height: 10%;
+    width: 20%;
+    background-color: #fff;
+    position: absolute;
+    left: 20%;
+    top: 10%;
+  }
+
+  &::after {
+    content: "";
+    display: block;
+    height: 15%;
+    width: 10%;
+    background-color: #fff;
+    position: absolute;
+    left: 20%;
+    top: 20%;
+  }
   &&& {
     padding: 0;
     position: absolute;
   }
-  &.filled {
-    background-color: #212529;
-    border-width: 35%;
-    border-top-color: #fcfcfc;
-    border-left-color: #fcfcfc;
-    border-right-color: #7c7c7c;
-    border-bottom-color: #7c7c7c;
-
-    &::before {
-      content: "";
-      display: block;
-      height: 10%;
-      width: 20%;
-      background-color: #fff;
-      position: absolute;
-      left: 20%;
-      top: 10%;
-    }
-
-    &::after {
-      content: "";
-      display: block;
-      height: 15%;
-      width: 10%;
-      background-color: #fff;
-      position: absolute;
-      left: 20%;
-      top: 20%;
-    }
-  }
 `;
+
+const POLYOMINO_CUBE_X_NUM = 4;
+const POLYOMINO_CUBE_Y_NUM = 2;
 
 export interface INext extends ISize {
   fontLevel: string | Array<string>;
-  polyominoType: POLYOMINO_TYPE | null;
+  polyominoBag: Array<POLYOMINO_TYPE> | null;
   cubeDistance: number;
 }
 
 const Next: React.FC<INext> = (props) => {
-  const { fontLevel, polyominoType, cubeDistance, width, height } = props;
+  const { fontLevel, polyominoBag, cubeDistance, width, height } = props;
   // todo: 修正命名
-  const { current: xxxxxxx } = React.useRef(new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()));
+  const { current: xxxxxxx } = React.useRef(
+    new Array(NEXT_POLYOMINO_BAGS_NUM).fill(null).map(() => ({
+      id: nanoid(),
+      data: new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()),
+    }))
+  );
 
-  const polyominoAnchor = React.useMemo<ICoordinate | null>(() => {
-    if (polyominoType !== null) {
-      const polyominoConfig = getPolyominoConfig(polyominoType);
-      let anchor = { x: 0, y: 0 };
-      const { coordinates: defaultCoordinate, anchorIndex } =
-        polyominoConfig.config[POLYOMINO_SHAPE.INITIAL].shape;
-      const defaultAnchor = defaultCoordinate[anchorIndex];
-      const { minX, maxX, maxY, minY } = getRangeByCoordinate(defaultCoordinate);
-      anchor.x = (PER_POLYOMINO_CUBE_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
-      anchor.y = (PER_POLYOMINO_CUBE_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
-      return anchor;
+  const nextPolyominoBagPolyominoCoordinate = React.useMemo<Array<Array<ICoordinate>> | null>(() => {
+    if (polyominoBag !== null) {
+      return polyominoBag.map((polyominoType) => {
+        const polyominoAnchor = (() => {
+          const polyominoConfig = getPolyominoConfig(polyominoType);
+          let anchor = { x: 0, y: 0 };
+          const { coordinates: defaultCoordinate, anchorIndex } =
+            polyominoConfig.config[POLYOMINO_SHAPE.INITIAL].shape;
+          const defaultAnchor = defaultCoordinate[anchorIndex];
+          const { minX, maxX, maxY, minY } = getRangeByCoordinate(defaultCoordinate);
+          anchor.x = (POLYOMINO_CUBE_X_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
+          anchor.y = (POLYOMINO_CUBE_Y_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
+          return anchor;
+        })();
+        return getCoordinateByAnchorAndShapeAndType(polyominoAnchor, polyominoType, POLYOMINO_SHAPE.INITIAL);
+      });
     }
     return null;
-  }, [polyominoType]);
-
-  const polyominoCoordinate = React.useMemo<Array<ICoordinate> | null>(() => {
-    if (polyominoType !== null && polyominoAnchor !== null) {
-      return getCoordinateByAnchorAndShapeAndType(polyominoAnchor, polyominoType, POLYOMINO_SHAPE.INITIAL);
-    }
-    return null;
-  }, [polyominoAnchor, polyominoType]);
+  }, [polyominoBag]);
 
   return (
     <Wrapper>
       <Font level={fontLevel}>NEXT</Font>
       <Panel className={"nes-container is-rounded"} width={width} height={height}>
-        <PanelContainer
-          width={PER_POLYOMINO_CUBE_NUM * cubeDistance}
-          height={PER_POLYOMINO_CUBE_NUM * cubeDistance}
-        >
-          {xxxxxxx.map((id, index) => (
-            <NextCube
-              key={id}
-              isFilled={polyominoCoordinate !== null}
-              left={polyominoCoordinate !== null ? polyominoCoordinate[index].x * cubeDistance : 0}
-              top={polyominoCoordinate !== null ? polyominoCoordinate[index].y * cubeDistance : 0}
-              width={cubeDistance}
-              height={cubeDistance}
-            />
+        {polyominoBag &&
+          xxxxxxx.map((yyyyyy, zzzzzz) => (
+            <NextCubeContainer
+              key={yyyyyy.id}
+              width={POLYOMINO_CUBE_X_NUM * cubeDistance}
+              height={POLYOMINO_CUBE_Y_NUM * cubeDistance}
+              isFirstCube={zzzzzz === 0}
+            >
+              {yyyyyy.data.map((id, fffff) => (
+                <NextCube
+                  key={id}
+                  left={
+                    nextPolyominoBagPolyominoCoordinate !== null
+                      ? nextPolyominoBagPolyominoCoordinate[zzzzzz][fffff].x * cubeDistance
+                      : 0
+                  }
+                  top={
+                    nextPolyominoBagPolyominoCoordinate !== null
+                      ? nextPolyominoBagPolyominoCoordinate[zzzzzz][fffff].y * cubeDistance
+                      : 0
+                  }
+                  width={cubeDistance}
+                  height={cubeDistance}
+                />
+              ))}
+            </NextCubeContainer>
           ))}
-        </PanelContainer>
       </Panel>
     </Wrapper>
   );

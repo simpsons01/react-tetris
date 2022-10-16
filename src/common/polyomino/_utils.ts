@@ -6,6 +6,7 @@ import { O } from "./O";
 import { S } from "./S";
 import { T } from "./T";
 import { Z } from "./Z";
+import { getRandomMixMax } from "../utils";
 
 export const getPolyominoConfig = function (type: POLYOMINO_TYPE): Readonly<IPolyominoConfig> {
   const _ = {
@@ -20,18 +21,37 @@ export const getPolyominoConfig = function (type: POLYOMINO_TYPE): Readonly<IPol
   return _[type];
 };
 
+const list = [
+  POLYOMINO_TYPE.I,
+  POLYOMINO_TYPE.J,
+  POLYOMINO_TYPE.L,
+  POLYOMINO_TYPE.O,
+  POLYOMINO_TYPE.S,
+  POLYOMINO_TYPE.T,
+  POLYOMINO_TYPE.Z,
+];
 export const getRandomPolyominoType = function (): POLYOMINO_TYPE {
-  const list = [
-    POLYOMINO_TYPE.I,
-    POLYOMINO_TYPE.J,
-    POLYOMINO_TYPE.L,
-    POLYOMINO_TYPE.O,
-    POLYOMINO_TYPE.S,
-    POLYOMINO_TYPE.T,
-    POLYOMINO_TYPE.Z,
-  ];
-  const random = Math.floor(Math.random() * list.length);
-  return list[random];
+  return list[getRandomMixMax(0, list.length - 1)];
+};
+
+const BAGS_LENGTH = 7;
+export const getRandomPolyominoBag = function (): Array<POLYOMINO_TYPE> {
+  const bags: Array<POLYOMINO_TYPE> = [];
+  while (bags.length < BAGS_LENGTH) {
+    if (bags.length === BAGS_LENGTH - 1) {
+      list.forEach((polyominoType) => {
+        if (bags.indexOf(polyominoType) === -1) {
+          bags.push(polyominoType);
+        }
+      });
+    } else {
+      const randomPolyomino = getRandomPolyominoType();
+      if (bags.indexOf(randomPolyomino) === -1) {
+        bags.push(randomPolyomino);
+      }
+    }
+  }
+  return bags;
 };
 
 export const getRangeByCoordinate = function (coordinate: Array<ICoordinate>): {

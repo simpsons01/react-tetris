@@ -5,11 +5,13 @@ import {
   POLYOMINO_TYPE,
   ICube,
   POLYOMINO_ROTATION,
+  getRandomPolyominoBag,
 } from "../common/polyomino";
 import { IPlayFieldRenderer as ITetris } from "../components/PlayField/Renderer";
 import Overlay from "../components/Overlay";
 import Loading from "../components/Loading";
 import useTetris from "../hooks/tetris";
+import useNextPolyominoBag from "../hooks/nextPolyomino";
 import { useNavigate } from "react-router-dom";
 import { IPolyomino } from "../hooks/polyomino";
 import { setRef } from "../common/utils";
@@ -166,6 +168,9 @@ const Room = (): JSX.Element => {
     getPolyominoPreviewCoordinate: getSelfPolyominoPreviewCoordinate,
     movePolyominoToPreview: moveSelfPolyominoToPreview,
   } = useTetris();
+
+  const { nextPolyominoBag: selfnextPolyominoBag, popNextPolyominoType: popSelfNextPolyomino } =
+    useNextPolyominoBag(getRandomPolyominoBag());
 
   const {
     polyomino: opponentPolyomino,
@@ -348,11 +353,11 @@ const Room = (): JSX.Element => {
   ]);
 
   const handlePolyominoCreate = React.useCallback(() => {
-    if (selfPolyominoCoordinate == null && selfNextPolyominoType !== null) {
-      console.log("create polyomino!");
+    if (selfPolyominoCoordinate == null) {
+      const selfNextPolyominoType = popSelfNextPolyomino();
       createSelfPolyomino(selfNextPolyominoType);
     }
-  }, [selfPolyominoCoordinate, createSelfPolyomino, selfNextPolyominoType]);
+  }, [selfPolyominoCoordinate, createSelfPolyomino, popSelfNextPolyomino]);
 
   const handleNextPolyominoTypeCreate = React.useCallback(() => {
     setSelfNextPolyominoType(getRandomPolyominoType());
@@ -702,7 +707,7 @@ const Room = (): JSX.Element => {
           <Widget.NextPolyomino
             fontLevel={["six", "xl-five"]}
             cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
-            polyominoType={selfNextPolyominoType}
+            polyominoBag={selfnextPolyominoBag}
             width={doubleSizeConfig.widget.nextPolyomino.width}
             height={doubleSizeConfig.widget.nextPolyomino.height}
           />
@@ -720,7 +725,7 @@ const Room = (): JSX.Element => {
           <Widget.NextPolyomino
             fontLevel={["six", "xl-five"]}
             cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
-            polyominoType={selfNextPolyominoType}
+            polyominoBag={[]}
             width={doubleSizeConfig.widget.nextPolyomino.width}
             height={doubleSizeConfig.widget.nextPolyomino.height}
           />

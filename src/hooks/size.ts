@@ -20,8 +20,8 @@ const allSizeConfig = {
           },
           nextPolyomino: {
             cube: 36,
-            width: 36 * 4 + 5 * 2 + 4 * 2, // 162,
-            height: 36 * 4 + 5 * 2 + 4 * 2, // 162,
+            width: 36 * 4 + 4 * 2 + 4 * 2, // 160,
+            height: 36 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 472,
           },
         },
         distanceBetweenPlayFieldAndWidget: 30,
@@ -41,8 +41,8 @@ const allSizeConfig = {
           },
           nextPolyomino: {
             cube: 24,
-            width: 24 * 4 + 5 * 2 + 4 * 2, // 114,
-            height: 24 * 4 + 5 * 2 + 4 * 2, // 114,
+            width: 24 * 4 + 4 * 2 + 4 * 2, // 112,
+            height: 24 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 352,
           },
         },
         distanceBetweenPlayFieldAndWidget: 24,
@@ -66,8 +66,8 @@ const allSizeConfig = {
           },
           nextPolyomino: {
             cube: 32,
-            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 432,
           },
         },
         distanceBetweenPlayFieldAndWidget: 28,
@@ -88,24 +88,13 @@ const allSizeConfig = {
           },
           nextPolyomino: {
             cube: 20,
-            width: 20 * 4 + 5 * 2 + 4 * 2, // 98,
-            height: 20 * 4 + 5 * 2 + 4 * 2, // 98,
+            width: 20 * 4 + 4 * 2 + 4 * 2, // 96,
+            height: 20 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 312,
           },
         },
         distanceBetweenPlayFieldAndWidget: 20,
         distanceBetweenWidgetAndWidget: 20,
       },
-    },
-    font: {
-      level: {
-        one: 40,
-        two: 36,
-        three: 32,
-        four: 28,
-        five: 24,
-        six: 20,
-      },
-      lineHeight: 1.5,
     },
   },
   large: {
@@ -113,19 +102,19 @@ const allSizeConfig = {
       single: {
         playable: true,
         playField: {
-          cube: 28,
-          width: 28 * 10 + 4 * 2, // 288
-          height: 28 * 20 + 4 * 2, // 568
+          cube: 32,
+          width: 32 * 10 + 4 * 2, // 328
+          height: 32 * 20 + 4 * 2, // 648
         },
         widget: {
           displayNumber: {
-            width: 28 * 4 + 5 * 2 + 4 * 2, // 130,
-            height: 28 * 4 + 5 * 2 + 4 * 2, // 130,
+            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
           },
           nextPolyomino: {
-            cube: 28,
-            width: 28 * 4 + 5 * 2 + 4 * 2, // 130,
-            height: 28 * 4 + 5 * 2 + 4 * 2, // 130,
+            cube: 32,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 432,
           },
         },
         distanceBetweenPlayFieldAndWidget: 28,
@@ -145,8 +134,8 @@ const allSizeConfig = {
           },
           nextPolyomino: {
             cube: 16,
-            width: 16 * 4 + 5 * 2 + 4 * 2, // 82,
-            height: 16 * 4 + 5 * 2 + 4 * 2, // 82,
+            width: 16 * 4 + 4 * 2 + 4 * 2, // 80,
+            height: 16 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 272,
           },
         },
         distanceBetweenPlayFieldAndWidget: 12,
@@ -166,12 +155,12 @@ const allSizeConfig = {
         widget: {
           displayNumber: {
             width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            height: 32 * 4 + 4 * 2 + 4 * 2, // 146,
           },
           nextPolyomino: {
             cube: 32,
-            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 432,
           },
         },
         distanceBetweenPlayFieldAndWidget: 24,

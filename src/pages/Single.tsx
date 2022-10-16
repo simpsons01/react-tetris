@@ -1,8 +1,8 @@
 import React from "react";
 import { setRef } from "../common/utils";
 import { createCountDownTimer } from "../common/timer";
-import useCountdown from "../hooks/countdown";
 import useTetris from "../hooks/tetris";
+import useNextPolyominoBag from "../hooks/nextPolyomino";
 import styled from "styled-components";
 import Widget from "../components/Widget";
 import PlayField from "../components/PlayField";
@@ -14,8 +14,10 @@ import {
   POLYOMINO_TYPE,
   ICube,
   POLYOMINO_ROTATION,
+  getRandomPolyominoBag,
 } from "../common/polyomino";
 import { DEFAULT_START_LEVEL, getLevelByLine, getPolyominoFallingDelayByLevel } from "../common/tetris";
+import { KEYCODE } from "../common/keyboard";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -75,11 +77,11 @@ const Single = (): JSX.Element => {
     resetTetris,
   } = useTetris();
 
+  const { nextPolyominoBag, popNextPolyominoType } = useNextPolyominoBag(getRandomPolyominoBag());
+
   const {
     mode: { single: singleSizeConfig },
   } = useSizeConfigContext();
-
-  const { leftsec, stopCountDown, startCountdown, resetCountDown } = useCountdown(9999);
 
   const polyominoFallingTimerHandler = React.useRef(() => {});
 
@@ -139,8 +141,7 @@ const Single = (): JSX.Element => {
     pauseFillRowAnimation();
     polyominoFallingTimer.clear();
     polyominoCollideBottomTimer.clear();
-    stopCountDown();
-  }, [pauseClearRowAnimation, pauseFillRowAnimation, stopCountDown]);
+  }, [pauseClearRowAnimation, pauseFillRowAnimation]);
 
   const continueGame = React.useCallback(() => {
     // console.log("continue game!");
@@ -150,15 +151,15 @@ const Single = (): JSX.Element => {
     polyominoCollideBottomTimer.clear();
     // console.log("gameState is " + gameState);
     // console.log("prevGameState state is " + prevGameState);
-    startCountdown();
-  }, [continueClearRowAnimation, continueFillRowAnimation, startCountdown]);
+  }, [continueClearRowAnimation, continueFillRowAnimation]);
 
   const handlePolyominoCreate = React.useCallback(() => {
-    if (polyominoCoordinate == null && nextPolyominoType !== null) {
+    if (polyominoCoordinate == null) {
       // console.log("create polyomino!");
+      const nextPolyominoType = popNextPolyominoType();
       createPolyomino(nextPolyominoType);
     }
-  }, [polyominoCoordinate, createPolyomino, nextPolyominoType]);
+  }, [polyominoCoordinate, createPolyomino, popNextPolyominoType]);
 
   const handleNextPolyominoTypeCreate = React.useCallback(() => {
     setNextPolyominoType(getRandomPolyominoType());
@@ -169,17 +170,15 @@ const Single = (): JSX.Element => {
     pauseFillRowAnimation();
     polyominoFallingTimer.clear();
     polyominoCollideBottomTimer.clear();
-    stopCountDown();
-  }, [pauseClearRowAnimation, pauseFillRowAnimation, stopCountDown]);
+  }, [pauseClearRowAnimation, pauseFillRowAnimation]);
 
   const handleNextGame = React.useCallback(() => {
     resetTetris();
     resetPolyomino();
-    resetCountDown();
     setLine(0);
     setNextPolyominoType(null);
     setGameState(GAME_STATE.BEFORE_START);
-  }, [resetCountDown, resetPolyomino, resetTetris]);
+  }, [resetPolyomino, resetTetris]);
 
   React.useEffect(
     function handleKeyDown() {
@@ -199,6 +198,8 @@ const Single = (): JSX.Element => {
             movePolyomino(DIRECTION.DOWN);
           } else if (e.keyCode === 38) {
             changePolyominoShape(POLYOMINO_ROTATION.CLOCK_WISE);
+          } else if (e.keyCode === 90) {
+            changePolyominoShape(POLYOMINO_ROTATION.COUNTER_CLOCK_WISE);
           } else if (e.keyCode === 32) {
             setRef(isHardDrop, true);
             movePolyominoToPreview();
@@ -237,16 +238,6 @@ const Single = (): JSX.Element => {
       movePolyominoToPreview,
     ]
   );
-
-  React.useEffect(
-    function handleLeftSec() {
-      if (leftsec === 0) {
-        setGameState(GAME_STATE.TIME_UP);
-      }
-    },
-    [leftsec, setGameState]
-  );
-
   React.useEffect(
     function handleGameStateChange() {
       let effectCleaner = () => {};
@@ -257,7 +248,6 @@ const Single = (): JSX.Element => {
           }
           break;
         case GAME_STATE.START:
-          startCountdown();
           setGameState(GAME_STATE.NEXT_CYCLE);
           break;
         case GAME_STATE.NEXT_CYCLE:
@@ -369,7 +359,6 @@ const Single = (): JSX.Element => {
       checkIsPolyominoCollideWithTetris,
       setGameState,
       setLine,
-      startCountdown,
       handleNextPolyominoTypeCreate,
       continueGame,
       pauseGame,
@@ -458,23 +447,10 @@ const Single = (): JSX.Element => {
         </PlayField.Wrapper>
       </Column>
       <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
-        <div
-          style={{
-            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
-          }}
-        >
-          <Widget.DisplayNumber
-            fontLevel={"three"}
-            width={singleSizeConfig.widget.displayNumber.width}
-            height={singleSizeConfig.widget.displayNumber.height}
-            title={"SEC"}
-            displayValue={leftsec}
-          />
-        </div>
         <Widget.NextPolyomino
           fontLevel={"three"}
           cubeDistance={singleSizeConfig.widget.nextPolyomino.cube}
-          polyominoType={nextPolyominoType}
+          polyominoBag={nextPolyominoBag}
           width={singleSizeConfig.widget.nextPolyomino.width}
           height={singleSizeConfig.widget.nextPolyomino.height}
         />
