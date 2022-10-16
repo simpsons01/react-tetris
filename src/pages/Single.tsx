@@ -89,14 +89,14 @@ const Single = (): JSX.Element => {
 
   const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
-  const [line, setLine] = React.useState<number>(291);
+  const [line, setLine] = React.useState<number>(0);
 
   const [level, setLevel] = React.useState<number>(DEFAULT_START_LEVEL);
 
-  const [score, setScore] = React.useState<number>(29);
+  const [score, setScore] = React.useState<number>(0);
 
   const [polyominoFallingDelay, setPolyominoFallingDelay] = React.useState(
-    getPolyominoFallingDelayByLevel(29)
+    getPolyominoFallingDelayByLevel(DEFAULT_START_LEVEL)
   );
 
   const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
@@ -155,7 +155,7 @@ const Single = (): JSX.Element => {
 
   const handlePolyominoCreate = React.useCallback(() => {
     if (polyominoCoordinate == null && nextPolyominoType !== null) {
-      console.log("create polyomino!");
+      // console.log("create polyomino!");
       createPolyomino(nextPolyominoType);
     }
   }, [polyominoCoordinate, createPolyomino, nextPolyominoType]);
@@ -288,13 +288,6 @@ const Single = (): JSX.Element => {
         case GAME_STATE.POLYOMINO_FALLING:
           const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
           if (isBottomCollide) {
-            // @ts-ignore
-            if (!window.b) {
-              // @ts-ignore
-              window.b = performance.now();
-              // @ts-ignore
-              console.log(window.b - window.a);
-            }
             if (polyominoFallingTimer.isPending()) {
               polyominoFallingTimer.clear();
             }
@@ -314,12 +307,6 @@ const Single = (): JSX.Element => {
               }, 500);
             }
           } else {
-            // @ts-ignore
-            if (!window.a) {
-              console.log(polyominoFallingDelay);
-              // @ts-ignore
-              window.a = performance.now();
-            }
             if (polyominoCollideBottomTimer.isPending()) {
               polyominoCollideBottomTimer.clear();
             }

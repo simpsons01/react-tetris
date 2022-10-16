@@ -536,7 +536,7 @@ const useTetris = function () {
           fillRowAnimationRef,
           createAnimation(
             (elapse) => {
-              console.log("animation start!");
+              // console.log("animation start!");
               const start = 0;
               const end = 1;
               const progress = minMax(elapse / duration, start, end);
