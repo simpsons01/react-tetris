@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { ICube, CUBE_STATE } from "../../common/polyomino";
+import { ICube, CUBE_STATE } from "../../common/tetrimino";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
 
@@ -69,8 +69,8 @@ const Cube = styled.div.attrs<ICubeBlock>((props) => ({
 export interface IPlayFieldRenderer {
   cubeDistance: number;
   tetris: Array<ICube & { id: string }>;
-  polyomino: Array<ICube> | null;
-  previewPolyomino: Array<ICube> | null;
+  tetrimino: Array<ICube> | null;
+  previewTetrimino: Array<ICube> | null;
 }
 
 const makeCube = ({
@@ -78,14 +78,14 @@ const makeCube = ({
   top,
   cubeDistance,
   isPreview,
-  isPolyomino,
+  isTetrimino,
   isFilled,
 }: {
   left: number;
   top: number;
   cubeDistance: number;
   isPreview: boolean;
-  isPolyomino: boolean;
+  isTetrimino: boolean;
   isFilled: boolean;
 }): ReactElement => {
   return (
@@ -95,29 +95,29 @@ const makeCube = ({
       width={cubeDistance}
       height={cubeDistance}
       isFilled={isFilled}
-      isPreview={isFilled && isPreview && !isPolyomino}
+      isPreview={isFilled && isPreview && !isTetrimino}
     />
   );
 };
 
 const Renderer: React.FC<IPlayFieldRenderer> = (props) => {
-  const { tetris, polyomino, previewPolyomino, cubeDistance } = props;
+  const { tetris, tetrimino, previewTetrimino, cubeDistance } = props;
 
   return (
     <Wrapper>
       {tetris.map((cube) => {
         const { x, y, state, id } = cube;
-        const isPolyominoCube =
-          polyomino === null ? false : polyomino.some((cube) => cube.x === x && cube.y === y);
-        const isPreviewPolyominoCube =
-          previewPolyomino === null ? false : previewPolyomino.some((cube) => cube.x === x && cube.y === y);
-        const isFilled = isPolyominoCube || isPreviewPolyominoCube || state === CUBE_STATE.FILLED;
+        const isTetriminoCube =
+          tetrimino === null ? false : tetrimino.some((cube) => cube.x === x && cube.y === y);
+        const isPreviewTetriminoCube =
+          previewTetrimino === null ? false : previewTetrimino.some((cube) => cube.x === x && cube.y === y);
+        const isFilled = isTetriminoCube || isPreviewTetriminoCube || state === CUBE_STATE.FILLED;
         const cubeEl = makeCube({
           left: x,
           top: y,
           isFilled,
-          isPolyomino: isPolyominoCube,
-          isPreview: isPreviewPolyominoCube,
+          isTetrimino: isTetriminoCube,
+          isPreview: isPreviewTetriminoCube,
           cubeDistance,
         });
         return React.cloneElement(cubeEl, { key: id });

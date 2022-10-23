@@ -1,4 +1,4 @@
-import React from "react";
+import { useMemo } from "react";
 import styled from "styled-components";
 import Font from "../Font";
 import { ISize } from "../../common/utils";
@@ -31,7 +31,7 @@ export interface INumberWidget extends ISize {
 
 const NumberWidget: React.FC<INumberWidget> = (props) => {
   const { fontLevel, displayValue, title, width, height } = props;
-  const calcDisplayValueRatio = React.useMemo<number>(() => {
+  const calcDisplayValueRatio = useMemo<number>(() => {
     let ratio = 0;
     if (displayValue < 9) {
       ratio = 2.5;

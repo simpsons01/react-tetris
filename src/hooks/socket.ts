@@ -1,15 +1,12 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import getSocketInstance from "../common/socket";
 
 const useSocket = function () {
   const socketInstance = getSocketInstance();
-  const [isConnected, setIsConnected] = React.useState<boolean>(
-    socketInstance.connected
-  );
-  const [isConnectErrorOccur, setIsConnectErrorOccur] =
-    React.useState<boolean>(false);
+  const [isConnected, setIsConnected] = useState<boolean>(socketInstance.connected);
+  const [isConnectErrorOccur, setIsConnectErrorOccur] = useState<boolean>(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     socketInstance.on("connect", () => {
       setIsConnectErrorOccur(false);
       setIsConnected(true);

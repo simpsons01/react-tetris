@@ -1,4 +1,4 @@
-import React from "react";
+import { useContext, createContext } from "react";
 
 export interface ISizeConfig {
   mode: {
@@ -14,7 +14,7 @@ export interface ISizeConfig {
           width: number;
           height: number;
         };
-        nextPolyomino: {
+        nextTetrimino: {
           cube: number;
           width: number;
           height: number;
@@ -35,7 +35,7 @@ export interface ISizeConfig {
           width: number;
           height: number;
         };
-        nextPolyomino: {
+        nextTetrimino: {
           cube: number;
           width: number;
           height: number;
@@ -47,8 +47,8 @@ export interface ISizeConfig {
   };
 }
 
-export const SizeConfigContext = React.createContext<ISizeConfig>({} as ISizeConfig);
+export const SizeConfigContext = createContext<ISizeConfig>({} as ISizeConfig);
 
 export const useSizeConfigContext = function () {
-  return React.useContext(SizeConfigContext);
+  return useContext(SizeConfigContext);
 };

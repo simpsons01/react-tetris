@@ -1,14 +1,14 @@
-import React from "react";
+import { useRef, useMemo } from "react";
 import {
   getCoordinateByAnchorAndShapeAndType,
-  getPolyominoConfig,
+  getTetriminoConfig,
   ICoordinate,
-  NEXT_POLYOMINO_BAGS_NUM,
-  PER_POLYOMINO_CUBE_NUM,
-  POLYOMINO_SHAPE,
-  POLYOMINO_TYPE,
-} from "../../common/polyomino";
-import { getRangeByCoordinate } from "../../common/polyomino/index";
+  NEXT_TETRIMINO_BAGS_NUM,
+  PER_TETRIMINO_CUBE_NUM,
+  TETRIMINO_SHAPE,
+  TETRIMINO_TYPE,
+  getRangeByCoordinates,
+} from "../../common/tetrimino";
 import { nanoid } from "nanoid";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
@@ -77,68 +77,68 @@ const NextCube = styled.div<INextCubeBlock>`
   }
 `;
 
-const POLYOMINO_CUBE_X_NUM = 4;
-const POLYOMINO_CUBE_Y_NUM = 2;
+const Tetrimino_CUBE_X_NUM = 4;
+const Tetrimino_CUBE_Y_NUM = 2;
 
 export interface INext extends ISize {
   fontLevel: string | Array<string>;
-  polyominoBag: Array<POLYOMINO_TYPE> | null;
+  TetriminoBag: Array<TETRIMINO_TYPE> | null;
   cubeDistance: number;
 }
 
 const Next: React.FC<INext> = (props) => {
-  const { fontLevel, polyominoBag, cubeDistance, width, height } = props;
+  const { fontLevel, TetriminoBag, cubeDistance, width, height } = props;
   // todo: 修正命名
-  const { current: xxxxxxx } = React.useRef(
-    new Array(NEXT_POLYOMINO_BAGS_NUM).fill(null).map(() => ({
+  const { current: xxxxxxx } = useRef(
+    new Array(NEXT_TETRIMINO_BAGS_NUM).fill(null).map(() => ({
       id: nanoid(),
-      data: new Array(PER_POLYOMINO_CUBE_NUM).fill(null).map(() => nanoid()),
+      data: new Array(PER_TETRIMINO_CUBE_NUM).fill(null).map(() => nanoid()),
     }))
   );
 
-  const nextPolyominoBagPolyominoCoordinate = React.useMemo<Array<Array<ICoordinate>> | null>(() => {
-    if (polyominoBag !== null) {
-      return polyominoBag.map((polyominoType) => {
-        const polyominoAnchor = (() => {
-          const polyominoConfig = getPolyominoConfig(polyominoType);
+  const nextTetriminoBagetriminoCoordinates = useMemo<Array<Array<ICoordinate>> | null>(() => {
+    if (TetriminoBag !== null) {
+      return TetriminoBag.map((TetriminoType) => {
+        const TetriminoAnchor = (() => {
+          const TetriminoConfig = getTetriminoConfig(TetriminoType);
           let anchor = { x: 0, y: 0 };
           const { coordinates: defaultCoordinate, anchorIndex } =
-            polyominoConfig.config[POLYOMINO_SHAPE.INITIAL].shape;
+            TetriminoConfig.config[TETRIMINO_SHAPE.INITIAL].shape;
           const defaultAnchor = defaultCoordinate[anchorIndex];
-          const { minX, maxX, maxY, minY } = getRangeByCoordinate(defaultCoordinate);
-          anchor.x = (POLYOMINO_CUBE_X_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
-          anchor.y = (POLYOMINO_CUBE_Y_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
+          const { minX, maxX, maxY, minY } = getRangeByCoordinates(defaultCoordinate);
+          anchor.x = (Tetrimino_CUBE_X_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
+          anchor.y = (Tetrimino_CUBE_Y_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
           return anchor;
         })();
-        return getCoordinateByAnchorAndShapeAndType(polyominoAnchor, polyominoType, POLYOMINO_SHAPE.INITIAL);
+        return getCoordinateByAnchorAndShapeAndType(TetriminoAnchor, TetriminoType, TETRIMINO_SHAPE.INITIAL);
       });
     }
     return null;
-  }, [polyominoBag]);
+  }, [TetriminoBag]);
 
   return (
     <Wrapper>
       <Font level={fontLevel}>NEXT</Font>
       <Panel className={"nes-container is-rounded"} width={width} height={height}>
-        {polyominoBag &&
+        {TetriminoBag &&
           xxxxxxx.map((yyyyyy, zzzzzz) => (
             <NextCubeContainer
               key={yyyyyy.id}
-              width={POLYOMINO_CUBE_X_NUM * cubeDistance}
-              height={POLYOMINO_CUBE_Y_NUM * cubeDistance}
+              width={Tetrimino_CUBE_X_NUM * cubeDistance}
+              height={Tetrimino_CUBE_Y_NUM * cubeDistance}
               isFirstCube={zzzzzz === 0}
             >
               {yyyyyy.data.map((id, fffff) => (
                 <NextCube
                   key={id}
                   left={
-                    nextPolyominoBagPolyominoCoordinate !== null
-                      ? nextPolyominoBagPolyominoCoordinate[zzzzzz][fffff].x * cubeDistance
+                    nextTetriminoBagetriminoCoordinates !== null
+                      ? nextTetriminoBagetriminoCoordinates[zzzzzz][fffff].x * cubeDistance
                       : 0
                   }
                   top={
-                    nextPolyominoBagPolyominoCoordinate !== null
-                      ? nextPolyominoBagPolyominoCoordinate[zzzzzz][fffff].y * cubeDistance
+                    nextTetriminoBagetriminoCoordinates !== null
+                      ? nextTetriminoBagetriminoCoordinates[zzzzzz][fffff].y * cubeDistance
                       : 0
                   }
                   width={cubeDistance}

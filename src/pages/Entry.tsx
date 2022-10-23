@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import Modal from "../components/Modal";
-import React from "react";
+import { useCallback, useContext, useState } from "react";
 import { KEYCODE } from "../common/keyboard";
 import { ISocketContext, SocketContext } from "../context/socket";
 import { createAlertModal } from "../common/alert";
@@ -25,7 +25,7 @@ const EntryContainer = styled.div`
 const Entry = (): JSX.Element => {
   const navigate = useNavigate();
 
-  const { socketInstance, isConnected } = React.useContext<
+  const { socketInstance, isConnected } = useContext<
     ISocketContext<
       {},
       {
@@ -35,11 +35,11 @@ const Entry = (): JSX.Element => {
     >
   >(SocketContext);
 
-  const [isCreateUsernameModalOpen, setIsCreateNameModalOpen] = React.useState<boolean>(false);
+  const [isCreateUsernameModalOpen, setIsCreateNameModalOpen] = useState<boolean>(false);
 
-  const [userName, setUserName] = React.useState<string>("");
+  const [userName, setUserName] = useState<string>("");
 
-  const saveName = React.useCallback(
+  const saveName = useCallback(
     (name: string) => {
       const onFail = () => {
         setIsCreateNameModalOpen(false);
@@ -62,7 +62,7 @@ const Entry = (): JSX.Element => {
     [isConnected, navigate, socketInstance]
   );
 
-  const toRooms = React.useCallback(
+  const toRooms = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
       if (isConnected) {

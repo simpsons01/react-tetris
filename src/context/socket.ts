@@ -1,4 +1,4 @@
-import React from "react";
+import { createContext } from "react";
 import { Socket } from "socket.io-client";
 
 export interface ISocketContext<ServerToClientEvt = {}, ClientToServerEvt = {}> {
@@ -7,4 +7,4 @@ export interface ISocketContext<ServerToClientEvt = {}, ClientToServerEvt = {}> 
   socketInstance: Socket<ServerToClientEvt, ClientToServerEvt>;
 }
 
-export const SocketContext = React.createContext<ISocketContext>({} as ISocketContext);
+export const SocketContext = createContext<ISocketContext>({} as ISocketContext);

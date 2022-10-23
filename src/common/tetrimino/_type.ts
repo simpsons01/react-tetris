@@ -1,4 +1,4 @@
-export enum POLYOMINO_ROTATION {
+export enum Tetrimino_ROTATION {
   CLOCK_WISE = "CLOCK_WISE",
   COUNTER_CLOCK_WISE = "COUNTER_CLOCK_WISE",
 }
@@ -8,14 +8,14 @@ export enum CUBE_STATE {
   FILLED = "FILLED",
 }
 
-export enum POLYOMINO_SHAPE {
+export enum TETRIMINO_SHAPE {
   INITIAL = "0",
   RIGHT = "R",
   TWICE = "2",
   LEFT = "L",
 }
 
-export enum POLYOMINO_TYPE {
+export enum TETRIMINO_TYPE {
   I = "I",
   J = "J",
   L = "L",
@@ -41,7 +41,7 @@ export interface ICube extends ICoordinate {
   state?: CUBE_STATE;
 }
 
-export interface IPolyominoConfig {
+export interface ITetriminoConfig {
   config: {
     [path: string]: {
       shape: {
@@ -57,4 +57,5 @@ export interface IPolyominoConfig {
   wallKick: {
     [path: string]: Array<ICoordinate>;
   };
+  spawnStartLocation: ICoordinate;
 }

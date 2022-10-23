@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import GRID from "../common/grid";
 import { IScreenSize } from "../context/screen";
 import { ISizeConfig } from "../context/sizeConfig";
@@ -18,7 +18,7 @@ const allSizeConfig = {
             width: 36 * 4 + 5 * 2 + 4 * 2, // 162,
             height: 36 * 4 + 5 * 2 + 4 * 2, // 162,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 36,
             width: 36 * 4 + 4 * 2 + 4 * 2, // 160,
             height: 36 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 472,
@@ -39,7 +39,7 @@ const allSizeConfig = {
             width: 24 * 4 + 5 * 2 + 4 * 2, // 114,
             height: 24 * 4 + 5 * 2 + 4 * 2, // 114,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 24,
             width: 24 * 4 + 4 * 2 + 4 * 2, // 112,
             height: 24 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 352,
@@ -64,7 +64,7 @@ const allSizeConfig = {
             width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
             height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 32,
             width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
             height: 32 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 432,
@@ -86,7 +86,7 @@ const allSizeConfig = {
             width: 20 * 4 + 5 * 2 + 4 * 2, // 98,
             height: 20 * 4 + 5 * 2 + 4 * 2, // 98,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 20,
             width: 20 * 4 + 4 * 2 + 4 * 2, // 96,
             height: 20 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 312,
@@ -111,7 +111,7 @@ const allSizeConfig = {
             width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
             height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 32,
             width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
             height: 32 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 432,
@@ -132,7 +132,7 @@ const allSizeConfig = {
             width: 16 * 4 + 5 * 2 + 4 * 2, // 82,
             height: 16 * 4 + 5 * 2 + 4 * 2, // 82,,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 16,
             width: 16 * 4 + 4 * 2 + 4 * 2, // 80,
             height: 16 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 272,
@@ -157,7 +157,7 @@ const allSizeConfig = {
             width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
             height: 32 * 4 + 4 * 2 + 4 * 2, // 146,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 32,
             width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
             height: 32 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 432,
@@ -178,7 +178,7 @@ const allSizeConfig = {
             width: 0,
             height: 0,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 0,
             width: 0,
             height: 0,
@@ -203,7 +203,7 @@ const allSizeConfig = {
             width: 0,
             height: 0,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 0,
             width: 0,
             height: 0,
@@ -224,7 +224,7 @@ const allSizeConfig = {
             width: 0,
             height: 0,
           },
-          nextPolyomino: {
+          nextTetrimino: {
             cube: 0,
             width: 0,
             height: 0,
@@ -265,10 +265,10 @@ const getScreenSize = () => {
 };
 
 const useSizeConfig = function () {
-  const [sizeConfig, setSizeConfig] = React.useState<ISizeConfig>(getSizeConfigByWindowWidth());
-  const [screenSize, setScreenSize] = React.useState<IScreenSize>(getScreenSize());
+  const [sizeConfig, setSizeConfig] = useState<ISizeConfig>(getSizeConfigByWindowWidth());
+  const [screenSize, setScreenSize] = useState<IScreenSize>(getScreenSize());
 
-  React.useEffect(() => {
+  useEffect(() => {
     const resizeHandler = () => {
       setSizeConfig(getSizeConfigByWindowWidth());
       setScreenSize(getScreenSize());

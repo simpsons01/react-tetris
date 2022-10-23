@@ -1,7 +1,0 @@
-import { POLYOMINO_SHAPE } from "./_type";
-
-export const DEFAULT_POLYOMINO_SHAPE = POLYOMINO_SHAPE.INITIAL;
-
-export const PER_POLYOMINO_CUBE_NUM = 4;
-
-export const NEXT_POLYOMINO_BAGS_NUM = 5;

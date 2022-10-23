@@ -1,8 +1,8 @@
-import { POLYOMINO_SHAPE } from "./_type";
+import { TETRIMINO_SHAPE } from "./_type";
 
 export const O = {
   config: {
-    [POLYOMINO_SHAPE.INITIAL]: {
+    [TETRIMINO_SHAPE.INITIAL]: {
       shape: {
         anchorIndex: 2,
         coordinates: [
@@ -22,7 +22,7 @@ export const O = {
         ],
       },
     },
-    [POLYOMINO_SHAPE.RIGHT]: {
+    [TETRIMINO_SHAPE.RIGHT]: {
       shape: {
         anchorIndex: 2,
         coordinates: [
@@ -42,7 +42,7 @@ export const O = {
         ],
       },
     },
-    [POLYOMINO_SHAPE.TWICE]: {
+    [TETRIMINO_SHAPE.TWICE]: {
       shape: {
         anchorIndex: 2,
         coordinates: [
@@ -62,7 +62,7 @@ export const O = {
         ],
       },
     },
-    [POLYOMINO_SHAPE.LEFT]: {
+    [TETRIMINO_SHAPE.LEFT]: {
       shape: {
         anchorIndex: 2,
         coordinates: [
@@ -84,13 +84,17 @@ export const O = {
     },
   },
   wallKick: {
-    [`${POLYOMINO_SHAPE.INITIAL}-${POLYOMINO_SHAPE.RIGHT}`]: [],
-    [`${POLYOMINO_SHAPE.RIGHT}-${POLYOMINO_SHAPE.INITIAL}`]: [],
-    [`${POLYOMINO_SHAPE.RIGHT}-${POLYOMINO_SHAPE.TWICE}`]: [],
-    [`${POLYOMINO_SHAPE.TWICE}-${POLYOMINO_SHAPE.RIGHT}`]: [],
-    [`${POLYOMINO_SHAPE.TWICE}-${POLYOMINO_SHAPE.LEFT}`]: [],
-    [`${POLYOMINO_SHAPE.LEFT}-${POLYOMINO_SHAPE.TWICE}`]: [],
-    [`${POLYOMINO_SHAPE.LEFT}-${POLYOMINO_SHAPE.INITIAL}`]: [],
-    [`${POLYOMINO_SHAPE.INITIAL}-${POLYOMINO_SHAPE.LEFT}`]: [],
+    [`${TETRIMINO_SHAPE.INITIAL}-${TETRIMINO_SHAPE.RIGHT}`]: [],
+    [`${TETRIMINO_SHAPE.RIGHT}-${TETRIMINO_SHAPE.INITIAL}`]: [],
+    [`${TETRIMINO_SHAPE.RIGHT}-${TETRIMINO_SHAPE.TWICE}`]: [],
+    [`${TETRIMINO_SHAPE.TWICE}-${TETRIMINO_SHAPE.RIGHT}`]: [],
+    [`${TETRIMINO_SHAPE.TWICE}-${TETRIMINO_SHAPE.LEFT}`]: [],
+    [`${TETRIMINO_SHAPE.LEFT}-${TETRIMINO_SHAPE.TWICE}`]: [],
+    [`${TETRIMINO_SHAPE.LEFT}-${TETRIMINO_SHAPE.INITIAL}`]: [],
+    [`${TETRIMINO_SHAPE.INITIAL}-${TETRIMINO_SHAPE.LEFT}`]: [],
+  },
+  spawnStartLocation: {
+    x: 4,
+    y: 19,
   },
 };

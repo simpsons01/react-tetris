@@ -1,9 +1,9 @@
 import DisplayNumber from "./DisplayNumber";
-import NextPolyomino from "./NextPolyomino";
+import NextTetrimino from "./NextTetrimino";
 
 const Widget = {
   DisplayNumber,
-  NextPolyomino,
+  NextTetrimino,
 };
 
 export default Widget;

@@ -1,19 +1,20 @@
-import React from "react";
+import { useCallback, useState, useContext, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import {
   DIRECTION,
-  getRandomPolyominoType,
-  POLYOMINO_TYPE,
+  getRandomTetriminoType,
+  TETRIMINO_TYPE,
   ICube,
-  POLYOMINO_ROTATION,
-  getRandomPolyominoBag,
-} from "../common/polyomino";
+  Tetrimino_ROTATION,
+  getRandomTetriminoBag,
+  getCoordinateByAnchorAndShapeAndType,
+} from "../common/tetrimino";
 import { IPlayFieldRenderer as ITetris } from "../components/PlayField/Renderer";
 import Overlay from "../components/Overlay";
 import Loading from "../components/Loading";
 import useTetris from "../hooks/tetris";
-import useNextPolyominoBag from "../hooks/nextPolyomino";
+import useNextTetriminoBag from "../hooks/nextTetrimino";
 import { useNavigate } from "react-router-dom";
-import { IPolyomino } from "../hooks/polyomino";
+import { ITetrimino } from "../hooks/tetrimino";
 import { setRef } from "../common/utils";
 import { createAlertModal } from "../common/alert";
 import { createCountDownTimer } from "../common/timer";
@@ -106,12 +107,12 @@ enum GAME_STATE {
   BEFORE_START,
   START,
   NEXT_CYCLE,
-  POLYOMINO_FALLING,
+  TETRIMINO_FALLING,
   CHECK_IS_ROW_FILLED,
   ROW_FILLED_CLEARING,
   CHECK_IS_ROW_EMPTY,
   ROW_EMPTY_FILLING,
-  CHECK_IS_POLYOMINO_COLLIDE_WITH_TETRIS,
+  CHECK_IS_Tetrimino_COLLIDE_WITH_TETRIS,
   ALL_ROW_FILLING,
   GAME_OVER,
 }
@@ -128,8 +129,8 @@ enum ROOM_STATE {
 }
 
 enum GameDataType {
-  NEXT_POLYOMINO_TYPE = "NEXT_POLYOMINO_TYPE",
-  POLYOMINO = "POLYOMINO",
+  NEXT_TETRIMINO_TYPE = "NEXT_TETRIMINO_TYPE",
+  Tetrimino = "Tetrimino",
   TETRIS = "TETRIS",
   SCORE = "SCORE",
 }
@@ -140,47 +141,48 @@ enum RESULT {
   TIE,
 }
 
-type GameData = IPolyomino | ITetris["tetris"] | POLYOMINO_TYPE | number | null;
+type GameData = ITetrimino | ITetris["tetris"] | TETRIMINO_TYPE | number | null;
 
 type GameDataUpdatedPayloads = Array<{ data: GameData; type: GameDataType }>;
 
 const Room = (): JSX.Element => {
   const {
-    polyomino: selfPolyomino,
+    tetrimino: selfTetrimino,
     tetris: selfTetris,
     resetTetris: resetSelfTetris,
-    resetPolyomino: resetSelfPolyomino,
-    polyominoCoordinate: selfPolyominoCoordinate,
-    setPolyominoToTetris: setSelfPolyominoToTetris,
-    createPolyomino: createSelfPolyomino,
-    movePolyomino: moveSelfPolyomino,
-    changePolyominoShape: changeSelfPolyominoShape,
+    setTetrimino: setSelfTetrimino,
+    resetTetrimino: resetSelfTetrimino,
+    tetriminoCoordinates: selfTetriminoCoordinates,
+    setTetriminoToTetris: setSelfTetriminoToTetris,
+    getSpawnTetrimino: getSelfSpawnTetrimino,
+    moveTetrimino: moveSelfTetrimino,
+    changeTetriminoShape: changeSelfTetriminoShape,
     clearRowFilledWithCube: clearSelfRowFilledWithCube,
     getRowFilledWithCube: getSelfRowFilledWithCube,
     getEmptyRow: getSelfEmptyRow,
     fillEmptyRow: fillSelfEmptyRow,
-    getPolyominoIsCollideWithNearbyCube: getSelfPolyominoIsCollideWithNearbyCube,
-    getCoordinateIsCollideWithTetris: getSelfCoordinateIsCollideWithTetris,
+    getTetriminoIsCollideWithNearbyCube: getSelfTetriminoIsCollideWithNearbyCube,
+    getCoordinatesIsCollideWithFilledCube: getSelfCoordinatesIsCollideWithFilledCube,
     pauseClearRowAnimation: pauseSelfClearRowAnimation,
     pauseFillRowAnimation: pauseSelfFillRowAnimation,
     fillAllRow: fillSelfAllRow,
     pauseFillAllRowAnimation: pauseSelfFillAllRowAnimation,
-    getPolyominoPreviewCoordinate: getSelfPolyominoPreviewCoordinate,
-    movePolyominoToPreview: moveSelfPolyominoToPreview,
+    getTetriminoPreviewCoordinate: getSelfTetriminoPreviewCoordinate,
+    moveTetriminoToPreview: moveSelfTetriminoToPreview,
   } = useTetris();
 
-  const { nextPolyominoBag: selfnextPolyominoBag, popNextPolyominoType: popSelfNextPolyomino } =
-    useNextPolyominoBag(getRandomPolyominoBag());
+  const { nextTetriminoBag: selfNextTetriminoBag, popNextTetriminoType: popSelfNextTetrimino } =
+    useNextTetriminoBag(getRandomTetriminoBag());
 
   const {
-    polyomino: opponentPolyomino,
-    polyominoCoordinate: opponentPolyominoCoordinate,
+    tetrimino: opponentTetrimino,
+    tetriminoCoordinates: opponentTetriminoCoordinates,
     tetris: opponentTetris,
     setTetris: setOpponentTetris,
-    setPolyomino: setOpponentPolyomino,
-    resetPolyomino: resetOpponentPolyomino,
+    setTetrimino: setOpponentTetrimino,
+    resetTetrimino: resetOpponentTetrimino,
     resetTetris: resetOpponentTetris,
-    getPolyominoPreviewCoordinate: getOpponentPolyominoPreviewCoordinate,
+    getTetriminoPreviewCoordinate: getOpponentTetriminoPreviewCoordinate,
   } = useTetris();
 
   const navigate = useNavigate();
@@ -189,7 +191,7 @@ const Room = (): JSX.Element => {
     mode: { double: doubleSizeConfig },
   } = useSizeConfigContext();
 
-  const { socketInstance, isConnected } = React.useContext<
+  const { socketInstance, isConnected } = useContext<
     ISocketContext<
       {
         error_occur: () => void;
@@ -212,63 +214,61 @@ const Room = (): JSX.Element => {
     >
   >(SocketContext);
 
-  const [isCheckComplete, setIsCheckComplete] = React.useState(false);
+  const [isCheckComplete, setIsCheckComplete] = useState(false);
 
-  const [beforeStartCountDown, setBeforeStartCountDown] = React.useState<number>(0);
+  const [beforeStartCountDown, setBeforeStartCountDown] = useState<number>(0);
 
-  const [result, setResult] = React.useState<number>(RESULT.LOSE);
+  const [result, setResult] = useState<number>(RESULT.LOSE);
 
-  const [leftSec, setLeftSec] = React.useState<number | null>(null);
+  const [leftSec, setLeftSec] = useState<number | null>(null);
 
-  const [roomState, setRoomState] = React.useState<ROOM_STATE>(ROOM_STATE.READY);
+  const [roomState, setRoomState] = useState<ROOM_STATE>(ROOM_STATE.READY);
 
-  const [selfNextPolyominoType, setSelfNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
+  const [selfNextTetriminoType, setSelfNextTetriminoType] = useState<TETRIMINO_TYPE | null>(null);
 
-  const [selfScore, setSelfScore] = React.useState<number>(0);
+  const [selfScore, setSelfScore] = useState<number>(0);
 
-  const [opponentNextPolyominoType, setOpponentNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(
-    null
-  );
+  const [opponentNextTetriminoType, setOpponentNextTetriminoType] = useState<TETRIMINO_TYPE | null>(null);
 
-  const { current: polyominoFallingTimer } = React.useRef(createCountDownTimer());
+  const { current: TetriminoFallingTimer } = useRef(createCountDownTimer());
 
-  const { current: polyominoCollideBottomTimer } = React.useRef(createCountDownTimer());
+  const { current: TetriminoCollideBottomTimer } = useRef(createCountDownTimer());
 
-  const [opponentScore, setOpponentScore] = React.useState<number>(0);
+  const [opponentScore, setOpponentScore] = useState<number>(0);
 
-  const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
+  const [gameState, setGameState] = useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
-  const prevSelfPolyomino = React.useRef<IPolyomino>(selfPolyomino);
+  const prevSelfTetrimino = useRef<ITetrimino>(selfTetrimino);
 
-  const prevSelfTetris = React.useRef<ITetris["tetris"]>(selfTetris);
+  const prevSelfTetris = useRef<ITetris["tetris"]>(selfTetris);
 
-  const prevSelfScore = React.useRef<number | undefined>(selfScore);
+  const prevSelfScore = useRef<number | undefined>(selfScore);
 
-  const prevSelfNextPolyominoType = React.useRef<POLYOMINO_TYPE>(selfNextPolyominoType);
+  const prevSelfNextTetriminoType = useRef<TETRIMINO_TYPE>(selfNextTetriminoType);
 
-  const selfPreviewPolyomino = React.useMemo((): Array<ICube> | null => {
-    const previewCoordinate = getSelfPolyominoPreviewCoordinate();
-    if (previewCoordinate !== null && selfPolyomino.type !== null) {
+  const selfPreviewTetrimino = useMemo((): Array<ICube> | null => {
+    const previewCoordinate = getSelfTetriminoPreviewCoordinate();
+    if (previewCoordinate !== null && selfTetrimino.type !== null) {
       return previewCoordinate.map(({ x, y }) => ({
         x,
         y,
       })) as Array<ICube>;
     }
     return null;
-  }, [getSelfPolyominoPreviewCoordinate, selfPolyomino]);
+  }, [getSelfTetriminoPreviewCoordinate, selfTetrimino]);
 
-  const opponentPreviewPolyomino = React.useMemo((): Array<ICube> | null => {
-    const previewCoordinate = getOpponentPolyominoPreviewCoordinate();
-    if (previewCoordinate !== null && opponentPolyomino.type !== null) {
+  const opponentPreviewTetrimino = useMemo((): Array<ICube> | null => {
+    const previewCoordinate = getOpponentTetriminoPreviewCoordinate();
+    if (previewCoordinate !== null && opponentTetrimino.type !== null) {
       return previewCoordinate.map(({ x, y }) => ({
         x,
         y,
       })) as Array<ICube>;
     }
     return null;
-  }, [getOpponentPolyominoPreviewCoordinate, opponentPolyomino]);
+  }, [getOpponentTetriminoPreviewCoordinate, opponentTetrimino]);
 
-  const handleReady = React.useCallback(() => {
+  const handleReady = useCallback(() => {
     if (isConnected) {
       socketInstance.emit("ready", ({ metadata: { isSuccess, isError, message } }) => {
         if (isError) return;
@@ -281,20 +281,20 @@ const Room = (): JSX.Element => {
     }
   }, [isConnected, socketInstance]);
 
-  const handleNextGame = React.useCallback(() => {
+  const handleNextGame = useCallback(() => {
     if (isConnected) {
       socketInstance.emit("reset_room", ({ metadata: { isSuccess, isError, message } }) => {
         if (isError) return;
         if (isSuccess) {
-          resetOpponentPolyomino();
+          resetOpponentTetrimino();
           resetOpponentTetris();
-          resetSelfPolyomino();
+          resetSelfTetrimino();
           resetSelfTetris();
           setSelfScore(0);
           setOpponentScore(0);
           setLeftSec(null);
-          setSelfNextPolyominoType(null);
-          setOpponentNextPolyominoType(null);
+          setSelfNextTetriminoType(null);
+          setOpponentNextTetriminoType(null);
           setRoomState(ROOM_STATE.READY);
         } else {
           createAlertModal(message ? message : "OOPS", {
@@ -307,14 +307,14 @@ const Room = (): JSX.Element => {
   }, [
     isConnected,
     socketInstance,
-    resetOpponentPolyomino,
+    resetOpponentTetrimino,
     resetOpponentTetris,
-    resetSelfPolyomino,
+    resetSelfTetrimino,
     resetSelfTetris,
     navigate,
   ]);
 
-  const handleLeaveRoom = React.useCallback(() => {
+  const handleLeaveRoom = useCallback(() => {
     if (isConnected) {
       socketInstance.emit("leave_room", ({ metadata: { isError } }) => {
         if (isError) {
@@ -328,79 +328,97 @@ const Room = (): JSX.Element => {
     }
   }, [isConnected, navigate, socketInstance]);
 
-  const handlePolyominoFalling = React.useCallback((): Promise<boolean> => {
+  const handleTetriminoFalling = useCallback((): Promise<boolean> => {
     return new Promise((resolve) => {
-      const { isBottomCollide } = getSelfPolyominoIsCollideWithNearbyCube();
+      const { isBottomCollide } = getSelfTetriminoIsCollideWithNearbyCube();
       // console.log("isBottomCollide " + isBottomCollide);
       if (isBottomCollide) {
-        polyominoCollideBottomTimer.start(() => {
-          setSelfPolyominoToTetris();
+        TetriminoCollideBottomTimer.start(() => {
+          setSelfTetriminoToTetris();
           resolve(isBottomCollide);
         }, 500);
       } else {
-        polyominoFallingTimer.start(() => {
-          moveSelfPolyomino(DIRECTION.DOWN);
+        TetriminoFallingTimer.start(() => {
+          moveSelfTetrimino(DIRECTION.DOWN);
           resolve(isBottomCollide);
         }, 500);
       }
     });
   }, [
-    getSelfPolyominoIsCollideWithNearbyCube,
-    moveSelfPolyomino,
-    polyominoCollideBottomTimer,
-    polyominoFallingTimer,
-    setSelfPolyominoToTetris,
+    getSelfTetriminoIsCollideWithNearbyCube,
+    moveSelfTetrimino,
+    TetriminoCollideBottomTimer,
+    TetriminoFallingTimer,
+    setSelfTetriminoToTetris,
   ]);
 
-  const handlePolyominoCreate = React.useCallback(() => {
-    if (selfPolyominoCoordinate == null) {
-      const selfNextPolyominoType = popSelfNextPolyomino();
-      createSelfPolyomino(selfNextPolyominoType);
+  const handleTetriminoCreate = useCallback(() => {
+    let isCreatedSuccess = false;
+    const nextTetriminoType = popSelfNextTetrimino();
+    const spawnTetrimino = getSelfSpawnTetrimino(nextTetriminoType);
+    const spawnetriminoCoordinates = getCoordinateByAnchorAndShapeAndType(
+      spawnTetrimino.anchor,
+      spawnTetrimino.type,
+      spawnTetrimino.shape
+    );
+    if (!getSelfCoordinatesIsCollideWithFilledCube(spawnetriminoCoordinates)) {
+      setSelfTetrimino(spawnTetrimino);
+      isCreatedSuccess = true;
+      return;
     }
-  }, [selfPolyominoCoordinate, createSelfPolyomino, popSelfNextPolyomino]);
+    return isCreatedSuccess;
+  }, [
+    getSelfSpawnTetrimino,
+    getSelfCoordinatesIsCollideWithFilledCube,
+    setSelfTetrimino,
+    popSelfNextTetrimino,
+  ]);
 
-  const handleNextPolyominoTypeCreate = React.useCallback(() => {
-    setSelfNextPolyominoType(getRandomPolyominoType());
-  }, [setSelfNextPolyominoType]);
+  const handleNextTetriminoTypeCreate = useCallback(() => {
+    setSelfNextTetriminoType(getRandomTetriminoType());
+  }, [setSelfNextTetriminoType]);
 
-  const handleGameOver = React.useCallback(() => {
-    polyominoFallingTimer.clear();
-    polyominoCollideBottomTimer.clear();
+  const handleGameOver = useCallback(() => {
+    TetriminoFallingTimer.clear();
+    TetriminoCollideBottomTimer.clear();
     pauseSelfFillAllRowAnimation();
     pauseSelfClearRowAnimation();
     pauseSelfFillRowAnimation();
   }, [
-    polyominoFallingTimer,
-    polyominoCollideBottomTimer,
+    TetriminoFallingTimer,
+    TetriminoCollideBottomTimer,
     pauseSelfFillAllRowAnimation,
     pauseSelfClearRowAnimation,
     pauseSelfFillRowAnimation,
   ]);
 
-  const checkIsPolyominoCollideWithTetris = React.useCallback(() => {
+  const checkIsTetriminoCollideWithTetris = useCallback(() => {
     let isCollide = false;
-    if (selfPolyominoCoordinate !== null && getSelfCoordinateIsCollideWithTetris(selfPolyominoCoordinate)) {
+    if (
+      selfTetriminoCoordinates !== null &&
+      getSelfCoordinatesIsCollideWithFilledCube(selfTetriminoCoordinates)
+    ) {
       isCollide = true;
     }
     return isCollide;
-  }, [selfPolyominoCoordinate, getSelfCoordinateIsCollideWithTetris]);
+  }, [selfTetriminoCoordinates, getSelfCoordinatesIsCollideWithFilledCube]);
 
-  React.useLayoutEffect(
+  useLayoutEffect(
     function notifyOtherGameDataChange() {
       const updatedPayloads: GameDataUpdatedPayloads = [];
-      if (prevSelfNextPolyominoType.current !== selfNextPolyominoType) {
+      if (prevSelfNextTetriminoType.current !== selfNextTetriminoType) {
         updatedPayloads.push({
-          type: GameDataType.NEXT_POLYOMINO_TYPE,
-          data: selfNextPolyominoType,
+          type: GameDataType.NEXT_TETRIMINO_TYPE,
+          data: selfNextTetriminoType,
         });
-        setRef(prevSelfNextPolyominoType, selfNextPolyominoType);
+        setRef(prevSelfNextTetriminoType, selfNextTetriminoType);
       }
-      if (prevSelfPolyomino.current !== selfPolyomino) {
+      if (prevSelfTetrimino.current !== selfTetrimino) {
         updatedPayloads.push({
-          type: GameDataType.POLYOMINO,
-          data: selfPolyomino,
+          type: GameDataType.Tetrimino,
+          data: selfTetrimino,
         });
-        setRef(prevSelfPolyomino, selfPolyomino);
+        setRef(prevSelfTetrimino, selfTetrimino);
       }
       if (prevSelfTetris.current !== selfTetris) {
         updatedPayloads.push({
@@ -420,10 +438,10 @@ const Room = (): JSX.Element => {
         socketInstance.emit("game_data_updated", updatedPayloads);
       }
     },
-    [selfTetris, selfScore, selfPolyomino, selfNextPolyominoType, socketInstance, isConnected]
+    [selfTetris, selfScore, selfTetrimino, selfNextTetriminoType, socketInstance, isConnected]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isConnected) {
       socketInstance.emit("get_socket_data", ({ data: { name, roomId } }) => {
         setIsCheckComplete(true);
@@ -441,25 +459,25 @@ const Room = (): JSX.Element => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  React.useEffect(
+  useEffect(
     function handleKeyDown() {
       const isRegisterKeyDownHandler =
         roomState === ROOM_STATE.START &&
         (gameState === GAME_STATE.START ||
           gameState === GAME_STATE.NEXT_CYCLE ||
-          gameState === GAME_STATE.POLYOMINO_FALLING);
+          gameState === GAME_STATE.TETRIMINO_FALLING);
       function keydownHandler(e: KeyboardEvent) {
         // console.log("keyCode is " + e.keyCode);
         if (e.keyCode === 37) {
-          moveSelfPolyomino(DIRECTION.LEFT);
+          moveSelfTetrimino(DIRECTION.LEFT);
         } else if (e.keyCode === 39) {
-          moveSelfPolyomino(DIRECTION.RIGHT);
+          moveSelfTetrimino(DIRECTION.RIGHT);
         } else if (e.keyCode === 40) {
-          moveSelfPolyomino(DIRECTION.DOWN);
+          moveSelfTetrimino(DIRECTION.DOWN);
         } else if (e.keyCode === 38) {
-          changeSelfPolyominoShape(POLYOMINO_ROTATION.CLOCK_WISE);
+          changeSelfTetriminoShape(Tetrimino_ROTATION.CLOCK_WISE);
         } else if (e.keyCode === 32) {
-          moveSelfPolyominoToPreview();
+          moveSelfTetriminoToPreview();
         }
       }
       if (isRegisterKeyDownHandler) {
@@ -471,10 +489,10 @@ const Room = (): JSX.Element => {
         }
       };
     },
-    [roomState, gameState, changeSelfPolyominoShape, moveSelfPolyomino, moveSelfPolyominoToPreview]
+    [roomState, gameState, changeSelfTetriminoShape, moveSelfTetrimino, moveSelfTetriminoToPreview]
   );
 
-  React.useEffect(
+  useEffect(
     function handleGameStateChange() {
       let effectCleaner = () => {};
       switch (gameState) {
@@ -484,20 +502,20 @@ const Room = (): JSX.Element => {
           setGameState(GAME_STATE.NEXT_CYCLE);
           break;
         case GAME_STATE.NEXT_CYCLE:
-          handlePolyominoCreate();
-          handleNextPolyominoTypeCreate();
-          setGameState(GAME_STATE.CHECK_IS_POLYOMINO_COLLIDE_WITH_TETRIS);
+          handleTetriminoCreate();
+          handleNextTetriminoTypeCreate();
+          setGameState(GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_TETRIS);
           break;
-        case GAME_STATE.CHECK_IS_POLYOMINO_COLLIDE_WITH_TETRIS:
-          if (checkIsPolyominoCollideWithTetris()) {
+        case GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_TETRIS:
+          if (checkIsTetriminoCollideWithTetris()) {
             setGameState(GAME_STATE.ALL_ROW_FILLING);
             fillSelfAllRow().then(() => {
-              resetSelfPolyomino();
+              resetSelfTetrimino();
               resetSelfTetris();
               setGameState(GAME_STATE.NEXT_CYCLE);
             });
           } else {
-            setGameState(GAME_STATE.POLYOMINO_FALLING);
+            setGameState(GAME_STATE.TETRIMINO_FALLING);
           }
           break;
         case GAME_STATE.ALL_ROW_FILLING:
@@ -505,15 +523,15 @@ const Room = (): JSX.Element => {
         case GAME_STATE.GAME_OVER:
           handleGameOver();
           break;
-        case GAME_STATE.POLYOMINO_FALLING:
-          handlePolyominoFalling().then((isBottomCollide) => {
+        case GAME_STATE.TETRIMINO_FALLING:
+          handleTetriminoFalling().then((isBottomCollide) => {
             if (isBottomCollide) {
               setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
             }
           });
           effectCleaner = () => {
-            polyominoCollideBottomTimer.clear();
-            polyominoFallingTimer.clear();
+            TetriminoCollideBottomTimer.clear();
+            TetriminoFallingTimer.clear();
           };
           break;
         case GAME_STATE.CHECK_IS_ROW_FILLED:
@@ -554,31 +572,31 @@ const Room = (): JSX.Element => {
     [
       gameState,
       selfScore,
-      checkIsPolyominoCollideWithTetris,
-      handleNextPolyominoTypeCreate,
-      handlePolyominoCreate,
+      checkIsTetriminoCollideWithTetris,
+      handleNextTetriminoTypeCreate,
+      handleTetriminoCreate,
       getSelfEmptyRow,
       getSelfRowFilledWithCube,
       fillSelfEmptyRow,
-      handlePolyominoFalling,
+      handleTetriminoFalling,
       clearSelfRowFilledWithCube,
       setGameState,
       setSelfScore,
       handleGameOver,
       fillSelfAllRow,
-      resetSelfPolyomino,
+      resetSelfTetrimino,
       resetSelfTetris,
-      polyominoCollideBottomTimer,
-      polyominoFallingTimer,
+      TetriminoCollideBottomTimer,
+      TetriminoFallingTimer,
     ]
   );
 
-  React.useEffect(
+  useEffect(
     function socketHandler() {
       if (isConnected) {
         socketInstance.on("before_start_game", (leftSec) => {
           if (roomState !== ROOM_STATE.BEFORE_START) {
-            setSelfNextPolyominoType(getRandomPolyominoType());
+            setSelfNextTetriminoType(getRandomTetriminoType());
             setRoomState(ROOM_STATE.BEFORE_START);
           }
           console.log("left sec is ", leftSec);
@@ -608,14 +626,14 @@ const Room = (): JSX.Element => {
         });
         socketInstance.on("other_game_data_updated", (updatedPayloads: GameDataUpdatedPayloads) => {
           updatedPayloads.forEach(({ type, data }) => {
-            if (type === GameDataType.NEXT_POLYOMINO_TYPE) {
-              setOpponentNextPolyominoType(data as POLYOMINO_TYPE);
+            if (type === GameDataType.NEXT_TETRIMINO_TYPE) {
+              setOpponentNextTetriminoType(data as TETRIMINO_TYPE);
             } else if (type === GameDataType.SCORE) {
               setOpponentScore(data as number);
             } else if (type === GameDataType.TETRIS) {
               setOpponentTetris(data as ITetris["tetris"]);
-            } else if (type === GameDataType.POLYOMINO) {
-              setOpponentPolyomino(data as IPolyomino);
+            } else if (type === GameDataType.Tetrimino) {
+              setOpponentTetrimino(data as ITetrimino);
             }
           });
         });
@@ -652,7 +670,7 @@ const Room = (): JSX.Element => {
     [
       setRoomState,
       setOpponentTetris,
-      setOpponentPolyomino,
+      setOpponentTetrimino,
       socketInstance,
       isConnected,
       roomState,
@@ -695,8 +713,8 @@ const Room = (): JSX.Element => {
             <PlayField.Renderer
               cubeDistance={doubleSizeConfig.playField.cube}
               tetris={selfTetris}
-              polyomino={selfPolyominoCoordinate}
-              previewPolyomino={selfPreviewPolyomino}
+              tetrimino={selfTetriminoCoordinates}
+              previewTetrimino={selfPreviewTetrimino}
             />
           </PlayField.Wrapper>
         </Column>
@@ -704,12 +722,12 @@ const Room = (): JSX.Element => {
           width={doubleSizeConfig.widget.displayNumber.width}
           height={doubleSizeConfig.playField.height}
         >
-          <Widget.NextPolyomino
+          <Widget.NextTetrimino
             fontLevel={["six", "xl-five"]}
-            cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
-            polyominoBag={selfnextPolyominoBag}
-            width={doubleSizeConfig.widget.nextPolyomino.width}
-            height={doubleSizeConfig.widget.nextPolyomino.height}
+            cubeDistance={doubleSizeConfig.widget.nextTetrimino.cube}
+            TetriminoBag={selfNextTetriminoBag}
+            width={doubleSizeConfig.widget.nextTetrimino.width}
+            height={doubleSizeConfig.widget.nextTetrimino.height}
           />
         </Column>
       </SelfGame>
@@ -722,12 +740,12 @@ const Room = (): JSX.Element => {
           width={doubleSizeConfig.widget.displayNumber.width}
           height={doubleSizeConfig.playField.height}
         >
-          <Widget.NextPolyomino
+          <Widget.NextTetrimino
             fontLevel={["six", "xl-five"]}
-            cubeDistance={doubleSizeConfig.widget.nextPolyomino.cube}
-            polyominoBag={[]}
-            width={doubleSizeConfig.widget.nextPolyomino.width}
-            height={doubleSizeConfig.widget.nextPolyomino.height}
+            cubeDistance={doubleSizeConfig.widget.nextTetrimino.cube}
+            TetriminoBag={[]}
+            width={doubleSizeConfig.widget.nextTetrimino.width}
+            height={doubleSizeConfig.widget.nextTetrimino.height}
           />
         </Column>
         <Column
@@ -744,8 +762,8 @@ const Room = (): JSX.Element => {
             <PlayField.Renderer
               cubeDistance={doubleSizeConfig.playField.cube}
               tetris={opponentTetris}
-              polyomino={opponentPolyominoCoordinate}
-              previewPolyomino={opponentPreviewPolyomino}
+              tetrimino={opponentTetriminoCoordinates}
+              previewTetrimino={opponentPreviewTetrimino}
             />
           </PlayField.Wrapper>
         </Column>

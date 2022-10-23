@@ -1,4 +1,4 @@
-import React from "react";
+import { useCallback, useContext, useState, useEffect } from "react";
 import styled from "styled-components";
 import Modal from "../components/Modal";
 import { ISocketContext, SocketContext } from "../context/socket";
@@ -8,7 +8,6 @@ import { KEYCODE } from "../common/keyboard";
 import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
 import Font from "../components/Font";
-import { useSizeConfigContext } from "../context/sizeConfig";
 
 const RoomsContainer = styled.div`
   width: 100%;
@@ -88,7 +87,7 @@ enum ROOM_STATE {
 const Rooms: React.FC<{}> = () => {
   const navigate = useNavigate();
 
-  const { socketInstance, isConnected, isConnectErrorOccur } = React.useContext<
+  const { socketInstance, isConnected, isConnectErrorOccur } = useContext<
     ISocketContext<
       {
         error_occur: () => void;
@@ -102,17 +101,17 @@ const Rooms: React.FC<{}> = () => {
     >
   >(SocketContext);
 
-  const [isNoRoomsModalOpen, setIsNoRoomsModalOpen] = React.useState<boolean>(false);
+  const [isNoRoomsModalOpen, setIsNoRoomsModalOpen] = useState<boolean>(false);
 
-  const [isCreateRoomModalOpen, setIsCreateRoomsModalOpen] = React.useState<boolean>(false);
+  const [isCreateRoomModalOpen, setIsCreateRoomsModalOpen] = useState<boolean>(false);
 
-  const [rooms, setRooms] = React.useState<Array<IRoom>>([]);
+  const [rooms, setRooms] = useState<Array<IRoom>>([]);
 
-  const [roomName, setRoomName] = React.useState<string>("");
+  const [roomName, setRoomName] = useState<string>("");
 
-  const [isCheckComplete, setIsCheckComplete] = React.useState(false);
+  const [isCheckComplete, setIsCheckComplete] = useState(false);
 
-  const handleGetRooms = React.useCallback(() => {
+  const handleGetRooms = useCallback(() => {
     if (isConnected) {
       socketInstance.emit("get_rooms", ({ data: { rooms }, metadata: { isError } }) => {
         if (isError) return;
@@ -125,7 +124,7 @@ const Rooms: React.FC<{}> = () => {
     }
   }, [isConnected, socketInstance]);
 
-  const handleJoinRoom = React.useCallback(
+  const handleJoinRoom = useCallback(
     (roomId: string) => {
       if (isConnected) {
         socketInstance.emit(
@@ -145,7 +144,7 @@ const Rooms: React.FC<{}> = () => {
     [isConnected, socketInstance, navigate]
   );
 
-  const handleCreateRoom = React.useCallback(
+  const handleCreateRoom = useCallback(
     (roomName: string) => {
       if (isConnected) {
         socketInstance.emit(
@@ -165,7 +164,7 @@ const Rooms: React.FC<{}> = () => {
     [isConnected, socketInstance, navigate]
   );
 
-  const handleOnError = React.useCallback(() => {
+  const handleOnError = useCallback(() => {
     createAlertModal("ERROR OCCUR", {
       text: "confirm",
       onClick: () => {
@@ -174,7 +173,7 @@ const Rooms: React.FC<{}> = () => {
     });
   }, [navigate]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isConnected) {
       socketInstance.emit("get_socket_data", ({ data: { name } }) => {
         setIsCheckComplete(true);
@@ -194,7 +193,7 @@ const Rooms: React.FC<{}> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isConnected) {
       socketInstance.on("error_occur", () => {
         handleOnError();

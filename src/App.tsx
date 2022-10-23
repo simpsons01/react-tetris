@@ -4,7 +4,7 @@ import useSizeConfig from "./hooks/size";
 import useSocket from "./hooks/socket";
 import Overlay from "./components/Overlay";
 import http from "./common/http";
-import React from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import { SocketContext } from "./context/socket";
 import { SizeConfigContext } from "./context/sizeConfig";
 import { ScreenSizeContext } from "./context/screen";
@@ -19,13 +19,13 @@ const AppContainer = styled.div`
 `;
 
 function App() {
-  const [isHealthCheckFail, setIsHealthCheckFail] = React.useState(false);
-  const [isInitial, setInitial] = React.useState(false);
+  const [isHealthCheckFail, setIsHealthCheckFail] = useState(false);
+  const [isInitial, setInitial] = useState(false);
   const { isConnected, isConnectErrorOccur, socketInstance } = useSocket();
   const { sizeConfig, screenSize } = useSizeConfig();
   const location = useLocation();
 
-  const isScreenSizePlayable = React.useMemo(() => {
+  const isScreenSizePlayable = useMemo(() => {
     const heightRation = 1;
     const isDoubleGamePlayable =
       sizeConfig.mode.double.playable &&
@@ -44,7 +44,7 @@ function App() {
     return isPlayable;
   }, [sizeConfig, location, screenSize]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     http
       .get("/health-check", { timeout: 5000 })
       .then(() => {
@@ -62,7 +62,7 @@ function App() {
       {isInitial &&
         (!isHealthCheckFail ? (
           isScreenSizePlayable ? (
-            <React.Fragment>
+            <Fragment>
               <SocketContext.Provider
                 value={{
                   isConnected,
@@ -76,7 +76,7 @@ function App() {
                   </SizeConfigContext.Provider>
                 </ScreenSizeContext.Provider>
               </SocketContext.Provider>
-            </React.Fragment>
+            </Fragment>
           ) : (
             <Overlay background="#fff">
               <Font align="center" color="#292929" level={"one"}>

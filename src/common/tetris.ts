@@ -1,10 +1,20 @@
 export const PER_COL_CUBE_NUM = 10;
-export const PER_ROW_CUBE_NUM = 20;
+
+export const PER_ROW_CUBE_NUM = 40;
+
 export const DEFAULT_START_LEVEL = 0;
+
+export const BUFFER_ZONE_ROW_START = 0;
+
+export const BUFFER_ZONE_ROW_END = 19;
+
+export const DISPLAY_ZONE_ROW_START = 20;
+
+export const DISPLAY_ZONE_ROW_END = 39;
 
 export const getLevelByLine = (line: number): number => Math.floor(line / 10);
 
-export const getPolyominoFallingDelayByLevel = (level: number) => {
+export const getTetriminoFallingDelayByLevel = (level: number) => {
   const frame = (() => {
     const _: { [key: string]: number } = {
       "0": 48,

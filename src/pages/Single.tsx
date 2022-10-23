@@ -1,8 +1,8 @@
-import React from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { setRef } from "../common/utils";
 import { createCountDownTimer } from "../common/timer";
 import useTetris from "../hooks/tetris";
-import useNextPolyominoBag from "../hooks/nextPolyomino";
+import useNextTetriminoBag from "../hooks/nextTetrimino";
 import styled from "styled-components";
 import Widget from "../components/Widget";
 import PlayField from "../components/PlayField";
@@ -10,19 +10,22 @@ import { ISize } from "../common/utils";
 import { useSizeConfigContext } from "../context/sizeConfig";
 import {
   DIRECTION,
-  getRandomPolyominoType,
-  POLYOMINO_TYPE,
+  getRandomTetriminoType,
+  TETRIMINO_TYPE,
   ICube,
-  POLYOMINO_ROTATION,
-  getRandomPolyominoBag,
-} from "../common/polyomino";
+  Tetrimino_ROTATION,
+  getRandomTetriminoBag,
+  getCoordinateByAnchorAndShapeAndType,
+  ICoordinate,
+  getRangeByCoordinates,
+  getSizeByCoordinates,
+} from "../common/tetrimino";
 import {
   DEFAULT_START_LEVEL,
   getLevelByLine,
-  getPolyominoFallingDelayByLevel,
+  getTetriminoFallingDelayByLevel,
   getScoreByLevelAndLine,
 } from "../common/tetris";
-import { KEYCODE } from "../common/keyboard";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -45,7 +48,7 @@ export enum GAME_STATE {
   BEFORE_LEAVE_PAUSE,
   CHECK_IS_GAME_OVER,
   GAME_OVER,
-  POLYOMINO_FALLING,
+  TETRIMINO_FALLING,
   CHECK_IS_ROW_FILLED,
   ROW_FILLED_CLEARING,
   CHECK_IS_ROW_EMPTY,
@@ -53,139 +56,168 @@ export enum GAME_STATE {
   TIME_UP,
 }
 
-const polyominoFallingTimer = createCountDownTimer();
+const TetriminoFallingTimer = createCountDownTimer();
 
-const polyominoCollideBottomTimer = createCountDownTimer();
+const TetriminoCollideBottomTimer = createCountDownTimer();
 
 const Single = (): JSX.Element => {
   const {
-    polyominoCoordinate,
-    polyomino,
-    tetris,
-    setPolyominoToTetris,
-    createPolyomino,
-    movePolyomino,
-    movePolyominoToPreview,
-    changePolyominoShape,
+    tetriminoCoordinates,
+    tetrimino,
+    displayTetris,
+    displayTetriminoCoordinates,
+    setTetriminoToTetris,
+    getSpawnTetrimino,
+    moveTetrimino,
+    moveTetriminoToPreview,
+    changeTetriminoShape,
     clearRowFilledWithCube,
     getRowFilledWithCube,
     getEmptyRow,
     fillEmptyRow,
-    getPolyominoIsCollideWithNearbyCube,
-    getCoordinateIsCollideWithTetris,
+    getTetriminoIsCollideWithNearbyCube,
+    getCoordinatesIsCollideWithFilledCube,
+    getIsCoordinatesLockOut,
     pauseClearRowAnimation,
     continueClearRowAnimation,
     pauseFillRowAnimation,
     continueFillRowAnimation,
-    getPolyominoPreviewCoordinate,
-    resetPolyomino,
+    getTetriminoPreviewCoordinate,
+    resetTetrimino,
     resetTetris,
+    setTetrimino,
   } = useTetris();
 
-  const { nextPolyominoBag, popNextPolyominoType } = useNextPolyominoBag(getRandomPolyominoBag());
+  const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag(getRandomTetriminoBag());
 
   const {
     mode: { single: singleSizeConfig },
   } = useSizeConfigContext();
 
-  const polyominoFallingTimerHandler = React.useRef(() => {});
+  const TetriminoFallingTimerHandler = useRef(() => {});
 
-  const isHardDrop = React.useRef(false);
+  const isHardDrop = useRef(false);
 
-  const [nextPolyominoType, setNextPolyominoType] = React.useState<POLYOMINO_TYPE | null>(null);
+  const [nextTetriminoType, setNextTetriminoType] = useState<TETRIMINO_TYPE | null>(null);
 
-  const [gameState, setGameState] = React.useState<GAME_STATE>(GAME_STATE.BEFORE_START);
+  const [gameState, setGameState] = useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
-  const [line, setLine] = React.useState<number>(0);
+  const [line, setLine] = useState<number>(0);
 
-  const [level, setLevel] = React.useState<number>(DEFAULT_START_LEVEL);
+  const [level, setLevel] = useState<number>(DEFAULT_START_LEVEL);
 
-  const [score, setScore] = React.useState<number>(0);
+  const [score, setScore] = useState<number>(0);
 
-  const [polyominoFallingDelay, setPolyominoFallingDelay] = React.useState(
-    getPolyominoFallingDelayByLevel(DEFAULT_START_LEVEL)
+  const [tetriminoFallingDelay, setTetriminoFallingDelay] = useState(
+    getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL)
   );
 
-  const prevGameState = React.useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
+  const prevGameState = useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
 
-  const setPrevGameState = React.useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
+  const setPrevGameState = useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
 
-  const isGameStart = React.useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);
+  const isGameStart = useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);
 
-  const isPausing = React.useMemo(
+  const isPausing = useMemo(
     () => gameState === GAME_STATE.PAUSE || gameState === GAME_STATE.BEFORE_LEAVE_PAUSE,
     [gameState]
   );
 
-  const isGameOver = React.useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
+  const isGameOver = useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
 
-  const isTimeUp = React.useMemo(() => gameState === GAME_STATE.TIME_UP, [gameState]);
+  const isTimeUp = useMemo(() => gameState === GAME_STATE.TIME_UP, [gameState]);
 
-  const previewPolyomino = React.useMemo(() => {
-    const previewCoordinate = getPolyominoPreviewCoordinate();
-    if (previewCoordinate !== null && polyomino.type !== null) {
+  const previewTetrimino = useMemo(() => {
+    const previewCoordinate = getTetriminoPreviewCoordinate();
+    if (previewCoordinate !== null && tetrimino.type !== null) {
       return previewCoordinate.map(({ x, y }) => ({
         x,
         y,
       })) as Array<ICube>;
     }
     return null;
-  }, [polyomino, getPolyominoPreviewCoordinate]);
+  }, [tetrimino, getTetriminoPreviewCoordinate]);
 
-  const checkIsPolyominoCollideWithTetris = React.useCallback(() => {
+  const checkIsTetriminoCollideWithTetris = useCallback(() => {
     let isCollide = false;
-    if (polyominoCoordinate !== null && getCoordinateIsCollideWithTetris(polyominoCoordinate)) {
+    if (tetriminoCoordinates !== null && getCoordinatesIsCollideWithFilledCube(tetriminoCoordinates)) {
       isCollide = true;
     }
     return isCollide;
-  }, [polyominoCoordinate, getCoordinateIsCollideWithTetris]);
+  }, [getCoordinatesIsCollideWithFilledCube, tetriminoCoordinates]);
 
-  const pauseGame = React.useCallback(() => {
+  const pauseGame = useCallback(() => {
     // console.log("pause game!");
     pauseClearRowAnimation();
     pauseFillRowAnimation();
-    polyominoFallingTimer.clear();
-    polyominoCollideBottomTimer.clear();
+    TetriminoFallingTimer.clear();
+    TetriminoCollideBottomTimer.clear();
   }, [pauseClearRowAnimation, pauseFillRowAnimation]);
 
-  const continueGame = React.useCallback(() => {
+  const continueGame = useCallback(() => {
     // console.log("continue game!");
     continueClearRowAnimation();
     continueFillRowAnimation();
-    polyominoFallingTimer.clear();
-    polyominoCollideBottomTimer.clear();
+    TetriminoFallingTimer.clear();
+    TetriminoCollideBottomTimer.clear();
     // console.log("gameState is " + gameState);
     // console.log("prevGameState state is " + prevGameState);
   }, [continueClearRowAnimation, continueFillRowAnimation]);
 
-  const handlePolyominoCreate = React.useCallback(() => {
-    if (polyominoCoordinate == null) {
-      // console.log("create polyomino!");
-      const nextPolyominoType = popNextPolyominoType();
-      createPolyomino(nextPolyominoType);
+  const handleTetriminoCreate = useCallback(() => {
+    // console.log("create Tetrimino!");
+    let isCreatedSuccess = false;
+    const nextTetriminoType = popNextTetriminoType();
+    const spawnTetrimino = getSpawnTetrimino(nextTetriminoType);
+    const spawnTetriminoCoordinates = getCoordinateByAnchorAndShapeAndType(
+      spawnTetrimino.anchor,
+      spawnTetrimino.type,
+      spawnTetrimino.shape
+    );
+    const nextSpawnTetrimino = {
+      ...spawnTetrimino,
+      anchor: {
+        x: spawnTetrimino.anchor.x,
+        y: spawnTetrimino.anchor.y + getSizeByCoordinates(spawnTetriminoCoordinates).vertical,
+      },
+    };
+    const nextSpawnTetriminoCoordinates = getCoordinateByAnchorAndShapeAndType(
+      nextSpawnTetrimino.anchor,
+      spawnTetrimino.type,
+      spawnTetrimino.shape
+    );
+    if (!getCoordinatesIsCollideWithFilledCube(spawnTetriminoCoordinates)) {
+      if (getCoordinatesIsCollideWithFilledCube(nextSpawnTetriminoCoordinates)) {
+        setTetrimino(spawnTetrimino);
+      } else {
+        setTetrimino(nextSpawnTetrimino);
+      }
+      isCreatedSuccess = true;
+      return isCreatedSuccess;
     }
-  }, [polyominoCoordinate, createPolyomino, popNextPolyominoType]);
+    return isCreatedSuccess;
+  }, [popNextTetriminoType, getSpawnTetrimino, getCoordinatesIsCollideWithFilledCube, setTetrimino]);
 
-  const handleNextPolyominoTypeCreate = React.useCallback(() => {
-    setNextPolyominoType(getRandomPolyominoType());
-  }, [setNextPolyominoType]);
+  const handleNextTetriminoTypeCreate = useCallback(() => {
+    setNextTetriminoType(getRandomTetriminoType());
+  }, [setNextTetriminoType]);
 
-  const handleGameOver = React.useCallback(() => {
+  const handleGameOver = useCallback(() => {
     pauseClearRowAnimation();
     pauseFillRowAnimation();
-    polyominoFallingTimer.clear();
-    polyominoCollideBottomTimer.clear();
+    TetriminoFallingTimer.clear();
+    TetriminoCollideBottomTimer.clear();
   }, [pauseClearRowAnimation, pauseFillRowAnimation]);
 
-  const handleNextGame = React.useCallback(() => {
+  const handleNextGame = useCallback(() => {
     resetTetris();
-    resetPolyomino();
+    resetTetrimino();
     setLine(0);
-    setNextPolyominoType(null);
+    setNextTetriminoType(null);
     setGameState(GAME_STATE.BEFORE_START);
-  }, [resetPolyomino, resetTetris]);
+  }, [resetTetrimino, resetTetris]);
 
-  React.useEffect(
+  useEffect(
     function handleKeyDown() {
       const isRegisterKeyDownHandler = !isTimeUp && !isGameOver && isGameStart;
       function keydownHandler(e: KeyboardEvent) {
@@ -196,18 +228,18 @@ const Single = (): JSX.Element => {
           gameState === GAME_STATE.ROW_EMPTY_FILLING
         ) {
           if (e.keyCode === 37) {
-            movePolyomino(DIRECTION.LEFT);
+            moveTetrimino(DIRECTION.LEFT);
           } else if (e.keyCode === 39) {
-            movePolyomino(DIRECTION.RIGHT);
+            moveTetrimino(DIRECTION.RIGHT);
           } else if (e.keyCode === 40) {
-            movePolyomino(DIRECTION.DOWN);
+            moveTetrimino(DIRECTION.DOWN);
           } else if (e.keyCode === 38) {
-            changePolyominoShape(POLYOMINO_ROTATION.CLOCK_WISE);
+            changeTetriminoShape(Tetrimino_ROTATION.CLOCK_WISE);
           } else if (e.keyCode === 90) {
-            changePolyominoShape(POLYOMINO_ROTATION.COUNTER_CLOCK_WISE);
+            changeTetriminoShape(Tetrimino_ROTATION.COUNTER_CLOCK_WISE);
           } else if (e.keyCode === 32) {
             setRef(isHardDrop, true);
-            movePolyominoToPreview();
+            moveTetriminoToPreview();
           }
         }
         if (e.keyCode === 27) {
@@ -234,31 +266,32 @@ const Single = (): JSX.Element => {
       isGameOver,
       gameState,
       isGameStart,
-      movePolyomino,
-      changePolyominoShape,
+      moveTetrimino,
+      changeTetriminoShape,
       continueGame,
       pauseGame,
       setGameState,
       setPrevGameState,
-      movePolyominoToPreview,
+      moveTetriminoToPreview,
     ]
   );
-  React.useEffect(
+  useEffect(
     function handleGameStateChange() {
       let effectCleaner = () => {};
       switch (gameState) {
         case GAME_STATE.BEFORE_START:
-          if (nextPolyominoType == null) {
-            handleNextPolyominoTypeCreate();
-          }
           break;
         case GAME_STATE.START:
           setGameState(GAME_STATE.NEXT_CYCLE);
           break;
         case GAME_STATE.NEXT_CYCLE:
-          handlePolyominoCreate();
-          handleNextPolyominoTypeCreate();
-          setGameState(GAME_STATE.CHECK_IS_GAME_OVER);
+          const isCreatedSuccess = handleTetriminoCreate();
+          if (isCreatedSuccess) {
+            handleNextTetriminoTypeCreate();
+            setGameState(GAME_STATE.TETRIMINO_FALLING);
+          } else {
+            setGameState(GAME_STATE.GAME_OVER);
+          }
           break;
         case GAME_STATE.PAUSE:
           pauseGame();
@@ -268,10 +301,10 @@ const Single = (): JSX.Element => {
           continueGame();
           break;
         case GAME_STATE.CHECK_IS_GAME_OVER:
-          if (checkIsPolyominoCollideWithTetris()) {
+          if (checkIsTetriminoCollideWithTetris()) {
             setGameState(GAME_STATE.GAME_OVER);
           } else {
-            setGameState(GAME_STATE.POLYOMINO_FALLING);
+            setGameState(GAME_STATE.TETRIMINO_FALLING);
           }
           break;
         case GAME_STATE.GAME_OVER:
@@ -280,38 +313,42 @@ const Single = (): JSX.Element => {
         case GAME_STATE.TIME_UP:
           handleGameOver();
           break;
-        case GAME_STATE.POLYOMINO_FALLING:
-          const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube();
+        case GAME_STATE.TETRIMINO_FALLING:
+          const { isBottomCollide } = getTetriminoIsCollideWithNearbyCube();
           if (isBottomCollide) {
-            if (polyominoFallingTimer.isPending()) {
-              polyominoFallingTimer.clear();
+            if (TetriminoFallingTimer.isPending()) {
+              TetriminoFallingTimer.clear();
             }
-            if (polyominoCollideBottomTimer.isPending()) {
-              polyominoCollideBottomTimer.clear();
+            if (TetriminoCollideBottomTimer.isPending()) {
+              TetriminoCollideBottomTimer.clear();
             }
             const _ = () => {
-              setPolyominoToTetris();
-              setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+              if (getIsCoordinatesLockOut(tetriminoCoordinates as Array<ICoordinate>)) {
+                setGameState(GAME_STATE.GAME_OVER);
+              } else {
+                setTetriminoToTetris();
+                setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+              }
             };
             if (isHardDrop.current) {
               setRef(isHardDrop, false);
               _();
             } else {
-              polyominoCollideBottomTimer.start(() => {
+              TetriminoCollideBottomTimer.start(() => {
                 _();
               }, 500);
             }
           } else {
-            if (polyominoCollideBottomTimer.isPending()) {
-              polyominoCollideBottomTimer.clear();
+            if (TetriminoCollideBottomTimer.isPending()) {
+              TetriminoCollideBottomTimer.clear();
             }
-            if (polyominoFallingTimer.isPending()) {
-              setRef(polyominoFallingTimerHandler, () => movePolyomino(DIRECTION.DOWN));
+            if (TetriminoFallingTimer.isPending()) {
+              setRef(TetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
             } else {
-              setRef(polyominoFallingTimerHandler, () => movePolyomino(DIRECTION.DOWN));
-              polyominoFallingTimer.start(() => {
-                polyominoFallingTimerHandler.current();
-              }, polyominoFallingDelay);
+              setRef(TetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+              TetriminoFallingTimer.start(() => {
+                TetriminoFallingTimerHandler.current();
+              }, tetriminoFallingDelay);
             }
           }
           break;
@@ -324,7 +361,7 @@ const Single = (): JSX.Element => {
             setScore((prevScore) => prevScore + getScoreByLevelAndLine(level, filledRow.length));
             setLine(nextLineValue);
             setLevel(getLevelByLine(nextLineValue));
-            setPolyominoFallingDelay(getPolyominoFallingDelayByLevel(nextLevel));
+            setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
             clearRowFilledWithCube(filledRow).then(() => {
               setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
             });
@@ -360,23 +397,25 @@ const Single = (): JSX.Element => {
       line,
       level,
       prevGameState,
-      nextPolyominoType,
-      handlePolyominoCreate,
+      nextTetriminoType,
+      tetriminoFallingDelay,
+      tetriminoCoordinates,
+      handleTetriminoCreate,
       handleGameOver,
-      checkIsPolyominoCollideWithTetris,
+      checkIsTetriminoCollideWithTetris,
       setGameState,
       setLine,
-      handleNextPolyominoTypeCreate,
+      handleNextTetriminoTypeCreate,
       continueGame,
       pauseGame,
       getRowFilledWithCube,
       getEmptyRow,
       clearRowFilledWithCube,
       fillEmptyRow,
-      getPolyominoIsCollideWithNearbyCube,
-      setPolyominoToTetris,
-      movePolyomino,
-      polyominoFallingDelay,
+      getTetriminoIsCollideWithNearbyCube,
+      setTetriminoToTetris,
+      moveTetrimino,
+      getIsCoordinatesLockOut,
     ]
   );
 
@@ -438,9 +477,9 @@ const Single = (): JSX.Element => {
         >
           <PlayField.Renderer
             cubeDistance={singleSizeConfig.playField.cube}
-            tetris={tetris}
-            polyomino={polyominoCoordinate}
-            previewPolyomino={previewPolyomino}
+            tetris={displayTetris}
+            tetrimino={displayTetriminoCoordinates}
+            previewTetrimino={previewTetrimino}
           />
           <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
           <PlayField.PausePanel isPausing={isPausing} />
@@ -454,12 +493,12 @@ const Single = (): JSX.Element => {
         </PlayField.Wrapper>
       </Column>
       <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
-        <Widget.NextPolyomino
+        <Widget.NextTetrimino
           fontLevel={"three"}
-          cubeDistance={singleSizeConfig.widget.nextPolyomino.cube}
-          polyominoBag={nextPolyominoBag}
-          width={singleSizeConfig.widget.nextPolyomino.width}
-          height={singleSizeConfig.widget.nextPolyomino.height}
+          cubeDistance={singleSizeConfig.widget.nextTetrimino.cube}
+          TetriminoBag={nextTetriminoBag}
+          width={singleSizeConfig.widget.nextTetrimino.width}
+          height={singleSizeConfig.widget.nextTetrimino.height}
         />
       </Column>
     </Wrapper>

@@ -1,28 +1,32 @@
-import React from "react";
+import { useCallback, useState, useRef, useMemo } from "react";
 import { IPlayFieldRenderer as ITetris } from "../components/PlayField/Renderer";
 import {
   CUBE_STATE,
-  DEFAULT_POLYOMINO_SHAPE,
+  DEFAULT_TETRIMINO_SHAPE,
   DIRECTION,
   getCoordinateByAnchorAndShapeAndType,
-  getPolyominoConfig,
-  getPolyominoNextShape,
-  getRangeByCoordinate,
+  getTetriminoConfig,
+  getTetriminoNextShape,
   ICoordinate,
   ICube,
-  IPolyominoConfig,
-  POLYOMINO_SHAPE,
-  POLYOMINO_TYPE,
-  POLYOMINO_ROTATION,
+  ITetriminoConfig,
+  TETRIMINO_SHAPE,
+  TETRIMINO_TYPE,
+  Tetrimino_ROTATION,
   getBoundaryByCoordinatesAndShapeAndType,
   getNextCoordinateByBoundaryAndTypeAndShape,
   getAnchorByCoordinatesAndTypeAndShape,
-} from "../common/polyomino";
-import usePolyomino from "./polyomino";
+} from "../common/tetrimino";
+import useTetrimino from "./tetrimino";
 import { getKeys, minMax, setRef } from "../common/utils";
 import { createAnimation } from "../common/animation";
 import { nanoid } from "nanoid";
-import { PER_ROW_CUBE_NUM, PER_COL_CUBE_NUM } from "../common/tetris";
+import {
+  PER_ROW_CUBE_NUM,
+  PER_COL_CUBE_NUM,
+  DISPLAY_ZONE_ROW_START,
+  DISPLAY_ZONE_ROW_END,
+} from "../common/tetris";
 
 // const condition = (index: number, col: number) =>
 //   (Math.floor(index / col) === 17 && (index % col) % 2 === 0) ||
@@ -42,13 +46,29 @@ const createTetris = () =>
   });
 
 const useTetris = function () {
-  const { polyomino, setPolyomino, resetPolyomino, polyominoCoordinate } = usePolyomino();
-  const [tetris, setTetris] = React.useState<ITetris["tetris"]>(createTetris());
-  const fillAllRowAnimationRef = React.useRef<ReturnType<typeof createAnimation> | null>(null);
-  const clearRowAnimationRef = React.useRef<ReturnType<typeof createAnimation> | null>(null);
-  const fillRowAnimationRef = React.useRef<ReturnType<typeof createAnimation> | null>(null);
+  const { tetrimino, setTetrimino, resetTetrimino, tetriminoCoordinates } = useTetrimino();
+  const [tetris, setTetris] = useState<ITetris["tetris"]>(createTetris());
+  const fillAllRowAnimationRef = useRef<ReturnType<typeof createAnimation> | null>(null);
+  const clearRowAnimationRef = useRef<ReturnType<typeof createAnimation> | null>(null);
+  const fillRowAnimationRef = useRef<ReturnType<typeof createAnimation> | null>(null);
 
-  const findCube = React.useCallback(
+  const displayTetris = useMemo(
+    () =>
+      tetris
+        .slice(DISPLAY_ZONE_ROW_START * PER_COL_CUBE_NUM, (DISPLAY_ZONE_ROW_END + 1) * PER_COL_CUBE_NUM)
+        .map((cube) => ({ ...cube, y: cube.y - DISPLAY_ZONE_ROW_START })),
+    [tetris]
+  );
+
+  const displayTetriminoCoordinates = useMemo(
+    () =>
+      tetriminoCoordinates
+        ? tetriminoCoordinates.map((cube) => ({ ...cube, y: cube.y - DISPLAY_ZONE_ROW_START }))
+        : null,
+    [tetriminoCoordinates]
+  );
+
+  const findCube = useCallback(
     (coordinate: ICoordinate): ICube | null => {
       if (
         coordinate.x < 0 ||
@@ -65,59 +85,11 @@ const useTetris = function () {
     [tetris]
   );
 
-  const getAnchorNearbyCube = React.useCallback(
-    (anchor: ICoordinate, rangeX: number = 4, rangeY: number = 4): Array<ICube> => {
-      let leftX = Math.floor(rangeX / 2);
-      let rightX = Math.floor(rangeX / 2);
-      let topY = Math.floor(rangeY / 2);
-      let bottomY = Math.floor(rangeY / 2);
-      if (anchor.x - leftX < 0) {
-        leftX = anchor.x - 0;
-        rightX = rangeX - leftX;
-      } else if (anchor.x + rightX >= PER_COL_CUBE_NUM) {
-        rightX = PER_COL_CUBE_NUM - anchor.x - 1;
-        leftX = rangeX - leftX;
-      }
-      if (anchor.y - topY < 0) {
-        topY = anchor.y - 0;
-        bottomY = rangeY - topY;
-      } else if (anchor.y + bottomY >= PER_ROW_CUBE_NUM) {
-        bottomY = PER_ROW_CUBE_NUM - anchor.y - 1;
-        topY = rangeY - bottomY;
-      }
-      const topLeftAnchor = { x: anchor.x - leftX, y: anchor.y - topY };
-      const bottomRightAnchor = { x: anchor.x + rightX, y: anchor.y + bottomY };
-      let traverseX = 0,
-        traverseY = 0,
-        cubes: Array<ICube> = [];
-      while (bottomRightAnchor.y - topLeftAnchor.y >= traverseY) {
-        while (bottomRightAnchor.x - topLeftAnchor.x >= traverseX) {
-          const coordinate = {
-            x: topLeftAnchor.x + traverseX,
-            y: topLeftAnchor.y + traverseY,
-          };
-          if (coordinate.x !== anchor.x || coordinate.y !== anchor.y) {
-            const cube = findCube({
-              x: topLeftAnchor.x + traverseX,
-              y: topLeftAnchor.y + traverseY,
-            }) as ICube;
-            cubes.push(cube);
-          }
-          traverseX = traverseX + 1;
-        }
-        traverseX = 0;
-        traverseY = traverseY + 1;
-      }
-      return cubes;
-    },
-    [findCube]
-  );
-
-  const getCoordinateIsCollideWithTetris = React.useCallback(
-    (coordinate: Array<ICoordinate>): boolean => {
+  const getCoordinatesIsCollideWithFilledCube = useCallback(
+    (coordinates: Array<ICoordinate>): boolean => {
       let isCollide = false;
-      for (let i = 0; i < coordinate.length; i++) {
-        const cube = findCube(coordinate[i]);
+      for (let i = 0; i < coordinates.length; i++) {
+        const cube = findCube(coordinates[i]);
         if (cube == null || cube.state === CUBE_STATE.FILLED) {
           isCollide = true;
         }
@@ -128,10 +100,16 @@ const useTetris = function () {
     [findCube]
   );
 
-  const getRowFilledWithCube = React.useCallback((): Array<number> => {
-    let _row = 0,
+  const getIsCoordinatesLockOut = useCallback(
+    (coordinates: Array<ICoordinate>) =>
+      coordinates.every((coordinate) => coordinate.y < DISPLAY_ZONE_ROW_START),
+    []
+  );
+
+  const getRowFilledWithCube = useCallback((): Array<number> => {
+    let _row = 20,
       filledRow = [];
-    while (_row < PER_ROW_CUBE_NUM) {
+    while (_row < DISPLAY_ZONE_ROW_END + 1) {
       let _col = 0,
         isAllFilled = true;
       while (_col < PER_COL_CUBE_NUM) {
@@ -147,24 +125,17 @@ const useTetris = function () {
     return filledRow;
   }, [findCube]);
 
-  const createPolyomino = React.useCallback(
-    (nextPolyominoType: POLYOMINO_TYPE): void => {
-      const polyominoConfig = getPolyominoConfig(nextPolyominoType);
-      const { coordinates, anchorIndex } = polyominoConfig.config[polyomino.shape].shape;
-      const range = getRangeByCoordinate(coordinates);
-      setPolyomino({
-        type: nextPolyominoType,
-        shape: DEFAULT_POLYOMINO_SHAPE,
-        anchor: {
-          x: Math.ceil((PER_COL_CUBE_NUM - (range.maxX - range.minX + 1)) / 2) - range.minX,
-          y: coordinates[anchorIndex].y - range.minY,
-        },
-      });
-    },
-    [setPolyomino, polyomino.shape]
-  );
+  const getSpawnTetrimino = useCallback((nextTetriminoType: TETRIMINO_TYPE) => {
+    const tetriminoConfig = getTetriminoConfig(nextTetriminoType);
+    const { spawnStartLocation } = tetriminoConfig;
+    return {
+      type: nextTetriminoType,
+      shape: DEFAULT_TETRIMINO_SHAPE,
+      anchor: spawnStartLocation,
+    };
+  }, []);
 
-  const getPolyominoIsCollideWithNearbyCube = React.useCallback(
+  const getTetriminoIsCollideWithNearbyCube = useCallback(
     (coordinate?: Array<ICoordinate>) => {
       const status = {
         isLeftCollide: false,
@@ -172,7 +143,7 @@ const useTetris = function () {
         isBottomCollide: false,
         isTopCollide: false,
       };
-      const _coordinate = coordinate ? coordinate : polyominoCoordinate;
+      const _coordinate = coordinate ? coordinate : tetriminoCoordinates;
       if (_coordinate == null) return status;
       const nearbyCube = _coordinate.reduce((acc, coordinate: ICoordinate) => {
         return [
@@ -212,41 +183,41 @@ const useTetris = function () {
       });
       return status;
     },
-    [findCube, polyominoCoordinate]
+    [findCube, tetriminoCoordinates]
   );
 
-  const getPolyominoPreviewCoordinate = React.useCallback((): null | Array<ICoordinate> => {
+  const getTetriminoPreviewCoordinate = useCallback((): null | Array<ICoordinate> => {
     let previewCollideCoordinate: null | Array<ICoordinate> = null;
-    if (polyomino.type !== null) {
-      for (let nextY = polyomino.anchor.y + 1; nextY < PER_ROW_CUBE_NUM; nextY++) {
+    if (tetrimino.type !== null) {
+      for (let nextY = tetrimino.anchor.y + 1; nextY < PER_ROW_CUBE_NUM; nextY++) {
         const nextCoordinate = getCoordinateByAnchorAndShapeAndType(
           {
             y: nextY,
-            x: polyomino.anchor.x,
+            x: tetrimino.anchor.x,
           },
-          polyomino.type,
-          polyomino.shape
+          tetrimino.type,
+          tetrimino.shape
         );
-        const isNextCoordinateCollide = getCoordinateIsCollideWithTetris(nextCoordinate);
+        const isNextCoordinateCollide = getCoordinatesIsCollideWithFilledCube(nextCoordinate);
         if (isNextCoordinateCollide) {
           break;
         }
-        const { isBottomCollide } = getPolyominoIsCollideWithNearbyCube(nextCoordinate);
+        const { isBottomCollide } = getTetriminoIsCollideWithNearbyCube(nextCoordinate);
         if (isBottomCollide) {
           previewCollideCoordinate = nextCoordinate;
         }
       }
     }
     return previewCollideCoordinate;
-  }, [getCoordinateIsCollideWithTetris, getPolyominoIsCollideWithNearbyCube, polyomino]);
+  }, [getCoordinatesIsCollideWithFilledCube, getTetriminoIsCollideWithNearbyCube, tetrimino]);
 
-  const movePolyomino = React.useCallback(
+  const moveTetrimino = useCallback(
     (direction: DIRECTION) => {
       let isMoveable = false,
         x = 0,
         y = 0;
       const { isLeftCollide, isRightCollide, isBottomCollide, isTopCollide } =
-        getPolyominoIsCollideWithNearbyCube();
+        getTetriminoIsCollideWithNearbyCube();
       // console.log("-------------------------------------------------------------");
       // console.log("isLeftCollide: " + isLeftCollide);
       // console.log("isTopCollide: " + isTopCollide);
@@ -273,64 +244,63 @@ const useTetris = function () {
       }[direction]());
       if (isMoveable) {
         // console.log("moved!");
-        // console.log("current polyomino anchor y is :" + polyomino.anchor.y + " and x is " + polyomino.anchor.x);
+        // console.log("current Tetrimino anchor y is :" + tetrimino.anchor.y + " and x is " + tetrimino.anchor.x);
         // console.log(
-        //   "after polyomino anchor y is :" + (polyomino.anchor.y + y) + " and x is " + (polyomino.anchor.x + x)
+        //   "after Tetrimino anchor y is :" + (tetrimino.anchor.y + y) + " and x is " + (tetrimino.anchor.x + x)
         // );
-        setPolyomino((prevPolyominoState) => ({
-          ...prevPolyominoState,
+        setTetrimino((prevTetriminoState) => ({
+          ...prevTetriminoState,
           anchor: {
-            x: prevPolyominoState.anchor.x + x,
-            y: prevPolyominoState.anchor.y + y,
+            x: prevTetriminoState.anchor.x + x,
+            y: prevTetriminoState.anchor.y + y,
           },
         }));
       }
       return isMoveable;
     },
-    [setPolyomino, getPolyominoIsCollideWithNearbyCube]
+    [setTetrimino, getTetriminoIsCollideWithNearbyCube]
   );
 
-  const movePolyominoToPreview = React.useCallback((): void => {
-    const previewCoordinate = getPolyominoPreviewCoordinate();
-    if (previewCoordinate !== null && polyomino.type !== null) {
-      const { anchorIndex } = (getPolyominoConfig(polyomino.type) as IPolyominoConfig).config[polyomino.shape]
+  const moveTetriminoToPreview = useCallback((): void => {
+    const previewCoordinate = getTetriminoPreviewCoordinate();
+    if (previewCoordinate !== null && tetrimino.type !== null) {
+      const { anchorIndex } = (getTetriminoConfig(tetrimino.type) as ITetriminoConfig).config[tetrimino.shape]
         .shape;
-      // const { strokeColor, fillColor } = getPolyominoConfig(polyomino.type);
-      setPolyomino((prevPolyominoState) => ({
-        ...prevPolyominoState,
+      setTetrimino((prevTetriminoState) => ({
+        ...prevTetriminoState,
         anchor: {
           x: previewCoordinate[anchorIndex].x,
           y: previewCoordinate[anchorIndex].y,
         },
       }));
     }
-  }, [getPolyominoPreviewCoordinate, polyomino.shape, polyomino.type, setPolyomino]);
+  }, [getTetriminoPreviewCoordinate, setTetrimino, tetrimino.shape, tetrimino.type]);
 
-  const changePolyominoShape = React.useCallback(
-    (rotation: POLYOMINO_ROTATION, shape?: POLYOMINO_SHAPE): boolean => {
+  const changeTetriminoShape = useCallback(
+    (rotation: Tetrimino_ROTATION, shape?: TETRIMINO_SHAPE): boolean => {
       let isChangeSuccess = false;
-      if (polyomino.type == null) return isChangeSuccess;
-      const nextShape = shape !== undefined ? shape : getPolyominoNextShape(polyomino.shape, rotation);
+      if (tetrimino.type == null) return isChangeSuccess;
+      const nextShape = shape !== undefined ? shape : getTetriminoNextShape(tetrimino.shape, rotation);
       const boundary = getBoundaryByCoordinatesAndShapeAndType(
-        polyominoCoordinate as Array<ICoordinate>,
-        polyomino.type,
-        polyomino.shape
+        tetriminoCoordinates as Array<ICoordinate>,
+        tetrimino.type,
+        tetrimino.shape
       );
-      const nextCoordinates = getNextCoordinateByBoundaryAndTypeAndShape(boundary, polyomino.type, nextShape);
-      const nextAnchor = getAnchorByCoordinatesAndTypeAndShape(nextCoordinates, polyomino.type, nextShape);
+      const nextCoordinates = getNextCoordinateByBoundaryAndTypeAndShape(boundary, tetrimino.type, nextShape);
+      const nextAnchor = getAnchorByCoordinatesAndTypeAndShape(nextCoordinates, tetrimino.type, nextShape);
       // console.log(nextCoordinate);
-      const isNextCoordinateCollide = getCoordinateIsCollideWithTetris(nextCoordinates);
+      const isNextCoordinateCollide = getCoordinatesIsCollideWithFilledCube(nextCoordinates);
       if (!isNextCoordinateCollide) {
-        setPolyomino((prevPolyomino) => ({
-          ...prevPolyomino,
+        setTetrimino((prevTetrimino) => ({
+          ...prevTetrimino,
           shape: nextShape,
           anchor: nextAnchor,
         }));
         isChangeSuccess = true;
         return isChangeSuccess;
       } else {
-        const polyominoConfig = getPolyominoConfig(polyomino.type);
-        const retryCoordinatesOptions = polyominoConfig.wallKick[`${polyomino.shape}-${nextShape}`];
+        const tetriminoConfig = getTetriminoConfig(tetrimino.type);
+        const retryCoordinatesOptions = tetriminoConfig.wallKick[`${tetrimino.shape}-${nextShape}`];
         for (const retryCoordinatesOption of retryCoordinatesOptions) {
           const wallKickNextAnchor = {
             x: nextAnchor.x + retryCoordinatesOption.x,
@@ -338,13 +308,14 @@ const useTetris = function () {
           };
           const wallKickNextCoordinates = getCoordinateByAnchorAndShapeAndType(
             wallKickNextAnchor,
-            polyomino.type,
+            tetrimino.type,
             nextShape
           );
-          const isWallKickNextCoordinatesCollide = getCoordinateIsCollideWithTetris(wallKickNextCoordinates);
+          const isWallKickNextCoordinatesCollide =
+            getCoordinatesIsCollideWithFilledCube(wallKickNextCoordinates);
           if (!isWallKickNextCoordinatesCollide) {
-            setPolyomino((prevPolyomino) => ({
-              ...prevPolyomino,
+            setTetrimino((prevTetrimino) => ({
+              ...prevTetrimino,
               shape: nextShape,
               anchor: wallKickNextAnchor,
             }));
@@ -355,17 +326,17 @@ const useTetris = function () {
         return isChangeSuccess;
       }
     },
-    [polyomino, polyominoCoordinate, setPolyomino, getCoordinateIsCollideWithTetris]
+    [tetrimino, tetriminoCoordinates, setTetrimino, getCoordinatesIsCollideWithFilledCube]
   );
 
-  const setPolyominoToTetris = React.useCallback((): void => {
-    if (polyominoCoordinate == null) return;
+  const setTetriminoToTetris = useCallback((): void => {
+    if (tetriminoCoordinates == null) return;
     setTetris((prevTetris) =>
       prevTetris.map((cube) => {
-        const cubeInPolyomino = polyominoCoordinate.find(({ x, y }) => cube.x === x && cube.y === y);
-        if (cubeInPolyomino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
+        const cubeInTetrimino = tetriminoCoordinates.find(({ x, y }) => cube.x === x && cube.y === y);
+        if (cubeInTetrimino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
           return {
-            ...cubeInPolyomino,
+            ...cubeInTetrimino,
             id: cube.id,
             state: CUBE_STATE.FILLED,
           };
@@ -373,10 +344,10 @@ const useTetris = function () {
         return cube;
       })
     );
-    resetPolyomino();
-  }, [polyominoCoordinate, resetPolyomino]);
+    resetTetrimino();
+  }, [tetriminoCoordinates, resetTetrimino]);
 
-  const clearRowFilledWithCube = React.useCallback(
+  const clearRowFilledWithCube = useCallback(
     (filledRow?: Array<number>): Promise<void> => {
       return new Promise((resolve) => {
         filledRow = filledRow ? filledRow : getRowFilledWithCube();
@@ -437,7 +408,7 @@ const useTetris = function () {
     [getRowFilledWithCube]
   );
 
-  const fillAllRow = React.useCallback((): Promise<void> => {
+  const fillAllRow = useCallback((): Promise<void> => {
     return new Promise((resolve) => {
       const duration = 3;
       const perTime = 2 / PER_ROW_CUBE_NUM;
@@ -478,7 +449,7 @@ const useTetris = function () {
     });
   }, []);
 
-  const getEmptyRow = React.useCallback((): Array<{
+  const getEmptyRow = useCallback((): Array<{
     not_empty: Array<number>;
     empty: Array<number>;
   }> => {
@@ -516,7 +487,7 @@ const useTetris = function () {
   }, [findCube]);
 
   // TODO: 想更好的變數命名
-  const fillEmptyRow = React.useCallback(
+  const fillEmptyRow = useCallback(
     (emptyRowGap: Array<{ not_empty: Array<number>; empty: Array<number> }>): Promise<void> => {
       return new Promise((resolve) => {
         const zzzzzzzzz = emptyRowGap.reduce((acc, { empty, not_empty }) => {
@@ -593,66 +564,68 @@ const useTetris = function () {
     []
   );
 
-  const pauseClearRowAnimation = React.useCallback((): void => {
+  const pauseClearRowAnimation = useCallback((): void => {
     if (clearRowAnimationRef.current !== null && clearRowAnimationRef.current.isStart()) {
       clearRowAnimationRef.current.pause();
     }
   }, []);
 
-  const continueClearRowAnimation = React.useCallback((): void => {
+  const continueClearRowAnimation = useCallback((): void => {
     if (clearRowAnimationRef.current !== null && !clearRowAnimationRef.current.isStart()) {
       window.requestAnimationFrame(clearRowAnimationRef.current.start);
     }
   }, []);
 
-  const pauseFillRowAnimation = React.useCallback((): void => {
+  const pauseFillRowAnimation = useCallback((): void => {
     if (fillRowAnimationRef.current !== null && fillRowAnimationRef.current.isStart()) {
       fillRowAnimationRef.current.pause();
     }
   }, []);
 
-  const continueFillRowAnimation = React.useCallback((): void => {
+  const continueFillRowAnimation = useCallback((): void => {
     if (fillRowAnimationRef.current !== null && !fillRowAnimationRef.current.isStart()) {
       window.requestAnimationFrame(fillRowAnimationRef.current.start);
     }
   }, []);
 
-  const pauseFillAllRowAnimation = React.useCallback((): void => {
+  const pauseFillAllRowAnimation = useCallback((): void => {
     if (fillAllRowAnimationRef.current !== null && fillAllRowAnimationRef.current.isStart()) {
       fillAllRowAnimationRef.current.pause();
     }
   }, []);
 
-  const continueFillAllRowAnimation = React.useCallback((): void => {
+  const continueFillAllRowAnimation = useCallback((): void => {
     if (fillAllRowAnimationRef.current !== null && !fillAllRowAnimationRef.current.isStart()) {
       window.requestAnimationFrame(fillAllRowAnimationRef.current.start);
     }
   }, []);
 
-  const resetTetris = React.useCallback((): void => {
+  const resetTetris = useCallback((): void => {
     setTetris(createTetris());
   }, [setTetris]);
 
   return {
-    polyomino,
-    polyominoCoordinate,
+    tetrimino,
+    tetriminoCoordinates,
     tetris,
-    setPolyomino,
+    displayTetris,
+    displayTetriminoCoordinates,
+    setTetrimino,
     setTetris,
-    resetPolyomino,
+    resetTetrimino,
     resetTetris,
-    getCoordinateIsCollideWithTetris,
-    getPolyominoIsCollideWithNearbyCube,
-    getAnchorNearbyCube,
+    getCoordinatesIsCollideWithFilledCube,
+    getTetriminoIsCollideWithNearbyCube,
     getRowFilledWithCube,
-    getPolyominoPreviewCoordinate,
-    createPolyomino,
-    movePolyomino,
-    movePolyominoToPreview,
-    changePolyominoShape,
+    getTetriminoPreviewCoordinate,
+    getIsCoordinatesLockOut,
+    getSpawnTetrimino,
+    moveTetrimino,
+    moveTetriminoToPreview,
+    changeTetriminoShape,
     clearRowFilledWithCube,
     fillAllRow,
-    setPolyominoToTetris,
+    setTetriminoToTetris,
     getEmptyRow,
     fillEmptyRow,
     pauseClearRowAnimation,
