@@ -42,3 +42,18 @@ export const getPolyominoFallingDelayByLevel = (level: number) => {
   })();
   return Math.floor(frame * (1 / 60) * 1000);
 };
+
+export const getScoreByLevelAndLine = (level: number, line: number): number => {
+  let score = 0;
+  const magnification = level + 1;
+  if (line === 1) {
+    score = 40 * magnification;
+  } else if (line === 2) {
+    score = 100 * magnification;
+  } else if (line === 3) {
+    score = 300 * magnification;
+  } else if (line === 4) {
+    score = 1200 * magnification;
+  }
+  return score;
+};

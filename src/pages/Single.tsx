@@ -16,7 +16,12 @@ import {
   POLYOMINO_ROTATION,
   getRandomPolyominoBag,
 } from "../common/polyomino";
-import { DEFAULT_START_LEVEL, getLevelByLine, getPolyominoFallingDelayByLevel } from "../common/tetris";
+import {
+  DEFAULT_START_LEVEL,
+  getLevelByLine,
+  getPolyominoFallingDelayByLevel,
+  getScoreByLevelAndLine,
+} from "../common/tetris";
 import { KEYCODE } from "../common/keyboard";
 
 const Wrapper = styled.div<ISize>`
@@ -316,6 +321,7 @@ const Single = (): JSX.Element => {
             setGameState(GAME_STATE.ROW_FILLED_CLEARING);
             const nextLineValue = line + filledRow.length;
             const nextLevel = getLevelByLine(nextLineValue);
+            setScore((prevScore) => prevScore + getScoreByLevelAndLine(level, filledRow.length));
             setLine(nextLineValue);
             setLevel(getLevelByLine(nextLineValue));
             setPolyominoFallingDelay(getPolyominoFallingDelayByLevel(nextLevel));
@@ -352,6 +358,7 @@ const Single = (): JSX.Element => {
     [
       gameState,
       line,
+      level,
       prevGameState,
       nextPolyominoType,
       handlePolyominoCreate,
