@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import { ReactElement, FC, cloneElement } from "react";
 import { ICube, CUBE_STATE } from "../../common/tetrimino";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
@@ -100,7 +100,7 @@ const makeCube = ({
   );
 };
 
-const Renderer: React.FC<IPlayFieldRenderer> = (props) => {
+const Renderer: FC<IPlayFieldRenderer> = (props) => {
   const { tetris, tetrimino, previewTetrimino, cubeDistance } = props;
 
   return (
@@ -120,7 +120,7 @@ const Renderer: React.FC<IPlayFieldRenderer> = (props) => {
           isPreview: isPreviewTetriminoCube,
           cubeDistance,
         });
-        return React.cloneElement(cubeEl, { key: id });
+        return cloneElement(cubeEl, { key: id });
       })}
     </Wrapper>
   );

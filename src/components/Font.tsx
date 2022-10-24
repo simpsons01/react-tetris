@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import React from "react";
+import { FC } from "react";
 import GRID from "../common/grid";
 import { getKeys } from "../common/utils";
 
@@ -67,7 +67,7 @@ export interface IFont {
   inline?: boolean;
 }
 
-const Font: React.FC<IFont> = (props) => {
+const Font: FC<IFont> = (props) => {
   const { level, children, color = "#292929", align = "left", inline = false, fontSize } = props;
   const className = level === undefined ? "" : Array.isArray(level) ? level.join(" ") : level;
   const fontProps = { color, align, className, fontSize };

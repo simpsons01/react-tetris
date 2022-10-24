@@ -16,7 +16,9 @@ export interface AnyObject<T = any> {
   [key: string]: T;
 }
 
-export type AnyFunction<T = any, K = any | undefined | void | unknown> = (...args: Array<T>) => K;
+export type AnyFunction<T extends Array<any> = Array<any>, K = any | undefined | void | unknown> = (
+  ...args: T
+) => K;
 
 export const setRef = <T = any>(ref: React.MutableRefObject<T>, val: T) => {
   ref.current = val;

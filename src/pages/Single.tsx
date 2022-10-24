@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, FC } from "react";
 import { setRef } from "../common/utils";
 import { createCountDownTimer } from "../common/timer";
 import useTetris from "../hooks/tetris";
@@ -10,14 +10,11 @@ import { ISize } from "../common/utils";
 import { useSizeConfigContext } from "../context/sizeConfig";
 import {
   DIRECTION,
-  getRandomTetriminoType,
-  TETRIMINO_TYPE,
   ICube,
   Tetrimino_ROTATION,
   getRandomTetriminoBag,
   getCoordinateByAnchorAndShapeAndType,
   ICoordinate,
-  getRangeByCoordinates,
   getSizeByCoordinates,
 } from "../common/tetrimino";
 import {
@@ -46,21 +43,19 @@ export enum GAME_STATE {
   NEXT_CYCLE,
   PAUSE,
   BEFORE_LEAVE_PAUSE,
-  CHECK_IS_GAME_OVER,
   GAME_OVER,
   TETRIMINO_FALLING,
   CHECK_IS_ROW_FILLED,
   ROW_FILLED_CLEARING,
   CHECK_IS_ROW_EMPTY,
   ROW_EMPTY_FILLING,
-  TIME_UP,
 }
 
-const TetriminoFallingTimer = createCountDownTimer();
+const tetriminoFallingTimer = createCountDownTimer();
 
-const TetriminoCollideBottomTimer = createCountDownTimer();
+const tetriminoCollideBottomTimer = createCountDownTimer();
 
-const Single = (): JSX.Element => {
+const Single: FC = () => {
   const {
     tetriminoCoordinates,
     tetrimino,
@@ -94,11 +89,9 @@ const Single = (): JSX.Element => {
     mode: { single: singleSizeConfig },
   } = useSizeConfigContext();
 
-  const TetriminoFallingTimerHandler = useRef(() => {});
+  const tetriminoFallingTimerHandler = useRef(() => {});
 
   const isHardDrop = useRef(false);
-
-  const [nextTetriminoType, setNextTetriminoType] = useState<TETRIMINO_TYPE | null>(null);
 
   const [gameState, setGameState] = useState<GAME_STATE>(GAME_STATE.BEFORE_START);
 
@@ -125,8 +118,6 @@ const Single = (): JSX.Element => {
 
   const isGameOver = useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
 
-  const isTimeUp = useMemo(() => gameState === GAME_STATE.TIME_UP, [gameState]);
-
   const previewTetrimino = useMemo(() => {
     const previewCoordinate = getTetriminoPreviewCoordinate();
     if (previewCoordinate !== null && tetrimino.type !== null) {
@@ -150,16 +141,16 @@ const Single = (): JSX.Element => {
     // console.log("pause game!");
     pauseClearRowAnimation();
     pauseFillRowAnimation();
-    TetriminoFallingTimer.clear();
-    TetriminoCollideBottomTimer.clear();
+    tetriminoFallingTimer.clear();
+    tetriminoCollideBottomTimer.clear();
   }, [pauseClearRowAnimation, pauseFillRowAnimation]);
 
   const continueGame = useCallback(() => {
     // console.log("continue game!");
     continueClearRowAnimation();
     continueFillRowAnimation();
-    TetriminoFallingTimer.clear();
-    TetriminoCollideBottomTimer.clear();
+    tetriminoFallingTimer.clear();
+    tetriminoCollideBottomTimer.clear();
     // console.log("gameState is " + gameState);
     // console.log("prevGameState state is " + prevGameState);
   }, [continueClearRowAnimation, continueFillRowAnimation]);
@@ -198,28 +189,23 @@ const Single = (): JSX.Element => {
     return isCreatedSuccess;
   }, [popNextTetriminoType, getSpawnTetrimino, getCoordinatesIsCollideWithFilledCube, setTetrimino]);
 
-  const handleNextTetriminoTypeCreate = useCallback(() => {
-    setNextTetriminoType(getRandomTetriminoType());
-  }, [setNextTetriminoType]);
-
   const handleGameOver = useCallback(() => {
     pauseClearRowAnimation();
     pauseFillRowAnimation();
-    TetriminoFallingTimer.clear();
-    TetriminoCollideBottomTimer.clear();
+    tetriminoFallingTimer.clear();
+    tetriminoCollideBottomTimer.clear();
   }, [pauseClearRowAnimation, pauseFillRowAnimation]);
 
   const handleNextGame = useCallback(() => {
     resetTetris();
     resetTetrimino();
     setLine(0);
-    setNextTetriminoType(null);
     setGameState(GAME_STATE.BEFORE_START);
   }, [resetTetrimino, resetTetris]);
 
   useEffect(
     function handleKeyDown() {
-      const isRegisterKeyDownHandler = !isTimeUp && !isGameOver && isGameStart;
+      const isRegisterKeyDownHandler = !isGameOver && isGameStart;
       function keydownHandler(e: KeyboardEvent) {
         // console.log("keyCode is " + e.keyCode);
         if (
@@ -262,7 +248,6 @@ const Single = (): JSX.Element => {
     },
     [
       isPausing,
-      isTimeUp,
       isGameOver,
       gameState,
       isGameStart,
@@ -286,12 +271,7 @@ const Single = (): JSX.Element => {
           break;
         case GAME_STATE.NEXT_CYCLE:
           const isCreatedSuccess = handleTetriminoCreate();
-          if (isCreatedSuccess) {
-            handleNextTetriminoTypeCreate();
-            setGameState(GAME_STATE.TETRIMINO_FALLING);
-          } else {
-            setGameState(GAME_STATE.GAME_OVER);
-          }
+          setGameState(isCreatedSuccess ? GAME_STATE.TETRIMINO_FALLING : GAME_STATE.GAME_OVER);
           break;
         case GAME_STATE.PAUSE:
           pauseGame();
@@ -300,27 +280,17 @@ const Single = (): JSX.Element => {
           setGameState(prevGameState.current);
           continueGame();
           break;
-        case GAME_STATE.CHECK_IS_GAME_OVER:
-          if (checkIsTetriminoCollideWithTetris()) {
-            setGameState(GAME_STATE.GAME_OVER);
-          } else {
-            setGameState(GAME_STATE.TETRIMINO_FALLING);
-          }
-          break;
         case GAME_STATE.GAME_OVER:
-          handleGameOver();
-          break;
-        case GAME_STATE.TIME_UP:
           handleGameOver();
           break;
         case GAME_STATE.TETRIMINO_FALLING:
           const { isBottomCollide } = getTetriminoIsCollideWithNearbyCube();
           if (isBottomCollide) {
-            if (TetriminoFallingTimer.isPending()) {
-              TetriminoFallingTimer.clear();
+            if (tetriminoFallingTimer.isPending()) {
+              tetriminoFallingTimer.clear();
             }
-            if (TetriminoCollideBottomTimer.isPending()) {
-              TetriminoCollideBottomTimer.clear();
+            if (tetriminoCollideBottomTimer.isPending()) {
+              tetriminoCollideBottomTimer.clear();
             }
             const _ = () => {
               if (getIsCoordinatesLockOut(tetriminoCoordinates as Array<ICoordinate>)) {
@@ -334,20 +304,20 @@ const Single = (): JSX.Element => {
               setRef(isHardDrop, false);
               _();
             } else {
-              TetriminoCollideBottomTimer.start(() => {
+              tetriminoCollideBottomTimer.start(() => {
                 _();
               }, 500);
             }
           } else {
-            if (TetriminoCollideBottomTimer.isPending()) {
-              TetriminoCollideBottomTimer.clear();
+            if (tetriminoCollideBottomTimer.isPending()) {
+              tetriminoCollideBottomTimer.clear();
             }
-            if (TetriminoFallingTimer.isPending()) {
-              setRef(TetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+            if (tetriminoFallingTimer.isPending()) {
+              setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
             } else {
-              setRef(TetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
-              TetriminoFallingTimer.start(() => {
-                TetriminoFallingTimerHandler.current();
+              setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+              tetriminoFallingTimer.start(() => {
+                tetriminoFallingTimerHandler.current();
               }, tetriminoFallingDelay);
             }
           }
@@ -397,7 +367,6 @@ const Single = (): JSX.Element => {
       line,
       level,
       prevGameState,
-      nextTetriminoType,
       tetriminoFallingDelay,
       tetriminoCoordinates,
       handleTetriminoCreate,
@@ -405,7 +374,6 @@ const Single = (): JSX.Element => {
       checkIsTetriminoCollideWithTetris,
       setGameState,
       setLine,
-      handleNextTetriminoTypeCreate,
       continueGame,
       pauseGame,
       getRowFilledWithCube,
@@ -483,7 +451,6 @@ const Single = (): JSX.Element => {
           />
           <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
           <PlayField.PausePanel isPausing={isPausing} />
-          <PlayField.TimeUpPanel isTimeUp={isTimeUp} onTimesUpBtn={handleNextGame} />
           <PlayField.GameStartPanel
             onGameStart={() => {
               setGameState(GAME_STATE.START);
