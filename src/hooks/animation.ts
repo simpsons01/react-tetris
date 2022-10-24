@@ -1,31 +1,37 @@
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useMemo } from "react";
 import { AnyFunction, setRef, minMax } from "./../common/utils";
 
 const ms = 1000;
 
 const useAnimation = function ({
-  onProgress,
+  onFrame,
   onComplete,
   duration = 1,
 }: {
-  onProgress: AnyFunction<[number, number, number]>;
+  onFrame: AnyFunction<[number, number, number]>;
   onComplete?: AnyFunction;
   duration?: number;
 }) {
   const [isAnimateStart, setIsAnimateStart] = useState(false);
+  const [isAnimatePause, setIsAnimatePause] = useState(false);
   const [elapse, setElapse] = useState(0);
   const initial = useRef(0);
   const passed = useRef(0);
-  const animationId = useRef<null | number>(null);
+  const raf = useRef<null | number>(null);
+
+  const shouldAnimate = useMemo(() => !isAnimatePause && isAnimateStart, [isAnimatePause, isAnimateStart]);
 
   const clearAnimation = useCallback(() => {
-    if (animationId.current) {
-      window.cancelAnimationFrame(animationId.current);
-      setRef(animationId, null);
+    if (raf.current) {
+      window.cancelAnimationFrame(raf.current);
+      setRef(raf, null);
     }
   }, []);
 
-  const start = useCallback(() => setIsAnimateStart(true), []);
+  const start = useCallback(() => {
+    setIsAnimatePause(false);
+    setIsAnimateStart(true);
+  }, []);
 
   const reset = useCallback(() => {
     setElapse(0);
@@ -33,41 +39,44 @@ const useAnimation = function ({
     setRef(passed, 0);
     clearAnimation();
     setIsAnimateStart(false);
+    setIsAnimatePause(false);
   }, [clearAnimation]);
 
   const pause = useCallback(() => {
     setRef(passed, elapse);
     setRef(initial, 0);
     clearAnimation();
-    setIsAnimateStart(false);
+    setIsAnimatePause(true);
   }, [clearAnimation, elapse]);
 
   useEffect(() => {
-    if (isAnimateStart) {
+    if (shouldAnimate) {
       if (initial.current === 0) setRef(initial, performance.now());
       if (elapse === duration) {
         reset();
         if (onComplete) onComplete();
       } else {
         setRef(
-          animationId,
+          raf,
           window.requestAnimationFrame((timestamp) => {
             const nextElapse = minMax((timestamp - initial.current) / ms + passed.current, 0, duration);
             setElapse(nextElapse);
-            onProgress(nextElapse, duration, timestamp);
+            onFrame(nextElapse, duration, timestamp);
           })
         );
       }
     }
     return () => {
-      if (isAnimateStart) {
+      if (shouldAnimate) {
         clearAnimation();
       }
     };
-  }, [onProgress, onComplete, reset, clearAnimation, isAnimateStart, duration, elapse]);
+  }, [onFrame, onComplete, reset, clearAnimation, shouldAnimate, elapse, duration]);
 
   return {
     isAnimateStart,
+    isAnimatePause,
+    shouldAnimate,
     start,
     reset,
     pause,

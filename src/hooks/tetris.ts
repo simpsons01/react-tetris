@@ -125,6 +125,43 @@ const useTetris = function () {
     return filledRow;
   }, [findCube]);
 
+  const getNextTetris = useCallback(
+    (tetris: ITetris["tetris"], tetriminoCoordinates: Array<ICoordinate>) =>
+      tetris.map((cube) => {
+        const isInTetriminoCoordinates = tetriminoCoordinates.find(
+          ({ x, y }) => cube.x === x && cube.y === y
+        );
+        if (isInTetriminoCoordinates) {
+          return {
+            ...cube,
+            state: CUBE_STATE.FILLED,
+          };
+        } else {
+          return cube;
+        }
+      }),
+    []
+  );
+
+  const getDisplayRowFilledWithCube = useCallback((displayTetris: ITetris["tetris"]): Array<number> => {
+    const filledRow = [];
+    let row = DISPLAY_ZONE_ROW_START;
+    while (row < DISPLAY_ZONE_ROW_END + 1) {
+      let _col = 0,
+        isAllFilled = true;
+      while (_col < PER_COL_CUBE_NUM) {
+        const cube = displayTetris[_col + row * PER_COL_CUBE_NUM];
+        if (cube !== null && cube.state === CUBE_STATE.UNFILLED) {
+          isAllFilled = false;
+        }
+        _col += 1;
+      }
+      if (isAllFilled) filledRow.push(row);
+      row += 1;
+    }
+    return filledRow;
+  }, []);
+
   const getSpawnTetrimino = useCallback((nextTetriminoType: TETRIMINO_TYPE) => {
     const tetriminoConfig = getTetriminoConfig(nextTetriminoType);
     const { spawnStartLocation } = tetriminoConfig;
@@ -614,6 +651,8 @@ const useTetris = function () {
     setTetris,
     resetTetrimino,
     resetTetris,
+    getNextTetris,
+    getDisplayRowFilledWithCube,
     getCoordinatesIsCollideWithFilledCube,
     getTetriminoIsCollideWithNearbyCube,
     getRowFilledWithCube,
