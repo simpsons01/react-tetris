@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, FC } from "react";
-import { setRef } from "../common/utils";
+import { minMax, setRef } from "../common/utils";
 import { createCountDownTimer } from "../common/timer";
 import useTetris from "../hooks/tetris";
 import useNextTetriminoBag from "../hooks/nextTetrimino";
@@ -16,13 +16,16 @@ import {
   getCoordinateByAnchorAndShapeAndType,
   ICoordinate,
   getSizeByCoordinates,
+  CUBE_STATE,
 } from "../common/tetrimino";
 import {
   DEFAULT_START_LEVEL,
   getLevelByLine,
   getTetriminoFallingDelayByLevel,
   getScoreByLevelAndLine,
+  PER_COL_CUBE_NUM,
 } from "../common/tetris";
+import useAnimation from "../hooks/animation";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -38,17 +41,10 @@ const Column = styled.div<ISize>`
 `;
 
 export enum GAME_STATE {
-  BEFORE_START,
   START,
-  NEXT_CYCLE,
+  IN_PROGRESS,
   PAUSE,
-  BEFORE_LEAVE_PAUSE,
   GAME_OVER,
-  TETRIMINO_FALLING,
-  CHECK_IS_ROW_FILLED,
-  ROW_FILLED_CLEARING,
-  CHECK_IS_ROW_EMPTY,
-  ROW_EMPTY_FILLING,
 }
 
 const tetriminoFallingTimer = createCountDownTimer();
@@ -81,9 +77,103 @@ const Single: FC = () => {
     resetTetrimino,
     resetTetris,
     setTetrimino,
+    setTetris,
   } = useTetris();
 
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag(getRandomTetriminoBag());
+
+  const fillEmptyRowAnimation = useAnimation({
+    onProgress: (elapse, duration) => {
+      const emptyRowGap = getEmptyRow();
+      const zzzzzzzzz = emptyRowGap.reduce((acc, { empty, not_empty }) => {
+        const bottommostEmptyRow = Math.max(...empty);
+        const bottommostNotEmptyRow = Math.max(...not_empty);
+        const distance = bottommostEmptyRow - bottommostNotEmptyRow;
+        not_empty.forEach((row) => {
+          acc.push({
+            start: row,
+            end: row + distance,
+          });
+        });
+        return acc;
+      }, [] as Array<{ start: number; end: number }>);
+      const start = 0;
+      const end = 1;
+      const progress = minMax(elapse / duration, start, end);
+      // console.log("progress is " + progress);
+      setTetris((prevTetris) =>
+        prevTetris.map((cube, cubeIndex) => {
+          const cubeRow = Math.floor(cubeIndex / PER_COL_CUBE_NUM);
+          if (progress === end) {
+            const eeeeeeee = zzzzzzzzz.find(({ end }) => end === cubeRow);
+            const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+            if (eeeeeeee !== undefined) {
+              const index = eeeeeeee.start * PER_COL_CUBE_NUM + (cubeIndex % PER_COL_CUBE_NUM);
+              return {
+                ...cube,
+                state: prevTetris[index].state,
+                y: cubeRow,
+              };
+            } else if (ddddddd !== undefined) {
+              return {
+                ...cube,
+                state: CUBE_STATE.UNFILLED,
+                y: cubeRow,
+              };
+            }
+          } else {
+            const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+            if (ddddddd !== undefined) {
+              const y = cubeRow + (ddddddd.end - ddddddd.start) * progress;
+              return {
+                ...cube,
+                y,
+              };
+            }
+          }
+          return cube;
+        })
+      );
+    },
+    onComplete: () => {
+      const emptyRowGap = getEmptyRow();
+      const isGapNotExist =
+        emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
+      if (isGapNotExist) {
+        fillEmptyRowAnimation.start();
+      }
+    },
+    duration: 0.1,
+  });
+
+  const clearFilledRowAnimation = useAnimation({
+    onProgress: (elapse, duration) => {
+      const filledRow = getRowFilledWithCube();
+      const removeOrderIndex = [
+        [4, 5],
+        [3, 6],
+        [2, 7],
+        [1, 8],
+        [0, 9],
+      ];
+      const removeIndex = removeOrderIndex[Math.floor((elapse / duration) * removeOrderIndex.length) - 1];
+      setTetris((prevTetris) => {
+        return prevTetris.map((cube) => {
+          if (filledRow.indexOf(cube.y) > -1 && removeIndex.indexOf(cube.x) > -1) {
+            return {
+              ...cube,
+              state: CUBE_STATE.UNFILLED,
+            };
+          }
+          return cube;
+        });
+      });
+    },
+    onComplete: () => {
+      fillEmptyRowAnimation.start();
+    },
+    duration: 0.3,
+  });
 
   const {
     mode: { single: singleSizeConfig },
@@ -93,7 +183,7 @@ const Single: FC = () => {
 
   const isHardDrop = useRef(false);
 
-  const [gameState, setGameState] = useState<GAME_STATE>(GAME_STATE.BEFORE_START);
+  const [gameState, setGameState] = useState(GAME_STATE.START);
 
   const [line, setLine] = useState<number>(0);
 
@@ -105,16 +195,9 @@ const Single: FC = () => {
     getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL)
   );
 
-  const prevGameState = useRef<GAME_STATE>(GAME_STATE.BEFORE_START);
+  const isGameStart = useMemo(() => gameState === GAME_STATE.IN_PROGRESS, [gameState]);
 
-  const setPrevGameState = useCallback((state: GAME_STATE) => setRef(prevGameState, state), []);
-
-  const isGameStart = useMemo(() => gameState !== GAME_STATE.BEFORE_START, [gameState]);
-
-  const isPausing = useMemo(
-    () => gameState === GAME_STATE.PAUSE || gameState === GAME_STATE.BEFORE_LEAVE_PAUSE,
-    [gameState]
-  );
+  const isPausing = useMemo(() => gameState === GAME_STATE.PAUSE, [gameState]);
 
   const isGameOver = useMemo(() => gameState === GAME_STATE.GAME_OVER, [gameState]);
 
@@ -200,7 +283,7 @@ const Single: FC = () => {
     resetTetris();
     resetTetrimino();
     setLine(0);
-    setGameState(GAME_STATE.BEFORE_START);
+    setGameState(GAME_STATE.START);
   }, [resetTetrimino, resetTetris]);
 
   useEffect(
@@ -208,11 +291,7 @@ const Single: FC = () => {
       const isRegisterKeyDownHandler = !isGameOver && isGameStart;
       function keydownHandler(e: KeyboardEvent) {
         // console.log("keyCode is " + e.keyCode);
-        if (
-          !isPausing ||
-          gameState === GAME_STATE.ROW_FILLED_CLEARING ||
-          gameState === GAME_STATE.ROW_EMPTY_FILLING
-        ) {
+        if (!isPausing) {
           if (e.keyCode === 37) {
             moveTetrimino(DIRECTION.LEFT);
           } else if (e.keyCode === 39) {
@@ -230,9 +309,8 @@ const Single: FC = () => {
         }
         if (e.keyCode === 27) {
           if (isPausing) {
-            setGameState(GAME_STATE.BEFORE_LEAVE_PAUSE);
+            setGameState(GAME_STATE.IN_PROGRESS);
           } else {
-            setPrevGameState(gameState);
             setGameState(GAME_STATE.PAUSE);
           }
         }
@@ -256,10 +334,57 @@ const Single: FC = () => {
       continueGame,
       pauseGame,
       setGameState,
-      setPrevGameState,
       moveTetriminoToPreview,
     ]
   );
+
+  useEffect(() => {
+    const { isBottomCollide } = getTetriminoIsCollideWithNearbyCube();
+    if (isBottomCollide) {
+      if (tetriminoFallingTimer.isPending()) {
+        tetriminoFallingTimer.clear();
+      }
+      if (tetriminoCollideBottomTimer.isPending()) {
+        tetriminoCollideBottomTimer.clear();
+      }
+      const _ = () => {
+        if (getIsCoordinatesLockOut(tetriminoCoordinates as Array<ICoordinate>)) {
+          setGameState(GAME_STATE.GAME_OVER);
+        } else {
+          setTetriminoToTetris();
+          setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+        }
+      };
+      if (isHardDrop.current) {
+        setRef(isHardDrop, false);
+        _();
+      } else {
+        tetriminoCollideBottomTimer.start(() => {
+          _();
+        }, 500);
+      }
+    } else {
+      if (tetriminoCollideBottomTimer.isPending()) {
+        tetriminoCollideBottomTimer.clear();
+      }
+      if (tetriminoFallingTimer.isPending()) {
+        setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+      } else {
+        setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+        tetriminoFallingTimer.start(() => {
+          tetriminoFallingTimerHandler.current();
+        }, tetriminoFallingDelay);
+      }
+    }
+  }, [
+    getIsCoordinatesLockOut,
+    getTetriminoIsCollideWithNearbyCube,
+    moveTetrimino,
+    setTetriminoToTetris,
+    tetriminoCoordinates,
+    tetriminoFallingDelay,
+  ]);
+
   useEffect(
     function handleGameStateChange() {
       let effectCleaner = () => {};
