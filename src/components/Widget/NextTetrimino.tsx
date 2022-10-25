@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, FC } from "react";
 import {
   getCoordinateByAnchorAndShapeAndType,
   getTetriminoConfig,
@@ -86,7 +86,7 @@ export interface INext extends ISize {
   cubeDistance: number;
 }
 
-const Next: React.FC<INext> = (props) => {
+const Next: FC<INext> = (props) => {
   const { fontLevel, TetriminoBag, cubeDistance, width, height } = props;
   // todo: 修正命名
   const { current: xxxxxxx } = useRef(

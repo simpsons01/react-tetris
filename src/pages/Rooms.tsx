@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState, useEffect } from "react";
+import { useCallback, useContext, useState, useEffect, FC } from "react";
 import styled from "styled-components";
 import Modal from "../components/Modal";
 import { ISocketContext, SocketContext } from "../context/socket";
@@ -84,7 +84,7 @@ enum ROOM_STATE {
   GAME_END,
 }
 
-const Rooms: React.FC<{}> = () => {
+const Rooms: FC<{}> = () => {
   const navigate = useNavigate();
 
   const { socketInstance, isConnected, isConnectErrorOccur } = useContext<

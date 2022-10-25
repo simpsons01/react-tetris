@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, FC } from "react";
 import styled from "styled-components";
 import Font from "../Font";
 import { ISize } from "../../common/utils";
@@ -29,7 +29,7 @@ export interface INumberWidget extends ISize {
   displayValue: number;
 }
 
-const NumberWidget: React.FC<INumberWidget> = (props) => {
+const NumberWidget: FC<INumberWidget> = (props) => {
   const { fontLevel, displayValue, title, width, height } = props;
   const calcDisplayValueRatio = useMemo<number>(() => {
     let ratio = 0;

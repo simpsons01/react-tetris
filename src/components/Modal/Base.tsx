@@ -1,7 +1,6 @@
-import React from "react";
+import { FC } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
-import { useSizeConfigContext } from "../../context/sizeConfig";
 import Font from "../Font";
 import Overlay from "../Overlay";
 
@@ -48,7 +47,7 @@ export interface IBaseModal {
   portal?: boolean;
 }
 
-const BaseModal: React.FC<IBaseModal> = (props) => {
+const BaseModal: FC<IBaseModal> = (props) => {
   const { isOpen, title, body, confirm, cancel, mountEl = document.body, portal = true } = props;
   if (!isOpen) return null;
 
