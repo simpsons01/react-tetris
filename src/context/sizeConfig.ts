@@ -14,6 +14,11 @@ export interface ISizeConfig {
           width: number;
           height: number;
         };
+        hold: {
+          cube: number;
+          width: number;
+          height: number;
+        };
         nextTetrimino: {
           cube: number;
           width: number;
@@ -32,6 +37,11 @@ export interface ISizeConfig {
       };
       widget: {
         displayNumber: {
+          width: number;
+          height: number;
+        };
+        hold: {
+          cube: number;
           width: number;
           height: number;
         };

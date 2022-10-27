@@ -15,8 +15,13 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
-            width: 36 * 4 + 5 * 2 + 4 * 2, // 162,
-            height: 36 * 4 + 5 * 2 + 4 * 2, // 162,
+            width: 36 * 4 + 4 * 2 + 4 * 2, // 160,
+            height: 36 * 2 + 4 * 2 + 4 * 2, // 88,
+          },
+          hold: {
+            cube: 36,
+            width: 36 * 4 + 4 * 2 + 4 * 2, // 160,
+            height: 36 * 2 + 4 * 2 + 4 * 2, // 88,
           },
           nextTetrimino: {
             cube: 36,
@@ -24,8 +29,8 @@ const allSizeConfig = {
             height: 36 * 2 * 5 + 24 * 4 + 4 * 2 + 4 * 2, // 472,
           },
         },
-        distanceBetweenPlayFieldAndWidget: 30,
-        distanceBetweenWidgetAndWidget: 30,
+        distanceBetweenPlayFieldAndWidget: 36,
+        distanceBetweenWidgetAndWidget: 18,
       },
       double: {
         playable: true,
@@ -36,8 +41,13 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
-            width: 24 * 4 + 5 * 2 + 4 * 2, // 114,
-            height: 24 * 4 + 5 * 2 + 4 * 2, // 114,
+            width: 24 * 4 + 4 * 2 + 4 * 2, // 112,
+            height: 24 * 2 + 4 * 2 + 4 * 2, // 64,
+          },
+          hold: {
+            cube: 24,
+            width: 24 * 4 + 4 * 2 + 4 * 2, // 112,
+            height: 24 * 2 + 4 * 2 + 4 * 2, // 64,
           },
           nextTetrimino: {
             cube: 24,
@@ -46,7 +56,7 @@ const allSizeConfig = {
           },
         },
         distanceBetweenPlayFieldAndWidget: 24,
-        distanceBetweenWidgetAndWidget: 24,
+        distanceBetweenWidgetAndWidget: 12,
       },
     },
   },
@@ -61,8 +71,13 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
-            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 + 4 * 2 + 4 * 2, // 80,
+          },
+          hold: {
+            cube: 32,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 + 4 * 2 + 4 * 2, // 80,
           },
           nextTetrimino: {
             cube: 32,
@@ -71,7 +86,7 @@ const allSizeConfig = {
           },
         },
         distanceBetweenPlayFieldAndWidget: 28,
-        distanceBetweenWidgetAndWidget: 28,
+        distanceBetweenWidgetAndWidget: 14,
       },
       double: {
         playable: true,
@@ -83,8 +98,13 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
-            width: 20 * 4 + 5 * 2 + 4 * 2, // 98,
-            height: 20 * 4 + 5 * 2 + 4 * 2, // 98,
+            width: 20 * 4 + 4 * 2 + 4 * 2, // 96,
+            height: 20 * 2 + 4 * 2 + 4 * 2, // 56,
+          },
+          hold: {
+            cube: 20,
+            width: 20 * 4 + 4 * 2 + 4 * 2, // 96,
+            height: 20 * 2 + 4 * 2 + 4 * 2, // 56,
           },
           nextTetrimino: {
             cube: 20,
@@ -93,7 +113,7 @@ const allSizeConfig = {
           },
         },
         distanceBetweenPlayFieldAndWidget: 20,
-        distanceBetweenWidgetAndWidget: 20,
+        distanceBetweenWidgetAndWidget: 10,
       },
     },
   },
@@ -108,8 +128,13 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
-            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 5 * 2 + 4 * 2, // 146,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 + 4 * 2 + 4 * 2, // 80,
+          },
+          hold: {
+            cube: 32,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 + 4 * 2 + 4 * 2, // 80,
           },
           nextTetrimino: {
             cube: 32,
@@ -118,7 +143,7 @@ const allSizeConfig = {
           },
         },
         distanceBetweenPlayFieldAndWidget: 28,
-        distanceBetweenWidgetAndWidget: 28,
+        distanceBetweenWidgetAndWidget: 14,
       },
       double: {
         playable: true,
@@ -129,8 +154,13 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
-            width: 16 * 4 + 5 * 2 + 4 * 2, // 82,
-            height: 16 * 4 + 5 * 2 + 4 * 2, // 82,,
+            width: 16 * 4 + 4 * 2 + 4 * 2, // 80,
+            height: 16 * 2 + 4 * 2 + 4 * 2, // 48,,
+          },
+          hold: {
+            cube: 16,
+            width: 16 * 4 + 4 * 2 + 4 * 2, // 80,
+            height: 16 * 2 + 4 * 2 + 4 * 2, // 48,,
           },
           nextTetrimino: {
             cube: 16,
@@ -154,8 +184,13 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
-            width: 32 * 4 + 5 * 2 + 4 * 2, // 146,
-            height: 32 * 4 + 4 * 2 + 4 * 2, // 146,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 + 4 * 2 + 4 * 2, // 80,
+          },
+          hold: {
+            cube: 32,
+            width: 32 * 4 + 4 * 2 + 4 * 2, // 144,
+            height: 32 * 2 + 4 * 2 + 4 * 2, // 80,
           },
           nextTetrimino: {
             cube: 32,
@@ -164,7 +199,7 @@ const allSizeConfig = {
           },
         },
         distanceBetweenPlayFieldAndWidget: 24,
-        distanceBetweenWidgetAndWidget: 24,
+        distanceBetweenWidgetAndWidget: 12,
       },
       double: {
         playable: false,
@@ -175,6 +210,11 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
+            width: 0,
+            height: 0,
+          },
+          hold: {
+            cube: 0,
             width: 0,
             height: 0,
           },
@@ -203,6 +243,11 @@ const allSizeConfig = {
             width: 0,
             height: 0,
           },
+          hold: {
+            cube: 0,
+            width: 0,
+            height: 0,
+          },
           nextTetrimino: {
             cube: 0,
             width: 0,
@@ -221,6 +266,11 @@ const allSizeConfig = {
         },
         widget: {
           displayNumber: {
+            width: 0,
+            height: 0,
+          },
+          hold: {
+            cube: 0,
             width: 0,
             height: 0,
           },

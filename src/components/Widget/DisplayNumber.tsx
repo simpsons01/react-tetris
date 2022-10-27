@@ -14,7 +14,7 @@ const Panel = styled.div<ISize>`
   background-color: #eeeeee;
 
   &&& {
-    padding: 0;
+    padding: 4px;
     margin: 0;
   }
 `;
@@ -33,18 +33,32 @@ const NumberWidget: FC<INumberWidget> = (props) => {
   const { fontLevel, displayValue, title, width, height } = props;
   const calcDisplayValueRatio = useMemo<number>(() => {
     let ratio = 0;
-    if (displayValue < 9) {
-      ratio = 2.5;
-    } else if (displayValue < 99) {
-      ratio = 2;
-    } else if (displayValue < 999) {
-      ratio = 1.5;
+    if (displayValue < 999) {
+      ratio = 1.4;
     } else if (displayValue < 9999) {
       ratio = 1.2;
-    } else {
+    } else if (displayValue < 99999) {
       ratio = 1;
+    } else if (displayValue < 999999) {
+      ratio = 0.8;
+    } else if (displayValue < 9999999) {
+      ratio = 0.6;
+    } else {
+      ratio = 0.4;
     }
     return ratio;
+  }, [displayValue]);
+
+  const displayNumText = useMemo(() => {
+    let text = "";
+    if (displayValue < 9) {
+      text = `00${displayValue}`;
+    } else if (displayValue < 99) {
+      text = `0${displayValue}`;
+    } else {
+      text = `${displayValue}`;
+    }
+    return text;
   }, [displayValue]);
 
   return (
@@ -52,7 +66,7 @@ const NumberWidget: FC<INumberWidget> = (props) => {
       <Font level={fontLevel}>{title}</Font>
       <Panel className={"nes-container is-rounded"} width={width} height={height}>
         <DisplayNumber ratio={calcDisplayValueRatio}>
-          <Font level={fontLevel}>{displayValue}</Font>
+          <Font level={fontLevel}>{displayNumText}</Font>
         </DisplayNumber>
       </Panel>
     </Wrapper>

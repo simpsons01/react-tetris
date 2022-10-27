@@ -16,6 +16,7 @@ import {
   getCoordinateByAnchorAndShapeAndType,
   ICoordinate,
   getSizeByCoordinates,
+  TETRIMINO_TYPE,
 } from "../common/tetrimino";
 import {
   DEFAULT_START_LEVEL,
@@ -26,6 +27,7 @@ import {
 } from "../common/tetris";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import { Key } from "ts-key-enum";
+import useHoldTetrimino from "../hooks/holdTetrimino";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -34,7 +36,7 @@ const Wrapper = styled.div<ISize>`
   display: flex;
 `;
 
-const Column = styled.div<ISize>`
+const Column = styled.div<ISize & { reverse?: boolean }>`
   position: relative;
   flex: ${(props) => `0 0 ${props.width}px`};
   height: ${(props) => `${props.height}px`};
@@ -87,6 +89,8 @@ const Single: FC = () => {
   } = useTetris();
 
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag(getRandomTetriminoBag());
+
+  const { isHoldable, holdTetrimino, changeHoldTetrimino, setToHoldable } = useHoldTetrimino();
 
   const {
     mode: { single: singleSizeConfig },
@@ -158,39 +162,42 @@ const Single: FC = () => {
     // console.log("prevGameState state is " + prevGameState);
   }, [continueClearRowAnimation, continueFillRowAnimation]);
 
-  const handleTetriminoCreate = useCallback(() => {
-    // console.log("create Tetrimino!");
-    let isCreatedSuccess = false;
-    const nextTetriminoType = popNextTetriminoType();
-    const spawnTetrimino = getSpawnTetrimino(nextTetriminoType);
-    const spawnTetriminoCoordinates = getCoordinateByAnchorAndShapeAndType(
-      spawnTetrimino.anchor,
-      spawnTetrimino.type,
-      spawnTetrimino.shape
-    );
-    const nextSpawnTetrimino = {
-      ...spawnTetrimino,
-      anchor: {
-        x: spawnTetrimino.anchor.x,
-        y: spawnTetrimino.anchor.y + getSizeByCoordinates(spawnTetriminoCoordinates).vertical,
-      },
-    };
-    const nextSpawnTetriminoCoordinates = getCoordinateByAnchorAndShapeAndType(
-      nextSpawnTetrimino.anchor,
-      spawnTetrimino.type,
-      spawnTetrimino.shape
-    );
-    if (!getCoordinatesIsCollideWithFilledCube(spawnTetriminoCoordinates)) {
-      if (getCoordinatesIsCollideWithFilledCube(nextSpawnTetriminoCoordinates)) {
-        setTetrimino(spawnTetrimino);
-      } else {
-        setTetrimino(nextSpawnTetrimino);
+  const handleTetriminoCreate = useCallback(
+    (nextTetriminoType?: TETRIMINO_TYPE) => {
+      // console.log("create Tetrimino!");
+      let isCreatedSuccess = false;
+      nextTetriminoType = nextTetriminoType ? nextTetriminoType : popNextTetriminoType();
+      const spawnTetrimino = getSpawnTetrimino(nextTetriminoType);
+      const spawnTetriminoCoordinates = getCoordinateByAnchorAndShapeAndType(
+        spawnTetrimino.anchor,
+        spawnTetrimino.type,
+        spawnTetrimino.shape
+      );
+      const nextSpawnTetrimino = {
+        ...spawnTetrimino,
+        anchor: {
+          x: spawnTetrimino.anchor.x,
+          y: spawnTetrimino.anchor.y + getSizeByCoordinates(spawnTetriminoCoordinates).vertical,
+        },
+      };
+      const nextSpawnTetriminoCoordinates = getCoordinateByAnchorAndShapeAndType(
+        nextSpawnTetrimino.anchor,
+        spawnTetrimino.type,
+        spawnTetrimino.shape
+      );
+      if (!getCoordinatesIsCollideWithFilledCube(spawnTetriminoCoordinates)) {
+        if (getCoordinatesIsCollideWithFilledCube(nextSpawnTetriminoCoordinates)) {
+          setTetrimino(spawnTetrimino);
+        } else {
+          setTetrimino(nextSpawnTetrimino);
+        }
+        isCreatedSuccess = true;
+        return isCreatedSuccess;
       }
-      isCreatedSuccess = true;
       return isCreatedSuccess;
-    }
-    return isCreatedSuccess;
-  }, [popNextTetriminoType, getSpawnTetrimino, getCoordinatesIsCollideWithFilledCube, setTetrimino]);
+    },
+    [popNextTetriminoType, getSpawnTetrimino, getCoordinatesIsCollideWithFilledCube, setTetrimino]
+  );
 
   const handleGameOver = useCallback(() => {
     pauseClearRowAnimation();
@@ -227,6 +234,23 @@ const Single: FC = () => {
         } else if (e.key === " ") {
           setRef(isHardDrop, true);
           moveTetriminoToPreview();
+        } else if (e.key === Key.Shift) {
+          if (gameState === GAME_STATE.TETRIMINO_FALLING && isHoldable.current) {
+            if (tetriminoFallingTimer.isPending()) {
+              tetriminoFallingTimer.clear();
+            }
+            if (tetriminoCollideBottomTimer.isPending()) {
+              tetriminoCollideBottomTimer.clear();
+            }
+            const prevHoldTetrimino = changeHoldTetrimino(tetrimino.type as TETRIMINO_TYPE);
+            let isCreatedSuccess = false;
+            if (prevHoldTetrimino) {
+              isCreatedSuccess = handleTetriminoCreate(prevHoldTetrimino);
+            } else {
+              isCreatedSuccess = handleTetriminoCreate();
+            }
+            setGameState(isCreatedSuccess ? GAME_STATE.TETRIMINO_FALLING : GAME_STATE.GAME_OVER);
+          }
         }
       }
       if (e.key === Key.Escape) {
@@ -239,14 +263,17 @@ const Single: FC = () => {
       }
     },
     [
-      isPausing,
       isGameOver,
+      isPausing,
       gameState,
+      isHoldable,
+      tetrimino.type,
       moveTetrimino,
       changeTetriminoShape,
-      setGameState,
-      setPrevGameState,
       moveTetriminoToPreview,
+      changeHoldTetrimino,
+      handleTetriminoCreate,
+      setPrevGameState,
     ]
   );
 
@@ -289,6 +316,7 @@ const Single: FC = () => {
                 setGameState(GAME_STATE.GAME_OVER);
               } else {
                 setTetriminoToTetris();
+                setToHoldable();
                 setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
               }
             };
@@ -376,6 +404,7 @@ const Single: FC = () => {
       setTetriminoToTetris,
       moveTetrimino,
       getIsCoordinatesLockOut,
+      setToHoldable,
     ]
   );
 
@@ -390,6 +419,21 @@ const Single: FC = () => {
       height={singleSizeConfig.playField.height}
     >
       <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
+        <div
+          style={{
+            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+          }}
+        >
+          <Widget.DisplayTetrimino
+            title={"HOLD"}
+            fontLevel={"three"}
+            cubeDistance={singleSizeConfig.widget.hold.cube}
+            displayTetriminoNum={1}
+            tetriminoBag={holdTetrimino ? [holdTetrimino] : null}
+            width={singleSizeConfig.widget.hold.width}
+            height={singleSizeConfig.widget.hold.height}
+          />
+        </div>
         <div
           style={{
             marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
@@ -452,10 +496,12 @@ const Single: FC = () => {
         </PlayField.Wrapper>
       </Column>
       <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
-        <Widget.NextTetrimino
+        <Widget.DisplayTetrimino
+          title={"NEXT"}
           fontLevel={"three"}
           cubeDistance={singleSizeConfig.widget.nextTetrimino.cube}
-          TetriminoBag={nextTetriminoBag}
+          displayTetriminoNum={5}
+          tetriminoBag={nextTetriminoBag}
           width={singleSizeConfig.widget.nextTetrimino.width}
           height={singleSizeConfig.widget.nextTetrimino.height}
         />
