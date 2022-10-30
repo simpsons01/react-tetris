@@ -1,4 +1,4 @@
-export enum Tetrimino_ROTATION {
+export enum TETRIMINO_ROTATION {
   CLOCK_WISE = "CLOCK_WISE",
   COUNTER_CLOCK_WISE = "COUNTER_CLOCK_WISE",
 }

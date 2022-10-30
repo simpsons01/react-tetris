@@ -1,4 +1,4 @@
-import { TETRIMINO_SHAPE, TETRIMINO_TYPE, ICoordinate, ITetriminoConfig, Tetrimino_ROTATION } from "./_type";
+import { TETRIMINO_SHAPE, TETRIMINO_TYPE, ICoordinate, ITetriminoConfig, TETRIMINO_ROTATION } from "./_type";
 import { I } from "./I";
 import { J } from "./J";
 import { L } from "./L";
@@ -138,8 +138,8 @@ export const getAnchorByCoordinatesAndTypeAndShape = function (
   return coordinates[TetriminoConfig.config[shape].shape.anchorIndex];
 };
 
-export const getTetriminoNextShape = function (shape: TETRIMINO_SHAPE, rotation: Tetrimino_ROTATION) {
-  if (rotation === Tetrimino_ROTATION.CLOCK_WISE) {
+export const getTetriminoNextShape = function (shape: TETRIMINO_SHAPE, rotation: TETRIMINO_ROTATION) {
+  if (rotation === TETRIMINO_ROTATION.CLOCK_WISE) {
     if (shape === TETRIMINO_SHAPE.INITIAL) {
       return TETRIMINO_SHAPE.RIGHT;
     } else if (shape === TETRIMINO_SHAPE.RIGHT) {

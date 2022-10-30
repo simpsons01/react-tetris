@@ -4,7 +4,7 @@ import {
   getRandomTetriminoType,
   TETRIMINO_TYPE,
   ICube,
-  Tetrimino_ROTATION,
+  TETRIMINO_ROTATION,
   getRandomTetriminoBag,
   getCoordinateByAnchorAndShapeAndType,
 } from "../common/tetrimino";
@@ -475,7 +475,7 @@ const Room = (): JSX.Element => {
         } else if (e.keyCode === 40) {
           moveSelfTetrimino(DIRECTION.DOWN);
         } else if (e.keyCode === 38) {
-          changeSelfTetriminoShape(Tetrimino_ROTATION.CLOCK_WISE);
+          changeSelfTetriminoShape(TETRIMINO_ROTATION.CLOCK_WISE);
         } else if (e.keyCode === 32) {
           moveSelfTetriminoToPreview();
         }

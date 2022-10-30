@@ -11,7 +11,7 @@ import { useSizeConfigContext } from "../context/sizeConfig";
 import {
   DIRECTION,
   ICube,
-  Tetrimino_ROTATION,
+  TETRIMINO_ROTATION,
   getRandomTetriminoBag,
   getCoordinateByAnchorAndShapeAndType,
   ICoordinate,
@@ -92,7 +92,12 @@ const Single: FC = () => {
 
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag(getRandomTetriminoBag());
 
-  const { isHoldable, holdTetrimino, changeHoldTetrimino, setToHoldable } = useHoldTetrimino();
+  const {
+    isHoldable,
+    holdTetrimino,
+    changeHoldTetrimino,
+    setToHoldable: setHoldTetriminoToHoldable,
+  } = useHoldTetrimino();
 
   const {
     mode: { single: singleSizeConfig },
@@ -225,9 +230,9 @@ const Single: FC = () => {
         } else if (e.key === Key.ArrowDown) {
           moveTetrimino(DIRECTION.DOWN);
         } else if (e.key === Key.ArrowUp) {
-          changeTetriminoShape(Tetrimino_ROTATION.CLOCK_WISE);
+          changeTetriminoShape(TETRIMINO_ROTATION.CLOCK_WISE);
         } else if (e.key === "z") {
-          changeTetriminoShape(Tetrimino_ROTATION.COUNTER_CLOCK_WISE);
+          changeTetriminoShape(TETRIMINO_ROTATION.COUNTER_CLOCK_WISE);
         } else if (e.key === " ") {
           setRef(isHardDrop, true);
           moveTetriminoToPreview();
@@ -295,8 +300,8 @@ const Single: FC = () => {
           setMatrixPhase(MATRIX_PHASE.TETRIMINO_FALLING);
         } else {
           setGameState(GAME_STATE.OVER);
-          handleGameOver();
           setMatrixPhase(null);
+          handleGameOver();
         }
         break;
       case MATRIX_PHASE.TETRIMINO_FALLING:
@@ -339,7 +344,7 @@ const Single: FC = () => {
         }
         break;
       case MATRIX_PHASE.TETRIMINO_LOCK:
-        setToHoldable();
+        setHoldTetriminoToHoldable();
         setRef(isHardDrop, false);
         setTetriminoToMatrix();
         setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
@@ -402,7 +407,7 @@ const Single: FC = () => {
     setTetriminoToMatrix,
     moveTetrimino,
     getIsCoordinatesLockOut,
-    setToHoldable,
+    setHoldTetriminoToHoldable,
     clearRowFilledWithCube,
   ]);
 

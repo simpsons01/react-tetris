@@ -12,7 +12,7 @@ import {
   ITetriminoConfig,
   TETRIMINO_SHAPE,
   TETRIMINO_TYPE,
-  Tetrimino_ROTATION,
+  TETRIMINO_ROTATION,
   getBoundaryByCoordinatesAndShapeAndType,
   getNextCoordinateByBoundaryAndTypeAndShape,
   getAnchorByCoordinatesAndTypeAndShape,
@@ -275,7 +275,7 @@ const useMatrix = function () {
   }, [getTetriminoPreviewCoordinates, setTetrimino, tetrimino.shape, tetrimino.type]);
 
   const changeTetriminoShape = useCallback(
-    (rotation: Tetrimino_ROTATION, shape?: TETRIMINO_SHAPE): boolean => {
+    (rotation: TETRIMINO_ROTATION, shape?: TETRIMINO_SHAPE): boolean => {
       let isChangeSuccess = false;
       if (tetrimino.type == null) return isChangeSuccess;
       const nextShape = shape !== undefined ? shape : getTetriminoNextShape(tetrimino.shape, rotation);
