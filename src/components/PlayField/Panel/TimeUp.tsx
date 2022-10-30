@@ -2,6 +2,7 @@ import { BasePanel, IPanel } from "./Base";
 import styled from "styled-components";
 import { AnyFunction } from "../../../common/utils";
 import Font from "../../Font";
+import { FC } from "react";
 
 export interface ITimesUp extends IPanel {
   isTimeUp: boolean;
@@ -12,7 +13,7 @@ const TimeUpBtn = styled.button`
   margin-top: 16px;
 `;
 
-const Pause = (props: ITimesUp): JSX.Element | null => {
+const Pause: FC<ITimesUp> = (props) => {
   const { isTimeUp, onTimesUpBtn } = props;
   if (!isTimeUp) return null;
   return (

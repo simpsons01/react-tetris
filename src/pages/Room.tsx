@@ -1,4 +1,4 @@
-import { useCallback, useState, useContext, useEffect, useRef, useMemo, useLayoutEffect } from "react";
+import { useCallback, useState, useContext, useEffect, useRef, useMemo, useLayoutEffect, FC } from "react";
 import {
   DIRECTION,
   getRandomTetriminoType,
@@ -145,7 +145,7 @@ type GameData = ITetrimino | IPlayFieldRenderer["matrix"] | TETRIMINO_TYPE | num
 
 type GameDataUpdatedPayloads = Array<{ data: GameData; type: GameDataType }>;
 
-const Room = (): JSX.Element => {
+const Room: FC = () => {
   const {
     tetrimino: selfTetrimino,
     matrix: selfMatrix,

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import Modal from "../components/Modal";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useState, FC } from "react";
 import { KEYCODE } from "../common/keyboard";
 import { ISocketContext, SocketContext } from "../context/socket";
 import { createAlertModal } from "../common/alert";
@@ -22,7 +22,7 @@ const EntryContainer = styled.div`
     }
   }
 `;
-const Entry = (): JSX.Element => {
+const Entry: FC = () => {
   const navigate = useNavigate();
 
   const { socketInstance, isConnected } = useContext<

@@ -1,10 +1,11 @@
 import { BasePanel, IPanel } from "./Base";
 import Font from "../../Font";
+import { FC } from "react";
 export interface IPause extends IPanel {
   isPausing: boolean;
 }
 
-const Pause = (props: IPause): JSX.Element | null => {
+const Pause: FC<IPause> = (props) => {
   const { isPausing } = props;
 
   if (!isPausing) return null;

@@ -1,3 +1,4 @@
+import { FC } from "react";
 import styled from "styled-components";
 import { AnyFunction } from "../../../common/utils";
 import Font from "../../Font";
@@ -12,7 +13,7 @@ const GameStartBtn = styled.button`
   margin-top: 16px;
 `;
 
-const GameOver = (props: IGameOverPanel): JSX.Element | null => {
+const GameOver: FC<IGameOverPanel> = (props) => {
   const { isGameStart, onGameStart } = props;
   if (!isGameStart) return null;
   return (

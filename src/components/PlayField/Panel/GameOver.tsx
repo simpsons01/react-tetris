@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { AnyFunction } from "../../../common/utils";
 import Font from "../../Font";
 import { BasePanel, IPanel } from "./Base";
+import { FC } from "react";
 
 const GameOverBtn = styled.button`
   margin-top: 16px;
@@ -12,7 +13,7 @@ export interface IGameOverPanel extends IPanel {
   onGameOverBtnClick: AnyFunction;
 }
 
-const GameOver = (props: IGameOverPanel): JSX.Element | null => {
+const GameOver: FC<IGameOverPanel> = (props) => {
   const { isGameOver, onGameOverBtnClick } = props;
   if (!isGameOver) return null;
   return (
