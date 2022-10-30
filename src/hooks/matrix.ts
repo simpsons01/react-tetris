@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef, useMemo } from "react";
-import { IPlayFieldRenderer as ITetris } from "../components/PlayField/Renderer";
+import { IPlayFieldRenderer } from "../components/PlayField/Renderer";
 import {
   CUBE_STATE,
   DEFAULT_TETRIMINO_SHAPE,
@@ -26,38 +26,36 @@ import {
   PER_COL_CUBE_NUM,
   DISPLAY_ZONE_ROW_START,
   DISPLAY_ZONE_ROW_END,
-} from "../common/tetris";
+} from "../common/matrix";
 
 // const condition = (index: number, col: number) =>
 //   (Math.floor(index / col) === 17 && (index % col) % 2 === 0) ||
 //   (Math.floor(index / col) === 19 && (index % col) % 2 !== 0)
 const condition = (index: number, col: number) => false;
 
-const createTetris = () =>
+const createMatrix = () =>
   new Array(PER_ROW_CUBE_NUM * PER_COL_CUBE_NUM).fill(null).map((_, index) => {
     return {
       x: index % PER_COL_CUBE_NUM,
       y: Math.floor(index / PER_COL_CUBE_NUM),
-      // strokeColor: condition(index, col) ? "#292929" : "",
-      // fillColor: condition(index, col) ? "#A6A6A6" : "",
       id: nanoid(),
       state: condition(index, PER_COL_CUBE_NUM) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
     };
   });
 
-const useTetris = function () {
+const useMatrix = function () {
   const { tetrimino, setTetrimino, resetTetrimino, tetriminoCoordinates } = useTetrimino();
-  const [tetris, setTetris] = useState<ITetris["tetris"]>(createTetris());
+  const [matrix, setMatrix] = useState<IPlayFieldRenderer["matrix"]>(createMatrix());
   const fillAllRowAnimationRef = useRef<ReturnType<typeof createAnimation> | null>(null);
   const clearRowAnimationRef = useRef<ReturnType<typeof createAnimation> | null>(null);
   const fillRowAnimationRef = useRef<ReturnType<typeof createAnimation> | null>(null);
 
-  const displayTetris = useMemo(
+  const displayMatrix = useMemo(
     () =>
-      tetris
+      matrix
         .slice(DISPLAY_ZONE_ROW_START * PER_COL_CUBE_NUM, (DISPLAY_ZONE_ROW_END + 1) * PER_COL_CUBE_NUM)
         .map((cube) => ({ ...cube, y: cube.y - DISPLAY_ZONE_ROW_START })),
-    [tetris]
+    [matrix]
   );
 
   const displayTetriminoCoordinates = useMemo(
@@ -76,13 +74,13 @@ const useTetris = function () {
         coordinate.y < 0 ||
         coordinate.y >= PER_ROW_CUBE_NUM
       ) {
-        // console.warn(`x: ${coordinate.x} and y: ${coordinate.y} is not in tetris`);
+        // console.warn(`x: ${coordinate.x} and y: ${coordinate.y} is not in matrix`);
         return null;
       }
       const index = coordinate.x + coordinate.y * PER_COL_CUBE_NUM;
-      return tetris[index] ? tetris[index] : null;
+      return matrix[index] ? matrix[index] : null;
     },
-    [tetris]
+    [matrix]
   );
 
   const getCoordinatesIsCollideWithFilledCube = useCallback(
@@ -186,8 +184,8 @@ const useTetris = function () {
     [findCube, tetriminoCoordinates]
   );
 
-  const getTetriminoPreviewCoordinate = useCallback((): null | Array<ICoordinate> => {
-    let previewCollideCoordinate: null | Array<ICoordinate> = null;
+  const getTetriminoPreviewCoordinates = useCallback((): null | Array<ICoordinate> => {
+    let previewCollideCoordinates: null | Array<ICoordinate> = null;
     if (tetrimino.type !== null) {
       for (let nextY = tetrimino.anchor.y + 1; nextY < PER_ROW_CUBE_NUM; nextY++) {
         const nextCoordinate = getCoordinateByAnchorAndShapeAndType(
@@ -204,11 +202,11 @@ const useTetris = function () {
         }
         const { isBottomCollide } = getTetriminoIsCollideWithNearbyCube(nextCoordinate);
         if (isBottomCollide) {
-          previewCollideCoordinate = nextCoordinate;
+          previewCollideCoordinates = nextCoordinate;
         }
       }
     }
-    return previewCollideCoordinate;
+    return previewCollideCoordinates;
   }, [getCoordinatesIsCollideWithFilledCube, getTetriminoIsCollideWithNearbyCube, tetrimino]);
 
   const moveTetrimino = useCallback(
@@ -262,7 +260,7 @@ const useTetris = function () {
   );
 
   const moveTetriminoToPreview = useCallback((): void => {
-    const previewCoordinate = getTetriminoPreviewCoordinate();
+    const previewCoordinate = getTetriminoPreviewCoordinates();
     if (previewCoordinate !== null && tetrimino.type !== null) {
       const { anchorIndex } = (getTetriminoConfig(tetrimino.type) as ITetriminoConfig).config[tetrimino.shape]
         .shape;
@@ -274,7 +272,7 @@ const useTetris = function () {
         },
       }));
     }
-  }, [getTetriminoPreviewCoordinate, setTetrimino, tetrimino.shape, tetrimino.type]);
+  }, [getTetriminoPreviewCoordinates, setTetrimino, tetrimino.shape, tetrimino.type]);
 
   const changeTetriminoShape = useCallback(
     (rotation: Tetrimino_ROTATION, shape?: TETRIMINO_SHAPE): boolean => {
@@ -329,10 +327,10 @@ const useTetris = function () {
     [tetrimino, tetriminoCoordinates, setTetrimino, getCoordinatesIsCollideWithFilledCube]
   );
 
-  const setTetriminoToTetris = useCallback((): void => {
+  const setTetriminoToMatrix = useCallback((): void => {
     if (tetriminoCoordinates == null) return;
-    setTetris((prevTetris) =>
-      prevTetris.map((cube) => {
+    setMatrix((prevMatrix) =>
+      prevMatrix.map((cube) => {
         const cubeInTetrimino = tetriminoCoordinates.find(({ x, y }) => cube.x === x && cube.y === y);
         if (cubeInTetrimino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
           return {
@@ -373,8 +371,8 @@ const useTetris = function () {
             (elapse) => {
               if (elapse > executedTime * perUpdateTime && executedTime < times) {
                 ((executedTime) => {
-                  setTetris((prevTetris) => {
-                    return prevTetris.map((cube) => {
+                  setMatrix((prevMatrix) => {
+                    return prevMatrix.map((cube) => {
                       if (
                         (filledRow as Array<number>).indexOf(cube.y) > -1 &&
                         removeIndex[executedTime].indexOf(cube.x) > -1
@@ -418,8 +416,8 @@ const useTetris = function () {
           (elapse) => {
             if (executedTime <= PER_ROW_CUBE_NUM && executedTime * perTime < elapse) {
               const fillIndex = fillRowIndex;
-              setTetris((prevTetris) => {
-                return prevTetris.map((cube) => {
+              setMatrix((prevMatrix) => {
+                return prevMatrix.map((cube) => {
                   if (cube.y === fillIndex) {
                     return {
                       ...cube,
@@ -510,8 +508,8 @@ const useTetris = function () {
               const end = 1;
               const progress = minMax(elapse / duration, start, end);
               // console.log("progress is " + progress);
-              setTetris((prevTetris) =>
-                prevTetris.map((cube, cubeIndex) => {
+              setMatrix((prevMatrix) =>
+                prevMatrix.map((cube, cubeIndex) => {
                   const cubeRow = Math.floor(cubeIndex / PER_COL_CUBE_NUM);
                   if (progress === end) {
                     const eeeeeeee = zzzzzzzzz.find(({ end }) => end === cubeRow);
@@ -520,7 +518,7 @@ const useTetris = function () {
                       const index = eeeeeeee.start * PER_COL_CUBE_NUM + (cubeIndex % PER_COL_CUBE_NUM);
                       return {
                         ...cube,
-                        state: prevTetris[index].state,
+                        state: prevMatrix[index].state,
                         y: cubeRow,
                       };
                     } else if (ddddddd !== undefined) {
@@ -598,24 +596,24 @@ const useTetris = function () {
     }
   }, []);
 
-  const resetTetris = useCallback((): void => {
-    setTetris(createTetris());
-  }, [setTetris]);
+  const resetMatrix = useCallback((): void => {
+    setMatrix(createMatrix());
+  }, [setMatrix]);
 
   return {
     tetrimino,
     tetriminoCoordinates,
-    tetris,
-    displayTetris,
+    matrix,
+    displayMatrix,
     displayTetriminoCoordinates,
     setTetrimino,
-    setTetris,
+    setMatrix,
     resetTetrimino,
-    resetTetris,
+    resetMatrix,
     getCoordinatesIsCollideWithFilledCube,
     getTetriminoIsCollideWithNearbyCube,
     getRowFilledWithCube,
-    getTetriminoPreviewCoordinate,
+    getTetriminoPreviewCoordinates,
     getIsCoordinatesLockOut,
     getSpawnTetrimino,
     moveTetrimino,
@@ -623,7 +621,7 @@ const useTetris = function () {
     changeTetriminoShape,
     clearRowFilledWithCube,
     fillAllRow,
-    setTetriminoToTetris,
+    setTetriminoToMatrix,
     getEmptyRow,
     fillEmptyRow,
     pauseClearRowAnimation,
@@ -635,4 +633,4 @@ const useTetris = function () {
   };
 };
 
-export default useTetris;
+export default useMatrix;

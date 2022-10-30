@@ -68,7 +68,7 @@ const Cube = styled.div.attrs<ICubeBlock>((props) => ({
 
 export interface IPlayFieldRenderer {
   cubeDistance: number;
-  tetris: Array<ICube & { id: string }>;
+  matrix: Array<ICube & { id: string }>;
   tetrimino: Array<ICube> | null;
   previewTetrimino: Array<ICube> | null;
 }
@@ -101,11 +101,11 @@ const makeCube = ({
 };
 
 const Renderer: FC<IPlayFieldRenderer> = (props) => {
-  const { tetris, tetrimino, previewTetrimino, cubeDistance } = props;
+  const { matrix, tetrimino, previewTetrimino, cubeDistance } = props;
 
   return (
     <Wrapper>
-      {tetris.map((cube) => {
+      {matrix.map((cube) => {
         const { x, y, state, id } = cube;
         const isTetriminoCube =
           tetrimino === null ? false : tetrimino.some((cube) => cube.x === x && cube.y === y);

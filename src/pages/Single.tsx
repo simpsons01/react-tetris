@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef, FC } from "react";
 import { setRef } from "../common/utils";
 import { createCountDownTimer } from "../common/timer";
-import useTetris from "../hooks/tetris";
-import useNextTetriminoBag from "../hooks/nextTetrimino";
+import useMatrix from "../hooks/matrix";
+import useNextTetriminoBag from "../hooks/nextTetriminoBag";
 import styled from "styled-components";
 import Widget from "../components/Widget";
 import PlayField from "../components/PlayField";
@@ -24,7 +24,7 @@ import {
   getTetriminoFallingDelayByLevel,
   getScoreByLevelAndLine,
   DISPLAY_ZONE_ROW_START,
-} from "../common/tetris";
+} from "../common/matrix";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import { Key } from "ts-key-enum";
 import useHoldTetrimino from "../hooks/holdTetrimino";
@@ -66,9 +66,9 @@ const Single: FC = () => {
   const {
     tetriminoCoordinates,
     tetrimino,
-    displayTetris,
+    displayMatrix,
     displayTetriminoCoordinates,
-    setTetriminoToTetris,
+    setTetriminoToMatrix,
     getSpawnTetrimino,
     moveTetrimino,
     moveTetriminoToPreview,
@@ -84,11 +84,11 @@ const Single: FC = () => {
     continueClearRowAnimation,
     pauseFillRowAnimation,
     continueFillRowAnimation,
-    getTetriminoPreviewCoordinate,
+    getTetriminoPreviewCoordinates,
     resetTetrimino,
-    resetTetris,
     setTetrimino,
-  } = useTetris();
+    resetMatrix,
+  } = useMatrix();
 
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag(getRandomTetriminoBag());
 
@@ -122,8 +122,8 @@ const Single: FC = () => {
 
   const isGameOver = useMemo(() => gameState === GAME_STATE.OVER, [gameState]);
 
-  const previewTetrimino = useMemo(() => {
-    const previewCoordinates = getTetriminoPreviewCoordinate();
+  const previewTetriminoCoordinates = useMemo(() => {
+    const previewCoordinates = getTetriminoPreviewCoordinates();
     if (previewCoordinates !== null && tetrimino.type !== null) {
       return previewCoordinates.map(({ x, y }) => ({
         x,
@@ -131,15 +131,7 @@ const Single: FC = () => {
       })) as Array<ICube>;
     }
     return null;
-  }, [tetrimino, getTetriminoPreviewCoordinate]);
-
-  const checkIsTetriminoCollideWithTetris = useCallback(() => {
-    let isCollide = false;
-    if (tetriminoCoordinates !== null && getCoordinatesIsCollideWithFilledCube(tetriminoCoordinates)) {
-      isCollide = true;
-    }
-    return isCollide;
-  }, [getCoordinatesIsCollideWithFilledCube, tetriminoCoordinates]);
+  }, [tetrimino, getTetriminoPreviewCoordinates]);
 
   const handleTetriminoCreate = useCallback(
     (nextTetriminoType?: TETRIMINO_TYPE) => {
@@ -209,14 +201,14 @@ const Single: FC = () => {
   }, [continueClearRowAnimation, continueFillRowAnimation]);
 
   const handleNextGame = useCallback(() => {
-    resetTetris();
+    resetMatrix();
     resetTetrimino();
     setLine(0);
     setScore(0);
     setLevel(0);
     setGameState(null);
     setMatrixPhase(null);
-  }, [resetTetrimino, resetTetris]);
+  }, [resetTetrimino, resetMatrix]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -349,7 +341,7 @@ const Single: FC = () => {
       case MATRIX_PHASE.TETRIMINO_LOCK:
         setToHoldable();
         setRef(isHardDrop, false);
-        setTetriminoToTetris();
+        setTetriminoToMatrix();
         setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
         break;
       case MATRIX_PHASE.CHECK_IS_ROW_FILLED:
@@ -401,18 +393,17 @@ const Single: FC = () => {
     matrixPhase,
     handleTetriminoCreate,
     handleGameOver,
-    checkIsTetriminoCollideWithTetris,
     setGameState,
     setLine,
     getRowFilledWithCube,
     getEmptyRow,
-    clearRowFilledWithCube,
     fillEmptyRow,
     getTetriminoIsCollideWithNearbyCube,
-    setTetriminoToTetris,
+    setTetriminoToMatrix,
     moveTetrimino,
     getIsCoordinatesLockOut,
     setToHoldable,
+    clearRowFilledWithCube,
   ]);
 
   return (
@@ -488,9 +479,9 @@ const Single: FC = () => {
         >
           <PlayField.Renderer
             cubeDistance={singleSizeConfig.playField.cube}
-            tetris={displayTetris}
+            matrix={displayMatrix}
             tetrimino={displayTetriminoCoordinates}
-            previewTetrimino={previewTetrimino}
+            previewTetrimino={previewTetriminoCoordinates}
           />
           <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
           <PlayField.PausePanel isPausing={isPausing} />

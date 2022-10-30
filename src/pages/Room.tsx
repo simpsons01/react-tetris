@@ -8,11 +8,11 @@ import {
   getRandomTetriminoBag,
   getCoordinateByAnchorAndShapeAndType,
 } from "../common/tetrimino";
-import { IPlayFieldRenderer as ITetris } from "../components/PlayField/Renderer";
+import { IPlayFieldRenderer } from "../components/PlayField/Renderer";
 import Overlay from "../components/Overlay";
 import Loading from "../components/Loading";
-import useTetris from "../hooks/tetris";
-import useNextTetriminoBag from "../hooks/nextTetrimino";
+import useMatrix from "../hooks/matrix";
+import useNextTetriminoBag from "../hooks/nextTetriminoBag";
 import { useNavigate } from "react-router-dom";
 import { ITetrimino } from "../hooks/tetrimino";
 import { setRef } from "../common/utils";
@@ -112,7 +112,7 @@ enum GAME_STATE {
   ROW_FILLED_CLEARING,
   CHECK_IS_ROW_EMPTY,
   ROW_EMPTY_FILLING,
-  CHECK_IS_Tetrimino_COLLIDE_WITH_TETRIS,
+  CHECK_IS_Tetrimino_COLLIDE_WITH_matrix,
   ALL_ROW_FILLING,
   GAME_OVER,
 }
@@ -131,7 +131,7 @@ enum ROOM_STATE {
 enum GameDataType {
   NEXT_TETRIMINO_TYPE = "NEXT_TETRIMINO_TYPE",
   Tetrimino = "Tetrimino",
-  TETRIS = "TETRIS",
+  matrix = "matrix",
   SCORE = "SCORE",
 }
 
@@ -141,19 +141,19 @@ enum RESULT {
   TIE,
 }
 
-type GameData = ITetrimino | ITetris["tetris"] | TETRIMINO_TYPE | number | null;
+type GameData = ITetrimino | IPlayFieldRenderer["matrix"] | TETRIMINO_TYPE | number | null;
 
 type GameDataUpdatedPayloads = Array<{ data: GameData; type: GameDataType }>;
 
 const Room = (): JSX.Element => {
   const {
     tetrimino: selfTetrimino,
-    tetris: selfTetris,
-    resetTetris: resetSelfTetris,
+    matrix: selfMatrix,
+    tetriminoCoordinates: selfTetriminoCoordinates,
+    resetMatrix: resetSelfMatrix,
     setTetrimino: setSelfTetrimino,
     resetTetrimino: resetSelfTetrimino,
-    tetriminoCoordinates: selfTetriminoCoordinates,
-    setTetriminoToTetris: setSelfTetriminoToTetris,
+    setTetriminoToMatrix: setSelfTetriminoToMatrix,
     getSpawnTetrimino: getSelfSpawnTetrimino,
     moveTetrimino: moveSelfTetrimino,
     changeTetriminoShape: changeSelfTetriminoShape,
@@ -167,9 +167,9 @@ const Room = (): JSX.Element => {
     pauseFillRowAnimation: pauseSelfFillRowAnimation,
     fillAllRow: fillSelfAllRow,
     pauseFillAllRowAnimation: pauseSelfFillAllRowAnimation,
-    getTetriminoPreviewCoordinate: getSelfTetriminoPreviewCoordinate,
+    getTetriminoPreviewCoordinates: getSelfTetriminoPreviewCoordinates,
     moveTetriminoToPreview: moveSelfTetriminoToPreview,
-  } = useTetris();
+  } = useMatrix();
 
   const { nextTetriminoBag: selfNextTetriminoBag, popNextTetriminoType: popSelfNextTetrimino } =
     useNextTetriminoBag(getRandomTetriminoBag());
@@ -177,13 +177,13 @@ const Room = (): JSX.Element => {
   const {
     tetrimino: opponentTetrimino,
     tetriminoCoordinates: opponentTetriminoCoordinates,
-    tetris: opponentTetris,
-    setTetris: setOpponentTetris,
+    matrix: opponentMatrix,
+    setMatrix: setOpponentMatrix,
     setTetrimino: setOpponentTetrimino,
     resetTetrimino: resetOpponentTetrimino,
-    resetTetris: resetOpponentTetris,
-    getTetriminoPreviewCoordinate: getOpponentTetriminoPreviewCoordinate,
-  } = useTetris();
+    resetMatrix: resetOpponentMatrix,
+    getTetriminoPreviewCoordinates: getOpponentTetriminoPreviewCoordinates,
+  } = useMatrix();
 
   const navigate = useNavigate();
 
@@ -240,14 +240,14 @@ const Room = (): JSX.Element => {
 
   const prevSelfTetrimino = useRef<ITetrimino>(selfTetrimino);
 
-  const prevSelfTetris = useRef<ITetris["tetris"]>(selfTetris);
+  const prevSelfMatrix = useRef<IPlayFieldRenderer["matrix"]>(selfMatrix);
 
   const prevSelfScore = useRef<number | undefined>(selfScore);
 
   const prevSelfNextTetriminoType = useRef<TETRIMINO_TYPE>(selfNextTetriminoType);
 
   const selfPreviewTetrimino = useMemo((): Array<ICube> | null => {
-    const previewCoordinate = getSelfTetriminoPreviewCoordinate();
+    const previewCoordinate = getSelfTetriminoPreviewCoordinates();
     if (previewCoordinate !== null && selfTetrimino.type !== null) {
       return previewCoordinate.map(({ x, y }) => ({
         x,
@@ -255,10 +255,10 @@ const Room = (): JSX.Element => {
       })) as Array<ICube>;
     }
     return null;
-  }, [getSelfTetriminoPreviewCoordinate, selfTetrimino]);
+  }, [getSelfTetriminoPreviewCoordinates, selfTetrimino]);
 
   const opponentPreviewTetrimino = useMemo((): Array<ICube> | null => {
-    const previewCoordinate = getOpponentTetriminoPreviewCoordinate();
+    const previewCoordinate = getOpponentTetriminoPreviewCoordinates();
     if (previewCoordinate !== null && opponentTetrimino.type !== null) {
       return previewCoordinate.map(({ x, y }) => ({
         x,
@@ -266,7 +266,7 @@ const Room = (): JSX.Element => {
       })) as Array<ICube>;
     }
     return null;
-  }, [getOpponentTetriminoPreviewCoordinate, opponentTetrimino]);
+  }, [getOpponentTetriminoPreviewCoordinates, opponentTetrimino]);
 
   const handleReady = useCallback(() => {
     if (isConnected) {
@@ -287,9 +287,9 @@ const Room = (): JSX.Element => {
         if (isError) return;
         if (isSuccess) {
           resetOpponentTetrimino();
-          resetOpponentTetris();
+          resetOpponentMatrix();
           resetSelfTetrimino();
-          resetSelfTetris();
+          resetSelfMatrix();
           setSelfScore(0);
           setOpponentScore(0);
           setLeftSec(null);
@@ -308,9 +308,9 @@ const Room = (): JSX.Element => {
     isConnected,
     socketInstance,
     resetOpponentTetrimino,
-    resetOpponentTetris,
+    resetOpponentMatrix,
     resetSelfTetrimino,
-    resetSelfTetris,
+    resetSelfMatrix,
     navigate,
   ]);
 
@@ -334,7 +334,7 @@ const Room = (): JSX.Element => {
       // console.log("isBottomCollide " + isBottomCollide);
       if (isBottomCollide) {
         TetriminoCollideBottomTimer.start(() => {
-          setSelfTetriminoToTetris();
+          setSelfTetriminoToMatrix();
           resolve(isBottomCollide);
         }, 500);
       } else {
@@ -349,7 +349,7 @@ const Room = (): JSX.Element => {
     moveSelfTetrimino,
     TetriminoCollideBottomTimer,
     TetriminoFallingTimer,
-    setSelfTetriminoToTetris,
+    setSelfTetriminoToMatrix,
   ]);
 
   const handleTetriminoCreate = useCallback(() => {
@@ -392,7 +392,7 @@ const Room = (): JSX.Element => {
     pauseSelfFillRowAnimation,
   ]);
 
-  const checkIsTetriminoCollideWithTetris = useCallback(() => {
+  const checkIsTetriminoCollideWithmatrix = useCallback(() => {
     let isCollide = false;
     if (
       selfTetriminoCoordinates !== null &&
@@ -420,12 +420,12 @@ const Room = (): JSX.Element => {
         });
         setRef(prevSelfTetrimino, selfTetrimino);
       }
-      if (prevSelfTetris.current !== selfTetris) {
+      if (prevSelfMatrix.current !== selfMatrix) {
         updatedPayloads.push({
-          type: GameDataType.TETRIS,
-          data: selfTetris,
+          type: GameDataType.matrix,
+          data: selfMatrix,
         });
-        setRef(prevSelfTetris, selfTetris);
+        setRef(prevSelfMatrix, selfMatrix);
       }
       if (prevSelfScore.current !== selfScore) {
         updatedPayloads.push({
@@ -438,7 +438,7 @@ const Room = (): JSX.Element => {
         socketInstance.emit("game_data_updated", updatedPayloads);
       }
     },
-    [selfTetris, selfScore, selfTetrimino, selfNextTetriminoType, socketInstance, isConnected]
+    [selfMatrix, selfScore, selfTetrimino, selfNextTetriminoType, socketInstance, isConnected]
   );
 
   useEffect(() => {
@@ -504,14 +504,14 @@ const Room = (): JSX.Element => {
         case GAME_STATE.NEXT_CYCLE:
           handleTetriminoCreate();
           handleNextTetriminoTypeCreate();
-          setGameState(GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_TETRIS);
+          setGameState(GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix);
           break;
-        case GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_TETRIS:
-          if (checkIsTetriminoCollideWithTetris()) {
+        case GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix:
+          if (checkIsTetriminoCollideWithmatrix()) {
             setGameState(GAME_STATE.ALL_ROW_FILLING);
             fillSelfAllRow().then(() => {
               resetSelfTetrimino();
-              resetSelfTetris();
+              resetSelfMatrix();
               setGameState(GAME_STATE.NEXT_CYCLE);
             });
           } else {
@@ -572,7 +572,7 @@ const Room = (): JSX.Element => {
     [
       gameState,
       selfScore,
-      checkIsTetriminoCollideWithTetris,
+      checkIsTetriminoCollideWithmatrix,
       handleNextTetriminoTypeCreate,
       handleTetriminoCreate,
       getSelfEmptyRow,
@@ -585,7 +585,7 @@ const Room = (): JSX.Element => {
       handleGameOver,
       fillSelfAllRow,
       resetSelfTetrimino,
-      resetSelfTetris,
+      resetSelfMatrix,
       TetriminoCollideBottomTimer,
       TetriminoFallingTimer,
     ]
@@ -630,8 +630,8 @@ const Room = (): JSX.Element => {
               setOpponentNextTetriminoType(data as TETRIMINO_TYPE);
             } else if (type === GameDataType.SCORE) {
               setOpponentScore(data as number);
-            } else if (type === GameDataType.TETRIS) {
-              setOpponentTetris(data as ITetris["tetris"]);
+            } else if (type === GameDataType.matrix) {
+              setOpponentMatrix(data as IPlayFieldRenderer["matrix"]);
             } else if (type === GameDataType.Tetrimino) {
               setOpponentTetrimino(data as ITetrimino);
             }
@@ -669,7 +669,7 @@ const Room = (): JSX.Element => {
     },
     [
       setRoomState,
-      setOpponentTetris,
+      setOpponentMatrix,
       setOpponentTetrimino,
       socketInstance,
       isConnected,
@@ -712,7 +712,7 @@ const Room = (): JSX.Element => {
           >
             <PlayField.Renderer
               cubeDistance={doubleSizeConfig.playField.cube}
-              tetris={selfTetris}
+              matrix={selfMatrix}
               tetrimino={selfTetriminoCoordinates}
               previewTetrimino={selfPreviewTetrimino}
             />
@@ -761,7 +761,7 @@ const Room = (): JSX.Element => {
           >
             <PlayField.Renderer
               cubeDistance={doubleSizeConfig.playField.cube}
-              tetris={opponentTetris}
+              matrix={opponentMatrix}
               tetrimino={opponentTetriminoCoordinates}
               previewTetrimino={opponentPreviewTetrimino}
             />
