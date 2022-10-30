@@ -381,8 +381,6 @@ const useTetris = function () {
                       ) {
                         return {
                           ...cube,
-                          // strokeColor: "",
-                          // fillColor: "",
                           state: CUBE_STATE.UNFILLED,
                         };
                       }
