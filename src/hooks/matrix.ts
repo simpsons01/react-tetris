@@ -30,16 +30,7 @@ import {
   DISPLAY_ZONE_ROW_END,
 } from "../common/matrix";
 
-const condition = (index: number, col: number) =>
-  (Math.floor(index / col) === 37 && index % col === 0) ||
-  (Math.floor(index / col) === 37 && index % col === 1) ||
-  (Math.floor(index / col) === 38 && index % col === 0) ||
-  (Math.floor(index / col) === 38 && index % col === 4) ||
-  (Math.floor(index / col) === 39 && index % col === 0) ||
-  (Math.floor(index / col) === 39 && index % col === 1) ||
-  (Math.floor(index / col) === 39 && index % col === 3);
-
-// const condition = (index: number, col: number) => false;
+const condition = (index: number, col: number) => false;
 
 const createMatrix = () =>
   new Array(PER_ROW_CUBE_NUM * PER_COL_CUBE_NUM).fill(null).map((_, index) => {
