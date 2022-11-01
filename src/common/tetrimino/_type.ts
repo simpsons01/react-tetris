@@ -1,4 +1,4 @@
-export enum TETRIMINO_ROTATION {
+export enum TETRIMINO_ROTATION_DIRECTION {
   CLOCK_WISE = "CLOCK_WISE",
   COUNTER_CLOCK_WISE = "COUNTER_CLOCK_WISE",
 }
@@ -13,6 +13,15 @@ export enum TETRIMINO_SHAPE {
   RIGHT = "R",
   TWICE = "2",
   LEFT = "L",
+}
+
+export enum TETRIMINO_MOVE_TYPE {
+  LEFT_MOVE = "LEFT_MOVE",
+  RIGHT_MOVE = "RIGHT_MOVE",
+  HARD_DROP = "HARD_DROP",
+  SOFT_DROP = "SOFT_DROP",
+  CLOCK_WISE_ROTATE = "ROTATE",
+  COUNTER_CLOCK_WISE_ROTATE = "COUNTER_CLOCK_WISE_ROTATE",
 }
 
 export enum TETRIMINO_TYPE {
@@ -30,6 +39,11 @@ export enum DIRECTION {
   RIGHT = "right",
   DOWN = "down",
   LEFT = "left",
+}
+
+export enum T_SPIN_TYPE {
+  NORMAL = "NORMAL",
+  MINI = "MINI",
 }
 
 export interface ICoordinate {

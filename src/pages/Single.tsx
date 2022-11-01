@@ -11,12 +11,12 @@ import { useSizeConfigContext } from "../context/sizeConfig";
 import {
   DIRECTION,
   ICube,
-  TETRIMINO_ROTATION,
-  getRandomTetriminoBag,
+  TETRIMINO_ROTATION_DIRECTION,
   getCoordinateByAnchorAndShapeAndType,
   ICoordinate,
   getSizeByCoordinates,
   TETRIMINO_TYPE,
+  TETRIMINO_MOVE_TYPE,
 } from "../common/tetrimino";
 import {
   DEFAULT_START_LEVEL,
@@ -68,6 +68,7 @@ const Single: FC = () => {
     tetrimino,
     displayMatrix,
     displayTetriminoCoordinates,
+    setPrevTetrimino,
     setTetriminoToMatrix,
     getSpawnTetrimino,
     moveTetrimino,
@@ -88,9 +89,13 @@ const Single: FC = () => {
     resetTetrimino,
     setTetrimino,
     resetMatrix,
+    getTSpinType,
+    resetTetriminoMoveTypeRecord,
+    pushTetriminoMoveTypeRecord,
+    resetLastTetriminoRotateWallKickPosition,
   } = useMatrix();
 
-  const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag(getRandomTetriminoBag());
+  const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag();
 
   const {
     isHoldable,
@@ -106,6 +111,8 @@ const Single: FC = () => {
   const tetriminoFallingTimerHandler = useRef(() => {});
 
   const isHardDrop = useRef(false);
+
+  const isSoftDropPress = useRef(false);
 
   const [matrixPhase, setMatrixPhase] = useState<MATRIX_PHASE | null>(null);
 
@@ -213,30 +220,48 @@ const Single: FC = () => {
     setLevel(0);
     setGameState(null);
     setMatrixPhase(null);
-  }, [resetTetrimino, resetMatrix]);
+    resetLastTetriminoRotateWallKickPosition();
+    resetTetriminoMoveTypeRecord();
+  }, [resetTetrimino, resetMatrix, resetTetriminoMoveTypeRecord, resetLastTetriminoRotateWallKickPosition]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (isGameOver) return;
-      if (
-        !isPausing ||
-        matrixPhase === MATRIX_PHASE.ROW_FILLED_CLEARING ||
-        matrixPhase === MATRIX_PHASE.ROW_EMPTY_FILLING
-      ) {
+      if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
         if (e.key === Key.ArrowLeft) {
-          moveTetrimino(DIRECTION.LEFT);
+          const isSuccess = moveTetrimino(DIRECTION.LEFT);
+          if (isSuccess) {
+            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.LEFT_MOVE);
+          }
         } else if (e.key === Key.ArrowRight) {
-          moveTetrimino(DIRECTION.RIGHT);
+          const isSuccess = moveTetrimino(DIRECTION.RIGHT);
+          if (isSuccess) {
+            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.RIGHT_MOVE);
+          }
         } else if (e.key === Key.ArrowDown) {
-          moveTetrimino(DIRECTION.DOWN);
+          setRef(isSoftDropPress, true);
+          const isSuccess = moveTetrimino(DIRECTION.DOWN);
+          if (isSuccess) {
+            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.SOFT_DROP);
+          }
         } else if (e.key === Key.ArrowUp) {
-          changeTetriminoShape(TETRIMINO_ROTATION.CLOCK_WISE);
+          const isSuccess = changeTetriminoShape(TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE);
+          if (isSuccess) {
+            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.CLOCK_WISE_ROTATE);
+          }
         } else if (e.key === "z") {
-          changeTetriminoShape(TETRIMINO_ROTATION.COUNTER_CLOCK_WISE);
+          const isSuccess = changeTetriminoShape(TETRIMINO_ROTATION_DIRECTION.COUNTER_CLOCK_WISE);
+          if (isSuccess) {
+            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.COUNTER_CLOCK_WISE_ROTATE);
+          }
         } else if (e.key === " ") {
           setRef(isHardDrop, true);
-          moveTetriminoToPreview();
+          const isSuccess = moveTetriminoToPreview();
+          if (isSuccess) {
+            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.HARD_DROP);
+          }
         } else if (e.key === Key.Shift) {
+          resetTetriminoMoveTypeRecord();
           if (matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING && isHoldable.current) {
             if (tetriminoFallingTimer.isPending()) {
               tetriminoFallingTimer.clear();
@@ -278,6 +303,7 @@ const Single: FC = () => {
       isHoldable,
       tetrimino.type,
       moveTetrimino,
+      pushTetriminoMoveTypeRecord,
       changeTetriminoShape,
       moveTetriminoToPreview,
       changeHoldTetrimino,
@@ -285,10 +311,23 @@ const Single: FC = () => {
       handleGameOver,
       handleGameContinue,
       handleGamePause,
+      resetTetriminoMoveTypeRecord,
     ]
   );
 
   useKeydownAutoRepeat([Key.ArrowLeft, Key.ArrowRight, Key.ArrowDown], onKeyDown);
+
+  useEffect(() => {
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === Key.ArrowDown) {
+        setRef(isSoftDropPress, false);
+      }
+    };
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isGameStart) return;
@@ -333,23 +372,32 @@ const Single: FC = () => {
           if (tetriminoCollideBottomTimer.isPending()) {
             tetriminoCollideBottomTimer.clear();
           }
-          if (tetriminoFallingTimer.isPending()) {
-            setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+          if (isSoftDropPress.current) {
+            if (tetriminoFallingTimer.isPending()) {
+              tetriminoCollideBottomTimer.clear();
+            }
           } else {
-            setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
-            tetriminoFallingTimer.start(() => {
-              tetriminoFallingTimerHandler.current();
-            }, tetriminoFallingDelay);
+            if (tetriminoFallingTimer.isPending()) {
+              setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+            } else {
+              setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+              tetriminoFallingTimer.start(() => {
+                tetriminoFallingTimerHandler.current();
+              }, tetriminoFallingDelay);
+            }
           }
         }
         break;
       case MATRIX_PHASE.TETRIMINO_LOCK:
+        setPrevTetrimino(tetrimino);
         setHoldTetriminoToHoldable();
         setRef(isHardDrop, false);
         setTetriminoToMatrix();
         setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
         break;
       case MATRIX_PHASE.CHECK_IS_ROW_FILLED:
+        const tSpinType = getTSpinType();
+        console.log(tSpinType);
         const filledRow = getRowFilledWithCube();
         if (filledRow) {
           setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
@@ -359,10 +407,14 @@ const Single: FC = () => {
           setLine(nextLineValue);
           setLevel(getLevelByLine(nextLineValue));
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
+          resetLastTetriminoRotateWallKickPosition();
+          resetTetriminoMoveTypeRecord();
           clearRowFilledWithCube(filledRow).then(() => {
             setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
         } else {
+          resetLastTetriminoRotateWallKickPosition();
+          resetTetriminoMoveTypeRecord();
           setMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
         }
         break;
@@ -396,6 +448,7 @@ const Single: FC = () => {
     tetriminoCoordinates,
     isGameStart,
     matrixPhase,
+    tetrimino,
     handleTetriminoCreate,
     handleGameOver,
     setGameState,
@@ -409,6 +462,10 @@ const Single: FC = () => {
     getIsCoordinatesLockOut,
     setHoldTetriminoToHoldable,
     clearRowFilledWithCube,
+    resetTetriminoMoveTypeRecord,
+    resetLastTetriminoRotateWallKickPosition,
+    getTSpinType,
+    setPrevTetrimino,
   ]);
 
   return (

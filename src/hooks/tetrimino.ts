@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   ICoordinate,
   TETRIMINO_SHAPE,
@@ -6,6 +6,7 @@ import {
   DEFAULT_TETRIMINO_SHAPE,
   getCoordinateByAnchorAndShapeAndType,
 } from "../common/tetrimino";
+import { setRef } from "../common/utils";
 
 const createInitialTetriminoState = () => ({
   anchor: { x: -1, y: -1 },
@@ -21,6 +22,7 @@ export interface ITetrimino {
 
 const useTetrimino = function () {
   const [tetrimino, setTetrimino] = useState<ITetrimino>(createInitialTetriminoState());
+  const prevTetrimino = useRef<ITetrimino>(createInitialTetriminoState());
 
   const tetriminoCoordinates = useMemo<Array<ICoordinate> | null>(() => {
     if (tetrimino.type == null) return null;
@@ -31,11 +33,22 @@ const useTetrimino = function () {
     setTetrimino(createInitialTetriminoState());
   }, [setTetrimino]);
 
+  const setPrevTetrimino = useCallback((tetrimino: ITetrimino) => {
+    setRef(prevTetrimino, tetrimino);
+  }, []);
+
+  const resetPrevTetrimino = useCallback(() => {
+    setRef(prevTetrimino, createInitialTetriminoState());
+  }, []);
+
   return {
     tetrimino,
     tetriminoCoordinates,
+    prevTetrimino,
     setTetrimino,
     resetTetrimino,
+    setPrevTetrimino,
+    resetPrevTetrimino,
   };
 };
 

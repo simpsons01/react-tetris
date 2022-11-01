@@ -4,8 +4,7 @@ import {
   getRandomTetriminoType,
   TETRIMINO_TYPE,
   ICube,
-  TETRIMINO_ROTATION,
-  getRandomTetriminoBag,
+  TETRIMINO_ROTATION_DIRECTION,
   getCoordinateByAnchorAndShapeAndType,
 } from "../common/tetrimino";
 import { IPlayFieldRenderer } from "../components/PlayField/Renderer";
@@ -172,7 +171,7 @@ const Room: FC = () => {
   } = useMatrix();
 
   const { nextTetriminoBag: selfNextTetriminoBag, popNextTetriminoType: popSelfNextTetrimino } =
-    useNextTetriminoBag(getRandomTetriminoBag());
+    useNextTetriminoBag();
 
   const {
     tetrimino: opponentTetrimino,
@@ -392,7 +391,7 @@ const Room: FC = () => {
     pauseSelfFillRowAnimation,
   ]);
 
-  const checkIsTetriminoCollideWithmatrix = useCallback(() => {
+  const checkIsTetriminoCollideWithMatrix = useCallback(() => {
     let isCollide = false;
     if (
       selfTetriminoCoordinates !== null &&
@@ -475,7 +474,7 @@ const Room: FC = () => {
         } else if (e.keyCode === 40) {
           moveSelfTetrimino(DIRECTION.DOWN);
         } else if (e.keyCode === 38) {
-          changeSelfTetriminoShape(TETRIMINO_ROTATION.CLOCK_WISE);
+          changeSelfTetriminoShape(TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE);
         } else if (e.keyCode === 32) {
           moveSelfTetriminoToPreview();
         }
@@ -507,7 +506,7 @@ const Room: FC = () => {
           setGameState(GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix);
           break;
         case GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix:
-          if (checkIsTetriminoCollideWithmatrix()) {
+          if (checkIsTetriminoCollideWithMatrix()) {
             setGameState(GAME_STATE.ALL_ROW_FILLING);
             fillSelfAllRow().then(() => {
               resetSelfTetrimino();
@@ -572,7 +571,7 @@ const Room: FC = () => {
     [
       gameState,
       selfScore,
-      checkIsTetriminoCollideWithmatrix,
+      checkIsTetriminoCollideWithMatrix,
       handleNextTetriminoTypeCreate,
       handleTetriminoCreate,
       getSelfEmptyRow,

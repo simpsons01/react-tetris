@@ -11,40 +11,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<App />}>
-        <Route index element={<Entry />} />
-        <Route path="single" element={<Single />} />
-        <Route path="room/:id" element={<Room />} />
-        <Route path="rooms" element={<Rooms />} />
-      </Route>
-    </Routes>
-  </BrowserRouter>
-  // <React.StrictMode>
-  //   <BrowserRouter>
-  //     <Routes>
-  //       <Route path="/" element={<App />}>
-  //         <Route index element={<Entry />} />
-  //         <Route path="single" element={<Single />} />
-  //         <Route
-  //           path="room/:id"
-  //           element={
-  //             <RequiredName>
-  //               <Room />
-  //             </RequiredName>
-  //           }
-  //         />
-  //         <Route
-  //           path="rooms"
-  //           element={
-  //             <RequiredName>
-  //               <Rooms />
-  //             </RequiredName>
-  //           }
-  //         />
-  //       </Route>
-  //     </Routes>
-  //   </BrowserRouter>
-  // </React.StrictMode>
+  <React.StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />}>
+          <Route index element={<Entry />} />
+          <Route path="single" element={<Single />} />
+          <Route path="room/:id" element={<Room />} />
+          <Route path="rooms" element={<Rooms />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  </React.StrictMode>
 );
