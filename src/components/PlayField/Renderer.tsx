@@ -1,7 +1,9 @@
-import { ReactElement, FC, cloneElement } from "react";
-import { ICube, CUBE_STATE } from "../../common/tetrimino";
+import { ReactElement, FC, cloneElement, useRef, useState } from "react";
+import { ICube, CUBE_STATE, ICoordinate } from "../../common/tetrimino";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
+import { Transition } from "react-transition-group";
+import Font from "../Font";
 
 const Wrapper = styled.div`
   position: absolute;
@@ -66,11 +68,34 @@ const Cube = styled.div.attrs<ICubeBlock>((props) => ({
   }
 `;
 
+const ScoreText = styled.div<IPosition & { opacity: number; transform: string }>`
+  position: absolute;
+  left: ${(props) => `${props.left}px`};
+  top: ${(props) => `${props.top}px`};
+  opacity: ${(props) => props.opacity};
+  transform: ${(props) => props.transform};
+  transition: transform 0.1s, opacity 0.1s;
+  z-index: 1;
+`;
+
+const ScoreTextTransition = {
+  entering: { opacity: 1, transform: "translateY(0%)" },
+  entered: { opacity: 1, transform: "translateY(0%)" },
+  exiting: { opacity: 0, transform: "translateY(-100%)" },
+  exited: { opacity: 0, transform: "translateY(100%)" },
+  unmounted: { opacity: 0, transform: "translateY(0%)" },
+};
+
 export interface IPlayFieldRenderer {
   cubeDistance: number;
   matrix: Array<ICube & { id: string }>;
   tetrimino: Array<ICube> | null;
   previewTetrimino: Array<ICube> | null;
+  scoreText: {
+    enter: boolean;
+    text: string;
+    coordinate: ICoordinate;
+  };
 }
 
 const makeCube = ({
@@ -101,7 +126,9 @@ const makeCube = ({
 };
 
 const Renderer: FC<IPlayFieldRenderer> = (props) => {
-  const { matrix, tetrimino, previewTetrimino, cubeDistance } = props;
+  const { matrix, tetrimino, previewTetrimino, cubeDistance, scoreText } = props;
+
+  const scoreTextRef = useRef<HTMLDivElement>(null);
 
   return (
     <Wrapper>
@@ -122,6 +149,20 @@ const Renderer: FC<IPlayFieldRenderer> = (props) => {
         });
         return cloneElement(cubeEl, { key: id });
       })}
+      <Transition nodeRef={scoreTextRef} in={scoreText.enter} timeout={300}>
+        {(state) => {
+          return (
+            <ScoreText
+              ref={scoreTextRef}
+              left={cubeDistance * scoreText.coordinate.x}
+              top={cubeDistance * scoreText.coordinate.y}
+              {...ScoreTextTransition[state]}
+            >
+              <Font level="four">{scoreText.text}</Font>
+            </ScoreText>
+          );
+        }}
+      </Transition>
     </Wrapper>
   );
 };

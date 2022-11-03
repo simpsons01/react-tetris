@@ -22,7 +22,8 @@ import {
   DEFAULT_START_LEVEL,
   getLevelByLine,
   getTetriminoFallingDelayByLevel,
-  getScoreByLevelAndLine,
+  getScoreByTSpinAndLevelAndLine,
+  getScoreTextByTSpinAndLine,
   DISPLAY_ZONE_ROW_START,
 } from "../common/matrix";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
@@ -68,6 +69,7 @@ const Single: FC = () => {
     tetrimino,
     displayMatrix,
     displayTetriminoCoordinates,
+    prevTetrimino,
     setPrevTetrimino,
     setTetriminoToMatrix,
     getSpawnTetrimino,
@@ -123,6 +125,8 @@ const Single: FC = () => {
   const [level, setLevel] = useState(DEFAULT_START_LEVEL);
 
   const [score, setScore] = useState(0);
+
+  const [scoreText, setScoreText] = useState({ enter: false, text: "", coordinate: { x: 0, y: 0 } });
 
   const [tetriminoFallingDelay, setTetriminoFallingDelay] = useState(
     getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL)
@@ -397,15 +401,27 @@ const Single: FC = () => {
         break;
       case MATRIX_PHASE.CHECK_IS_ROW_FILLED:
         const tSpinType = getTSpinType();
-        console.log(tSpinType);
         const filledRow = getRowFilledWithCube();
-        if (filledRow) {
+        if (filledRow.length > 0) {
           setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
           const nextLineValue = line + filledRow.length;
           const nextLevel = getLevelByLine(nextLineValue);
-          setScore((prevScore) => prevScore + getScoreByLevelAndLine(level, filledRow.length));
+          setScore(
+            (prevScore) => prevScore + getScoreByTSpinAndLevelAndLine(tSpinType, level, filledRow.length)
+          );
           setLine(nextLineValue);
           setLevel(getLevelByLine(nextLineValue));
+          setScoreText(() => {
+            const offset = 3;
+            return {
+              enter: true,
+              text: getScoreTextByTSpinAndLine(tSpinType, filledRow.length),
+              coordinate: {
+                ...prevTetrimino.current.anchor,
+                y: prevTetrimino.current.anchor.y - DISPLAY_ZONE_ROW_START - offset,
+              },
+            };
+          });
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
           resetLastTetriminoRotateWallKickPosition();
           resetTetriminoMoveTypeRecord();
@@ -449,6 +465,7 @@ const Single: FC = () => {
     isGameStart,
     matrixPhase,
     tetrimino,
+    prevTetrimino,
     handleTetriminoCreate,
     handleGameOver,
     setGameState,
@@ -467,6 +484,18 @@ const Single: FC = () => {
     getTSpinType,
     setPrevTetrimino,
   ]);
+
+  useEffect(() => {
+    let timer: number | undefined;
+    if (scoreText) {
+      timer = window.setTimeout(() => {
+        setScoreText((prevScoreText) => ({ ...prevScoreText, enter: false }));
+      }, 500);
+    }
+    return () => {
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [scoreText]);
 
   return (
     <Wrapper
@@ -540,6 +569,7 @@ const Single: FC = () => {
           height={singleSizeConfig.playField.height}
         >
           <PlayField.Renderer
+            scoreText={scoreText}
             cubeDistance={singleSizeConfig.playField.cube}
             matrix={displayMatrix}
             tetrimino={displayTetriminoCoordinates}

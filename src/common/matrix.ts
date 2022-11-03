@@ -1,8 +1,10 @@
+import { T_SPIN_TYPE } from "./tetrimino";
+
 export const PER_COL_CUBE_NUM = 10;
 
 export const PER_ROW_CUBE_NUM = 40;
 
-export const DEFAULT_START_LEVEL = 0;
+export const DEFAULT_START_LEVEL = 1;
 
 export const BUFFER_ZONE_ROW_START = 0;
 
@@ -12,11 +14,10 @@ export const DISPLAY_ZONE_ROW_START = 20;
 
 export const DISPLAY_ZONE_ROW_END = 39;
 
-export const getLevelByLine = (line: number): number => Math.floor(line / 10);
+export const getLevelByLine = (line: number): number => DEFAULT_START_LEVEL + Math.floor(line / 10);
 
 export const getTetriminoFallingDelayByLevel = (level: number) => {
   const sec = {
-    "0": 1000,
     "1": 1000,
     "2": 793,
     "3": 618,
@@ -36,17 +37,74 @@ export const getTetriminoFallingDelayByLevel = (level: number) => {
   return sec ?? 7;
 };
 
-export const getScoreByLevelAndLine = (level: number, line: number): number => {
-  let score = 0;
-  const magnification = level + 1;
-  if (line === 1) {
-    score = 40 * magnification;
-  } else if (line === 2) {
-    score = 100 * magnification;
-  } else if (line === 3) {
-    score = 300 * magnification;
-  } else if (line === 4) {
-    score = 1200 * magnification;
+export const getScoreTextByTSpinAndLine = (tSpin: null | T_SPIN_TYPE, line: number): string => {
+  let text = "";
+  if (tSpin) {
+    if (tSpin === T_SPIN_TYPE.NORMAL) {
+      if (line === 0) {
+        text = "T-Spin";
+      } else if (line === 1) {
+        text = "T-Spin Single";
+      } else if (line === 2) {
+        text = "T-Spin Double";
+      } else if (line === 3) {
+        text = "T-Spin Triple";
+      }
+    } else {
+      if (line === 1) {
+        text = "Mini T-Spin Single";
+      } else {
+        text = "Mini T-Spin";
+      }
+    }
+  } else {
+    if (line === 1) {
+      text = "Single";
+    } else if (line === 2) {
+      text = "Double";
+    } else if (line === 3) {
+      text = "Triple";
+    } else if (line === 4) {
+      text = "Tetris";
+    }
   }
-  return score;
+  return text + "!";
+};
+
+export const getScoreByTSpinAndLevelAndLine = (
+  tSpin: null | T_SPIN_TYPE,
+  level: number,
+  line: number
+): number => {
+  let base = 0;
+  if (tSpin) {
+    if (tSpin === T_SPIN_TYPE.NORMAL) {
+      if (line === 0) {
+        base = 400;
+      } else if (line === 1) {
+        base = 800;
+      } else if (line === 2) {
+        base = 1200;
+      } else if (line === 3) {
+        base = 1600;
+      }
+    } else {
+      if (line === 1) {
+        base = 100;
+      } else {
+        base = 800;
+      }
+    }
+  } else {
+    if (line === 1) {
+      base = 100;
+    } else if (line === 2) {
+      base = 300;
+    } else if (line === 3) {
+      base = 500;
+    } else if (line === 4) {
+      base = 800;
+    }
+  }
+  return base * level;
 };

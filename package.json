@@ -52,6 +52,7 @@
     ]
   },
   "devDependencies": {
-    "@types/ramda": "^0.28.13"
+    "@types/ramda": "^0.28.13",
+    "@types/react-transition-group": "^4.4.5"
   }
 }

@@ -710,6 +710,7 @@ const Room: FC = () => {
             height={doubleSizeConfig.playField.height}
           >
             <PlayField.Renderer
+              scoreText={{ enter: false, text: "", coordinate: { x: 0, y: 0 } }}
               cubeDistance={doubleSizeConfig.playField.cube}
               matrix={selfMatrix}
               tetrimino={selfTetriminoCoordinates}
@@ -759,6 +760,7 @@ const Room: FC = () => {
             height={doubleSizeConfig.playField.height}
           >
             <PlayField.Renderer
+              scoreText={{ enter: false, text: "", coordinate: { x: 0, y: 0 } }}
               cubeDistance={doubleSizeConfig.playField.cube}
               matrix={opponentMatrix}
               tetrimino={opponentTetriminoCoordinates}

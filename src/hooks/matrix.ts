@@ -712,6 +712,7 @@ const useMatrix = function () {
     displayMatrix,
     displayTetriminoCoordinates,
     tetriminoMoveTypeRecord,
+    prevTetrimino,
     setPrevTetrimino,
     setTetrimino,
     setMatrix,
