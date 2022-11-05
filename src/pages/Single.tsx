@@ -230,6 +230,7 @@ const Single: FC = () => {
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      console.log("keydown");
       if (isGameOver) return;
       if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
         if (e.key === Key.ArrowLeft) {
@@ -378,7 +379,7 @@ const Single: FC = () => {
           }
           if (isSoftDropPress.current) {
             if (tetriminoFallingTimer.isPending()) {
-              tetriminoCollideBottomTimer.clear();
+              tetriminoFallingTimer.clear();
             }
           } else {
             if (tetriminoFallingTimer.isPending()) {
