@@ -29,6 +29,9 @@ import {
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import { Key } from "ts-key-enum";
 import useHoldTetrimino from "../hooks/holdTetrimino";
+import Modal from "../components/Modal";
+import Font from "../components/Font";
+import { Link } from "react-router-dom";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -56,6 +59,19 @@ const Settings = styled.div`
   img {
     display: block;
     max-width: 100%;
+  }
+`;
+
+const ToolModalList = styled.ul`
+  li {
+    a {
+      text-decoration: none;
+    }
+
+    button {
+      border: none;
+      background-color: transparent;
+    }
   }
 `;
 
@@ -131,7 +147,7 @@ const Single: FC = () => {
 
   const isHardDrop = useRef(false);
 
-  const [isSoftDropPress, setIsSoftDropPress] = useState(false);
+  const isSoftDropPress = useRef(false);
 
   const [matrixPhase, setMatrixPhase] = useState<MATRIX_PHASE | null>(null);
 
@@ -148,6 +164,8 @@ const Single: FC = () => {
   const [tetriminoFallingDelay, setTetriminoFallingDelay] = useState(
     getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL)
   );
+
+  const [isToolModalOpen, setIsToolModalOpen] = useState(false);
 
   const isGameStart = useMemo(() => gameState === GAME_STATE.START, [gameState]);
 
@@ -270,7 +288,7 @@ const Single: FC = () => {
             pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.RIGHT_MOVE);
           }
         } else if (e.key === Key.ArrowDown) {
-          setIsSoftDropPress(true);
+          if (e.repeat) setRef(isSoftDropPress, true);
           const isSuccess = moveTetrimino(DIRECTION.DOWN);
           if (isSuccess) {
             pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.SOFT_DROP);
@@ -318,11 +336,7 @@ const Single: FC = () => {
         }
       }
       if (e.key === Key.Escape) {
-        if (isPausing) {
-          handleGameContinue();
-        } else {
-          handleGamePause();
-        }
+        setIsToolModalOpen((prevIsToolModalOpen) => !prevIsToolModalOpen);
       }
     },
     [
@@ -338,8 +352,6 @@ const Single: FC = () => {
       changeHoldTetrimino,
       handleTetriminoCreate,
       handleGameOver,
-      handleGameContinue,
-      handleGamePause,
       resetTetriminoMoveTypeRecord,
     ]
   );
@@ -349,7 +361,7 @@ const Single: FC = () => {
   useEffect(() => {
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === Key.ArrowDown) {
-        setIsSoftDropPress(false);
+        setRef(isSoftDropPress, false);
       }
     };
     window.addEventListener("keyup", onKeyUp);
@@ -401,7 +413,7 @@ const Single: FC = () => {
           if (tetriminoCollideBottomTimer.isPending()) {
             tetriminoCollideBottomTimer.clear();
           }
-          if (isSoftDropPress) {
+          if (isSoftDropPress.current) {
             if (tetriminoFallingTimer.isPending()) {
               tetriminoFallingTimer.clear();
             }
@@ -627,10 +639,39 @@ const Single: FC = () => {
           />
         </Column>
         <Settings>
-          <button>
+          <button onClick={() => setIsToolModalOpen(true)}>
             <img src={`${process.env.REACT_APP_STATIC_URL}/settings.png`} alt="setting" />
           </button>
         </Settings>
+        <Modal.Base
+          isOpen={isToolModalOpen}
+          onCloseBtnClick={() => setIsToolModalOpen(false)}
+          body={
+            <ToolModalList className="nes-list is-circle">
+              <li>
+                <Link to="/">
+                  <Font inline={true} level={"two"}>
+                    HOME
+                  </Font>
+                </Link>
+              </li>
+              <li>
+                <button onClick={() => {}}>
+                  <Font inline={true} level={"two"}>
+                    PLAY 2P
+                  </Font>
+                </button>
+              </li>
+              <li>
+                <button>
+                  <Font inline={true} level={"two"}>
+                    SETTINGS
+                  </Font>
+                </button>
+              </li>
+            </ToolModalList>
+          }
+        />
       </Wrapper>
     </Fragment>
   );

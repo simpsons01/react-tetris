@@ -31,29 +31,56 @@ const Footer = styled.div`
   }
 `;
 
+const CloseBtn = styled.button`
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  border: none;
+  background-color: transparent;
+
+  i {
+    transform: scale(2);
+  }
+`;
+
 export interface IBaseModal {
   isOpen: boolean;
   title?: string;
   body?: React.ReactNode;
   confirm?: {
     text: string;
-    onClick: (e: React.MouseEvent) => void;
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   };
   cancel?: {
     text: string;
-    onClick: (e: React.MouseEvent) => void;
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   };
+  onCloseBtnClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   mountEl?: HTMLElement;
   portal?: boolean;
 }
 
 const BaseModal: FC<IBaseModal> = (props) => {
-  const { isOpen, title, body, confirm, cancel, mountEl = document.body, portal = true } = props;
+  const {
+    isOpen,
+    title,
+    body,
+    confirm,
+    cancel,
+    mountEl = document.body,
+    portal = true,
+    onCloseBtnClick,
+  } = props;
   if (!isOpen) return null;
 
   const modalElement = (
     <Overlay>
       <Container className="nes-dialog is-rounded">
+        {onCloseBtnClick ? (
+          <CloseBtn onClick={onCloseBtnClick}>
+            <i className="nes-icon close" />
+          </CloseBtn>
+        ) : null}
         {title ? (
           <Header>
             <Font level={"four"}>{title}</Font>
