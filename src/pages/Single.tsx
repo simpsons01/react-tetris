@@ -142,6 +142,7 @@ const Single: FC = () => {
     const previewCoordinates = getTetriminoPreviewCoordinates();
     if (previewCoordinates !== null && tetrimino.type !== null) {
       return previewCoordinates.map(({ x, y }) => ({
+        type: tetrimino.type,
         x,
         y: y - DISPLAY_ZONE_ROW_START,
       })) as Array<ICube>;
@@ -230,7 +231,6 @@ const Single: FC = () => {
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      console.log("keydown");
       if (isGameOver) return;
       if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
         if (e.key === Key.ArrowLeft) {

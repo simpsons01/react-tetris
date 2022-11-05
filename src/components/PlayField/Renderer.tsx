@@ -1,71 +1,15 @@
 import { ReactElement, FC, cloneElement, useRef, useState } from "react";
-import { ICube, CUBE_STATE, ICoordinate } from "../../common/tetrimino";
-import styled from "styled-components";
+import { ICube, CUBE_STATE, ICoordinate, TETRIMINO_TYPE } from "../../common/tetrimino";
+import styled, { StyledComponent } from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
 import { Transition } from "react-transition-group";
 import Font from "../Font";
+import Cube from "../Cube";
 
 const Wrapper = styled.div`
   position: absolute;
   width: 100%;
   height: 100%;
-`;
-
-interface ICubeBlock extends ISize, IPosition {
-  isFilled: boolean;
-  isPreview: boolean;
-}
-const Cube = styled.div.attrs<ICubeBlock>((props) => ({
-  className: `${props.className !== undefined ? props.className : ""} ${props.isFilled ? "filled" : ""} ${
-    props.isPreview ? "preview" : ""
-  }`,
-  style: {
-    left: `${props.left}px`,
-    top: `${props.top}px`,
-    width: `${props.width}px`,
-    height: `${props.height}px`,
-  },
-}))<ICubeBlock>`
-  border-width: 3px;
-  border-style: solid;
-  border-color: transparent;
-  &&& {
-    padding: 0;
-    position: absolute;
-  }
-  &.filled {
-    background-color: #212529;
-    border-width: 35%;
-    border-top-color: #fcfcfc;
-    border-left-color: #fcfcfc;
-    border-right-color: #7c7c7c;
-    border-bottom-color: #7c7c7c;
-
-    &::before {
-      content: "";
-      display: block;
-      height: 10%;
-      width: 20%;
-      background-color: #fff;
-      position: absolute;
-      left: 20%;
-      top: 10%;
-    }
-
-    &::after {
-      content: "";
-      display: block;
-      height: 15%;
-      width: 10%;
-      background-color: #fff;
-      position: absolute;
-      left: 20%;
-      top: 20%;
-    }
-  }
-  &.preview {
-    opacity: 0.3;
-  }
 `;
 
 const ScoreText = styled.div<IPosition & { opacity: number; transform: string }>`
@@ -99,6 +43,7 @@ export interface IPlayFieldRenderer {
 }
 
 const makeCube = ({
+  type,
   left,
   top,
   cubeDistance,
@@ -106,6 +51,7 @@ const makeCube = ({
   isTetrimino,
   isFilled,
 }: {
+  type: TETRIMINO_TYPE | null;
   left: number;
   top: number;
   cubeDistance: number;
@@ -113,16 +59,33 @@ const makeCube = ({
   isTetrimino: boolean;
   isFilled: boolean;
 }): ReactElement => {
-  return (
-    <Cube
-      left={left * cubeDistance}
-      top={top * cubeDistance}
-      width={cubeDistance}
-      height={cubeDistance}
-      isFilled={isFilled}
-      isPreview={isFilled && isPreview && !isTetrimino}
-    />
-  );
+  const props = {
+    left,
+    top,
+    width: cubeDistance,
+    height: cubeDistance,
+    isFilled,
+    isPreview: isFilled && isPreview && !isTetrimino,
+  };
+  let CubeEl: typeof Cube.Base;
+  if (type === TETRIMINO_TYPE.I) {
+    CubeEl = Cube.I;
+  } else if (type === TETRIMINO_TYPE.J) {
+    CubeEl = Cube.J;
+  } else if (type === TETRIMINO_TYPE.L) {
+    CubeEl = Cube.L;
+  } else if (type === TETRIMINO_TYPE.O) {
+    CubeEl = Cube.O;
+  } else if (type === TETRIMINO_TYPE.S) {
+    CubeEl = Cube.S;
+  } else if (type === TETRIMINO_TYPE.Z) {
+    CubeEl = Cube.Z;
+  } else if (type === TETRIMINO_TYPE.T) {
+    CubeEl = Cube.T;
+  } else {
+    CubeEl = Cube.Base;
+  }
+  return <CubeEl {...props} />;
 };
 
 const Renderer: FC<IPlayFieldRenderer> = (props) => {
@@ -133,15 +96,21 @@ const Renderer: FC<IPlayFieldRenderer> = (props) => {
   return (
     <Wrapper>
       {matrix.map((cube) => {
-        const { x, y, state, id } = cube;
+        const { x, y, state, id, type } = cube;
         const isTetriminoCube =
           tetrimino === null ? false : tetrimino.some((cube) => cube.x === x && cube.y === y);
         const isPreviewTetriminoCube =
           previewTetrimino === null ? false : previewTetrimino.some((cube) => cube.x === x && cube.y === y);
         const isFilled = isTetriminoCube || isPreviewTetriminoCube || state === CUBE_STATE.FILLED;
+        const _type = isTetriminoCube
+          ? (tetrimino as Array<ICube>)[0].type
+          : isPreviewTetriminoCube
+          ? (previewTetrimino as Array<ICube>)[0].type
+          : type;
         const cubeEl = makeCube({
-          left: x,
-          top: y,
+          type: _type,
+          left: x * cubeDistance,
+          top: y * cubeDistance,
           isFilled,
           isTetrimino: isTetriminoCube,
           isPreview: isPreviewTetriminoCube,

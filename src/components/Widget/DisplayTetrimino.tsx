@@ -1,8 +1,7 @@
-import { useRef, useMemo, FC } from "react";
+import { useRef, useMemo, FC, ReactElement, cloneElement } from "react";
 import {
   getCoordinateByAnchorAndShapeAndType,
   getTetriminoConfig,
-  ICoordinate,
   PER_TETRIMINO_CUBE_NUM,
   TETRIMINO_SHAPE,
   TETRIMINO_TYPE,
@@ -10,8 +9,9 @@ import {
 } from "../../common/tetrimino";
 import { nanoid } from "nanoid";
 import styled from "styled-components";
-import { ISize, IPosition } from "../../common/utils";
+import { ISize } from "../../common/utils";
 import Font from "../Font";
+import Cube from "../Cube";
 
 const Wrapper = styled.div``;
 
@@ -33,48 +33,43 @@ const TetriminoContainer = styled.div<ISize & { isFirstCube: boolean }>`
   margin-top: ${(props) => `${props.isFirstCube ? "0px" : "20px"}`};
 `;
 
-interface ICubeBlock extends ISize, IPosition {}
-const Cube = styled.div<ICubeBlock>`
-  left: ${(props) => `${props.left}px`};
-  top: ${(props) => `${props.top}px`};
-  width: ${(props) => `${props.width}px`};
-  height: ${(props) => `${props.height}px`};
-  border-width: 3px;
-  border-style: solid;
-  border-color: transparent;
-  background-color: #212529;
-  border-width: 35%;
-  border-top-color: #fcfcfc;
-  border-left-color: #fcfcfc;
-  border-right-color: #7c7c7c;
-  border-bottom-color: #7c7c7c;
-
-  &::before {
-    content: "";
-    display: block;
-    height: 10%;
-    width: 20%;
-    background-color: #fff;
-    position: absolute;
-    left: 20%;
-    top: 10%;
+const makeCube = ({
+  type,
+  left,
+  top,
+  cubeDistance,
+}: {
+  type: TETRIMINO_TYPE | null;
+  left: number;
+  top: number;
+  cubeDistance: number;
+}): ReactElement => {
+  const props = {
+    left: left,
+    top: top,
+    width: cubeDistance,
+    height: cubeDistance,
+  };
+  let CubeEl: typeof Cube.Base;
+  if (type === TETRIMINO_TYPE.I) {
+    CubeEl = Cube.I;
+  } else if (type === TETRIMINO_TYPE.J) {
+    CubeEl = Cube.J;
+  } else if (type === TETRIMINO_TYPE.L) {
+    CubeEl = Cube.L;
+  } else if (type === TETRIMINO_TYPE.O) {
+    CubeEl = Cube.O;
+  } else if (type === TETRIMINO_TYPE.S) {
+    CubeEl = Cube.S;
+  } else if (type === TETRIMINO_TYPE.Z) {
+    CubeEl = Cube.Z;
+  } else if (type === TETRIMINO_TYPE.T) {
+    CubeEl = Cube.T;
+  } else {
+    CubeEl = Cube.Base;
   }
-
-  &::after {
-    content: "";
-    display: block;
-    height: 15%;
-    width: 10%;
-    background-color: #fff;
-    position: absolute;
-    left: 20%;
-    top: 20%;
-  }
-  &&& {
-    padding: 0;
-    position: absolute;
-  }
-`;
+  return <CubeEl {...props} isFilled={true} isPreview={false} />;
+};
 
 const TETRIMINO_CUBE_X_NUM = 4;
 const TETRIMINO_CUBE_Y_NUM = 2;
@@ -97,21 +92,30 @@ const Next: FC<INext> = (props) => {
     }))
   );
 
-  const tetriminoBagCoordinates = useMemo<Array<Array<ICoordinate>> | null>(() => {
+  const tetriminoBagCoordinates = useMemo(() => {
     if (tetriminoBag !== null) {
       return tetriminoBag.map((tetriminoType) => {
         const tetriminoAnchor = (() => {
           const tetriminoConfig = getTetriminoConfig(tetriminoType);
-          let anchor = { x: 0, y: 0 };
           const { coordinates: defaultCoordinate, anchorIndex } =
             tetriminoConfig.config[TETRIMINO_SHAPE.INITIAL].shape;
           const defaultAnchor = defaultCoordinate[anchorIndex];
           const { minX, maxX, maxY, minY } = getRangeByCoordinates(defaultCoordinate);
-          anchor.x = (TETRIMINO_CUBE_X_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX);
-          anchor.y = (TETRIMINO_CUBE_Y_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY);
+          const anchor = {
+            x: (TETRIMINO_CUBE_X_NUM - (maxX - minX + 1)) / 2 + (defaultAnchor.x - minX),
+            y: (TETRIMINO_CUBE_Y_NUM - (maxY - minY + 1)) / 2 + (defaultAnchor.y - minY),
+          };
           return anchor;
         })();
-        return getCoordinateByAnchorAndShapeAndType(tetriminoAnchor, tetriminoType, TETRIMINO_SHAPE.INITIAL);
+        const coordinates = getCoordinateByAnchorAndShapeAndType(
+          tetriminoAnchor,
+          tetriminoType,
+          TETRIMINO_SHAPE.INITIAL
+        );
+        return {
+          type: tetriminoType,
+          coordinates,
+        };
       });
     }
     return null;
@@ -129,23 +133,17 @@ const Next: FC<INext> = (props) => {
               height={TETRIMINO_CUBE_Y_NUM * cubeDistance}
               isFirstCube={zzzzzz === 0}
             >
-              {yyyyyy.data.map((id, fffff) => (
-                <Cube
-                  key={id}
-                  left={
-                    tetriminoBagCoordinates !== null
-                      ? tetriminoBagCoordinates[zzzzzz][fffff].x * cubeDistance
-                      : 0
-                  }
-                  top={
-                    tetriminoBagCoordinates !== null
-                      ? tetriminoBagCoordinates[zzzzzz][fffff].y * cubeDistance
-                      : 0
-                  }
-                  width={cubeDistance}
-                  height={cubeDistance}
-                />
-              ))}
+              {yyyyyy.data.map((id, fffff) => {
+                const type = tetriminoBagCoordinates ? tetriminoBagCoordinates[zzzzzz].type : null;
+                const left = tetriminoBagCoordinates
+                  ? tetriminoBagCoordinates[zzzzzz].coordinates[fffff].x * cubeDistance
+                  : 0;
+                const top = tetriminoBagCoordinates
+                  ? tetriminoBagCoordinates[zzzzzz].coordinates[fffff].y * cubeDistance
+                  : 0;
+                const cube = makeCube({ type, left, top, cubeDistance });
+                return cloneElement(cube, { key: id });
+              })}
             </TetriminoContainer>
           ))}
       </Panel>

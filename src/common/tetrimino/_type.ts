@@ -53,6 +53,7 @@ export interface ICoordinate {
 
 export interface ICube extends ICoordinate {
   state?: CUBE_STATE;
+  type: TETRIMINO_TYPE | null;
 }
 
 export interface ITetriminoConfig {

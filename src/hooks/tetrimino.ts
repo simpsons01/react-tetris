@@ -5,6 +5,7 @@ import {
   TETRIMINO_TYPE,
   DEFAULT_TETRIMINO_SHAPE,
   getCoordinateByAnchorAndShapeAndType,
+  ICube,
 } from "../common/tetrimino";
 import { setRef } from "../common/utils";
 
@@ -24,9 +25,11 @@ const useTetrimino = function () {
   const [tetrimino, setTetrimino] = useState<ITetrimino>(createInitialTetriminoState());
   const prevTetrimino = useRef<ITetrimino>(createInitialTetriminoState());
 
-  const tetriminoCoordinates = useMemo<Array<ICoordinate> | null>(() => {
+  const tetriminoCoordinates = useMemo<Array<ICube> | null>(() => {
     if (tetrimino.type == null) return null;
-    return getCoordinateByAnchorAndShapeAndType(tetrimino.anchor, tetrimino.type, tetrimino.shape);
+    return getCoordinateByAnchorAndShapeAndType(tetrimino.anchor, tetrimino.type, tetrimino.shape).map(
+      (coordinate) => ({ ...coordinate, type: tetrimino.type })
+    );
   }, [tetrimino]);
 
   const resetTetrimino = useCallback((): void => {

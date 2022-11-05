@@ -39,6 +39,7 @@ const createMatrix = () =>
       y: Math.floor(index / PER_COL_CUBE_NUM),
       id: nanoid(),
       state: condition(index, PER_COL_CUBE_NUM) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
+      type: null,
     };
   });
 
@@ -433,22 +434,24 @@ const useMatrix = function () {
   );
 
   const setTetriminoToMatrix = useCallback(() => {
-    if (tetriminoCoordinates == null) return;
+    if (tetrimino.type == null) return;
     setMatrix((prevMatrix) =>
       prevMatrix.map((cube) => {
-        const cubeInTetrimino = tetriminoCoordinates.find(({ x, y }) => cube.x === x && cube.y === y);
+        const cubeInTetrimino = (tetriminoCoordinates as Array<ICoordinate>).find(
+          ({ x, y }) => cube.x === x && cube.y === y
+        );
         if (cubeInTetrimino !== undefined && cube.state === CUBE_STATE.UNFILLED) {
           return {
             ...cubeInTetrimino,
             id: cube.id,
             state: CUBE_STATE.FILLED,
+            type: tetrimino.type,
           };
         }
         return cube;
       })
     );
-    resetTetrimino();
-  }, [tetriminoCoordinates, resetTetrimino]);
+  }, [tetriminoCoordinates, tetrimino]);
 
   const clearRowFilledWithCube = useCallback(
     (filledRow?: Array<number>): Promise<void> => {
@@ -484,6 +487,7 @@ const useMatrix = function () {
                       ) {
                         return {
                           ...cube,
+                          type: null,
                           state: CUBE_STATE.UNFILLED,
                         };
                       }
@@ -624,14 +628,14 @@ const useMatrix = function () {
                       return {
                         ...cube,
                         state: prevMatrix[index].state,
+                        type: prevMatrix[index].type,
                         y: cubeRow,
                       };
                     } else if (ddddddd !== undefined) {
                       return {
                         ...cube,
                         state: CUBE_STATE.UNFILLED,
-                        // strokeColor: "",
-                        // fillColor: "",
+                        type: null,
                         y: cubeRow,
                       };
                     }
