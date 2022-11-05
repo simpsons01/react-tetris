@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef, FC } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, FC, Fragment } from "react";
 import { setRef } from "../common/utils";
 import { createCountDownTimer } from "../common/timer";
 import useMatrix from "../hooks/matrix";
@@ -41,6 +41,22 @@ const Column = styled.div<ISize & { reverse?: boolean }>`
   position: relative;
   flex: ${(props) => `0 0 ${props.width}px`};
   height: ${(props) => `${props.height}px`};
+`;
+
+const Settings = styled.div`
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+
+  button {
+    border: none;
+    background-color: transparent;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
 `;
 
 enum MATRIX_PHASE {
@@ -203,6 +219,7 @@ const Single: FC = () => {
 
   const handleGamePause = useCallback(() => {
     // console.log("pause game!");
+    setGameState(GAME_STATE.PAUSE);
     pauseClearRowAnimation();
     pauseFillRowAnimation();
     tetriminoFallingTimer.clear();
@@ -211,6 +228,7 @@ const Single: FC = () => {
 
   const handleGameContinue = useCallback(() => {
     // console.log("continue game!");
+    setGameState(GAME_STATE.START);
     continueClearRowAnimation();
     continueFillRowAnimation();
     tetriminoFallingTimer.clear();
@@ -301,10 +319,8 @@ const Single: FC = () => {
       }
       if (e.key === Key.Escape) {
         if (isPausing) {
-          setGameState(GAME_STATE.START);
           handleGameContinue();
         } else {
-          setGameState(GAME_STATE.PAUSE);
           handleGamePause();
         }
       }
@@ -510,100 +526,113 @@ const Single: FC = () => {
   }, [scoreText]);
 
   return (
-    <Wrapper
-      width={
-        singleSizeConfig.playField.width +
-        singleSizeConfig.distanceBetweenPlayFieldAndWidget * 2 +
-        singleSizeConfig.widget.displayNumber.width +
-        singleSizeConfig.widget.displayNumber.width
-      }
-      height={singleSizeConfig.playField.height}
-    >
-      <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
-        <div
-          style={{
-            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
-          }}
-        >
-          <Widget.DisplayTetrimino
-            title={"HOLD"}
-            fontLevel={"three"}
-            cubeDistance={singleSizeConfig.widget.hold.cube}
-            displayTetriminoNum={1}
-            tetriminoBag={holdTetrimino ? [holdTetrimino] : null}
-            width={singleSizeConfig.widget.hold.width}
-            height={singleSizeConfig.widget.hold.height}
-          />
-        </div>
-        <div
-          style={{
-            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
-          }}
-        >
-          <Widget.DisplayNumber
-            fontLevel={"three"}
-            width={singleSizeConfig.widget.displayNumber.width}
-            height={singleSizeConfig.widget.displayNumber.height}
-            title={"LINE"}
-            displayValue={line}
-          />
-        </div>
-        <div
-          style={{
-            marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
-          }}
-        >
-          <Widget.DisplayNumber
-            fontLevel={"three"}
-            width={singleSizeConfig.widget.displayNumber.width}
-            height={singleSizeConfig.widget.displayNumber.height}
-            title={"LEVEL"}
-            displayValue={level}
-          />
-        </div>
-        <Widget.DisplayNumber
-          fontLevel={"three"}
-          width={singleSizeConfig.widget.displayNumber.width}
-          height={singleSizeConfig.widget.displayNumber.height}
-          title={"SCORE"}
-          displayValue={score}
-        />
-      </Column>
-      <Column
-        width={singleSizeConfig.playField.width}
+    <Fragment>
+      <Wrapper
+        width={
+          singleSizeConfig.playField.width +
+          singleSizeConfig.distanceBetweenPlayFieldAndWidget * 2 +
+          singleSizeConfig.widget.displayNumber.width +
+          singleSizeConfig.widget.displayNumber.width
+        }
         height={singleSizeConfig.playField.height}
-        style={{
-          margin: `0 ${singleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
-        }}
       >
-        <PlayField.Wrapper
-          width={singleSizeConfig.playField.width}
+        <Column
+          width={singleSizeConfig.widget.displayNumber.width}
           height={singleSizeConfig.playField.height}
         >
-          <PlayField.Renderer
-            scoreText={scoreText}
-            cubeDistance={singleSizeConfig.playField.cube}
-            matrix={displayMatrix}
-            tetrimino={displayTetriminoCoordinates}
-            previewTetrimino={previewTetriminoCoordinates}
+          <div
+            style={{
+              marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+            }}
+          >
+            <Widget.DisplayTetrimino
+              title={"HOLD"}
+              fontLevel={"three"}
+              cubeDistance={singleSizeConfig.widget.hold.cube}
+              displayTetriminoNum={1}
+              tetriminoBag={holdTetrimino ? [holdTetrimino] : null}
+              width={singleSizeConfig.widget.hold.width}
+              height={singleSizeConfig.widget.hold.height}
+            />
+          </div>
+          <div
+            style={{
+              marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+            }}
+          >
+            <Widget.DisplayNumber
+              fontLevel={"three"}
+              width={singleSizeConfig.widget.displayNumber.width}
+              height={singleSizeConfig.widget.displayNumber.height}
+              title={"LINE"}
+              displayValue={line}
+            />
+          </div>
+          <div
+            style={{
+              marginBottom: `${singleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+            }}
+          >
+            <Widget.DisplayNumber
+              fontLevel={"three"}
+              width={singleSizeConfig.widget.displayNumber.width}
+              height={singleSizeConfig.widget.displayNumber.height}
+              title={"LEVEL"}
+              displayValue={level}
+            />
+          </div>
+          <Widget.DisplayNumber
+            fontLevel={"three"}
+            width={singleSizeConfig.widget.displayNumber.width}
+            height={singleSizeConfig.widget.displayNumber.height}
+            title={"SCORE"}
+            displayValue={score}
           />
-          <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
-          <PlayField.PausePanel isPausing={isPausing} />
-          <PlayField.GameStartPanel onGameStart={handleGameStart} isGameStart={gameState == null} />
-        </PlayField.Wrapper>
-      </Column>
-      <Column width={singleSizeConfig.widget.displayNumber.width} height={singleSizeConfig.playField.height}>
-        <Widget.DisplayTetrimino
-          title={"NEXT"}
-          fontLevel={"three"}
-          cubeDistance={singleSizeConfig.widget.nextTetrimino.cube}
-          displayTetriminoNum={5}
-          tetriminoBag={nextTetriminoBag}
-          width={singleSizeConfig.widget.nextTetrimino.width}
-          height={singleSizeConfig.widget.nextTetrimino.height}
-        />
-      </Column>
-    </Wrapper>
+        </Column>
+        <Column
+          width={singleSizeConfig.playField.width}
+          height={singleSizeConfig.playField.height}
+          style={{
+            margin: `0 ${singleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
+          }}
+        >
+          <PlayField.Wrapper
+            width={singleSizeConfig.playField.width}
+            height={singleSizeConfig.playField.height}
+          >
+            <PlayField.Renderer
+              scoreText={scoreText}
+              cubeDistance={singleSizeConfig.playField.cube}
+              matrix={displayMatrix}
+              tetrimino={displayTetriminoCoordinates}
+              previewTetrimino={previewTetriminoCoordinates}
+            />
+            <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
+            <PlayField.PausePanel onPauseBtnClick={handleGameContinue} isPausing={isPausing} />
+            <PlayField.GameStartPanel onGameStart={handleGameStart} isGameStart={gameState == null} />
+          </PlayField.Wrapper>
+        </Column>
+        <Column
+          width={singleSizeConfig.widget.displayNumber.width}
+          height={singleSizeConfig.playField.height}
+        >
+          <Widget.DisplayTetrimino
+            title={"NEXT"}
+            fontLevel={"three"}
+            cubeDistance={singleSizeConfig.widget.nextTetrimino.cube}
+            displayTetriminoNum={5}
+            tetriminoBag={nextTetriminoBag}
+            width={singleSizeConfig.widget.nextTetrimino.width}
+            height={singleSizeConfig.widget.nextTetrimino.height}
+          />
+        </Column>
+        <Settings>
+          <button>
+            <img src={`${process.env.REACT_APP_STATIC_URL}/settings.png`} alt="setting" />
+          </button>
+        </Settings>
+      </Wrapper>
+    </Fragment>
   );
 };
 

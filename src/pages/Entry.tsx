@@ -8,20 +8,34 @@ import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
 import Font from "../components/Font";
 
-const EntryContainer = styled.div`
+const EntryContainer = styled.div``;
+
+const ListWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+
   ul {
     padding: 0;
-    margin-left: 20px;
+    list-style: none;
 
     li {
-      text-align: center;
-
       a {
         text-decoration: none;
       }
+
+      button {
+        border: none;
+        background-color: transparent;
+      }
+    }
+
+    li + li {
+      margin-top: 4px;
     }
   }
 `;
+
 const Entry: FC = () => {
   const navigate = useNavigate();
 
@@ -81,22 +95,31 @@ const Entry: FC = () => {
   return (
     <EntryContainer>
       <Font level={"one"}>TETRIS GAME</Font>
-      <ul className="nes-list is-circle">
-        <li>
-          <Link to="/single">
-            <Font inline={true} level={"two"}>
-              PLAY 1P
-            </Font>
-          </Link>
-        </li>
-        <li>
-          <a href={void 0} onClick={toRooms}>
-            <Font inline={true} level={"two"}>
-              PLAY 2P
-            </Font>
-          </a>
-        </li>
-      </ul>
+      <ListWrapper>
+        <ul className="nes-list is-circle">
+          <li>
+            <Link to="/single">
+              <Font inline={true} level={"two"}>
+                PLAY 1P
+              </Font>
+            </Link>
+          </li>
+          <li>
+            <button onClick={toRooms}>
+              <Font inline={true} level={"two"}>
+                PLAY 2P
+              </Font>
+            </button>
+          </li>
+          <li>
+            <button>
+              <Font inline={true} level={"two"}>
+                SETTINGS
+              </Font>
+            </button>
+          </li>
+        </ul>
+      </ListWrapper>
       <Modal.Base
         isOpen={isCreateUsernameModalOpen}
         title="ENTER YOUR NAME"

@@ -1,4 +1,4 @@
-import { ReactElement, FC, cloneElement, useRef, useState } from "react";
+import { ReactElement, FC, cloneElement, useRef } from "react";
 import { ICube, CUBE_STATE, ICoordinate } from "../../common/tetrimino";
 import styled from "styled-components";
 import { ISize, IPosition } from "../../common/utils";
