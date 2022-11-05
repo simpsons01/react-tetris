@@ -487,7 +487,7 @@ const Single: FC = () => {
 
   useEffect(() => {
     let timer: number | undefined;
-    if (scoreText) {
+    if (scoreText.enter) {
       timer = window.setTimeout(() => {
         setScoreText((prevScoreText) => ({ ...prevScoreText, enter: false }));
       }, 500);
