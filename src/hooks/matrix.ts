@@ -43,8 +43,15 @@ const createMatrix = () =>
   });
 
 const useMatrix = function () {
-  const { tetrimino, setTetrimino, resetTetrimino, setPrevTetrimino, tetriminoCoordinates, prevTetrimino } =
-    useTetrimino();
+  const {
+    tetrimino,
+    tetriminoCoordinates,
+    prevTetrimino,
+    setTetrimino,
+    resetTetrimino,
+    setPrevTetrimino,
+    resetPrevTetrimino,
+  } = useTetrimino();
 
   const [matrix, setMatrix] = useState<IPlayFieldRenderer["matrix"]>(createMatrix());
 
@@ -447,8 +454,7 @@ const useMatrix = function () {
         return cube;
       })
     );
-    resetTetrimino();
-  }, [tetriminoCoordinates, resetTetrimino]);
+  }, [tetriminoCoordinates]);
 
   const clearRowFilledWithCube = useCallback(
     (filledRow?: Array<number>): Promise<void> => {
@@ -742,6 +748,7 @@ const useMatrix = function () {
     resetTetriminoMoveTypeRecord,
     getTSpinType,
     resetLastTetriminoRotateWallKickPosition,
+    resetPrevTetrimino,
   };
 };
 

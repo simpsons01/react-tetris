@@ -95,6 +95,7 @@ const Single: FC = () => {
     resetTetriminoMoveTypeRecord,
     pushTetriminoMoveTypeRecord,
     resetLastTetriminoRotateWallKickPosition,
+    resetPrevTetrimino,
   } = useMatrix();
 
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag();
@@ -114,7 +115,7 @@ const Single: FC = () => {
 
   const isHardDrop = useRef(false);
 
-  const isSoftDropPress = useRef(false);
+  const [isSoftDropPress, setIsSoftDropPress] = useState(false);
 
   const [matrixPhase, setMatrixPhase] = useState<MATRIX_PHASE | null>(null);
 
@@ -227,7 +228,14 @@ const Single: FC = () => {
     setMatrixPhase(null);
     resetLastTetriminoRotateWallKickPosition();
     resetTetriminoMoveTypeRecord();
-  }, [resetTetrimino, resetMatrix, resetTetriminoMoveTypeRecord, resetLastTetriminoRotateWallKickPosition]);
+    resetPrevTetrimino();
+  }, [
+    resetMatrix,
+    resetTetrimino,
+    resetLastTetriminoRotateWallKickPosition,
+    resetTetriminoMoveTypeRecord,
+    resetPrevTetrimino,
+  ]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -244,7 +252,7 @@ const Single: FC = () => {
             pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.RIGHT_MOVE);
           }
         } else if (e.key === Key.ArrowDown) {
-          setRef(isSoftDropPress, true);
+          setIsSoftDropPress(true);
           const isSuccess = moveTetrimino(DIRECTION.DOWN);
           if (isSuccess) {
             pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.SOFT_DROP);
@@ -325,7 +333,7 @@ const Single: FC = () => {
   useEffect(() => {
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === Key.ArrowDown) {
-        setRef(isSoftDropPress, false);
+        setIsSoftDropPress(false);
       }
     };
     window.addEventListener("keyup", onKeyUp);
@@ -377,7 +385,7 @@ const Single: FC = () => {
           if (tetriminoCollideBottomTimer.isPending()) {
             tetriminoCollideBottomTimer.clear();
           }
-          if (isSoftDropPress.current) {
+          if (isSoftDropPress) {
             if (tetriminoFallingTimer.isPending()) {
               tetriminoFallingTimer.clear();
             }
@@ -398,6 +406,7 @@ const Single: FC = () => {
         setHoldTetriminoToHoldable();
         setRef(isHardDrop, false);
         setTetriminoToMatrix();
+        resetTetrimino();
         setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
         break;
       case MATRIX_PHASE.CHECK_IS_ROW_FILLED:
@@ -467,6 +476,7 @@ const Single: FC = () => {
     matrixPhase,
     tetrimino,
     prevTetrimino,
+    isSoftDropPress,
     handleTetriminoCreate,
     handleGameOver,
     setGameState,
@@ -484,6 +494,7 @@ const Single: FC = () => {
     resetLastTetriminoRotateWallKickPosition,
     getTSpinType,
     setPrevTetrimino,
+    resetTetrimino,
   ]);
 
   useEffect(() => {
