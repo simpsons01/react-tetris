@@ -222,6 +222,7 @@ const Single: FC = () => {
     setLine(0);
     setScore(0);
     setLevel(0);
+    setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL));
     setGameState(null);
     setMatrixPhase(null);
     resetLastTetriminoRotateWallKickPosition();
@@ -230,7 +231,6 @@ const Single: FC = () => {
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      console.log("keydown");
       if (isGameOver) return;
       if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
         if (e.key === Key.ArrowLeft) {

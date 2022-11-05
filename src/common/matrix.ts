@@ -42,33 +42,33 @@ export const getScoreTextByTSpinAndLine = (tSpin: null | T_SPIN_TYPE, line: numb
   if (tSpin) {
     if (tSpin === T_SPIN_TYPE.NORMAL) {
       if (line === 0) {
-        text = "T-Spin";
+        text = "T-SPIN";
       } else if (line === 1) {
-        text = "T-Spin Single";
+        text = "T-SPIN SINGLE";
       } else if (line === 2) {
-        text = "T-Spin Double";
+        text = "T-SPIN DOUBLE!";
       } else if (line === 3) {
-        text = "T-Spin Triple";
+        text = "T-SPIN TRIPLE!";
       }
     } else {
       if (line === 1) {
-        text = "Mini T-Spin Single";
+        text = "MINI T-SPIN SINGLE";
       } else {
-        text = "Mini T-Spin";
+        text = "MINI T-SPIN";
       }
     }
   } else {
     if (line === 1) {
-      text = "Single";
+      text = "SINGLE";
     } else if (line === 2) {
-      text = "Double";
+      text = "DOUBLE";
     } else if (line === 3) {
-      text = "Triple";
+      text = "TRIPLE!";
     } else if (line === 4) {
-      text = "Tetris";
+      text = "TETRIS!";
     }
   }
-  return text + "!";
+  return text;
 };
 
 export const getScoreByTSpinAndLevelAndLine = (
