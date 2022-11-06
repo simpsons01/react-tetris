@@ -7,6 +7,7 @@ import { ISocketContext, SocketContext } from "../context/socket";
 import { createAlertModal } from "../common/alert";
 import { ClientToServerCallback } from "../common/socket";
 import Font from "../components/Font";
+import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 
 const EntryContainer = styled.div``;
 
@@ -52,6 +53,8 @@ const Entry: FC = () => {
   const [isCreateUsernameModalOpen, setIsCreateNameModalOpen] = useState<boolean>(false);
 
   const [userName, setUserName] = useState<string>("");
+
+  const { open: openSettingModal } = useSettingModalVisibilityContext();
 
   const saveName = useCallback(
     (name: string) => {
@@ -112,7 +115,7 @@ const Entry: FC = () => {
             </button>
           </li>
           <li>
-            <button>
+            <button onClick={openSettingModal}>
               <Font inline={true} level={"two"}>
                 SETTINGS
               </Font>

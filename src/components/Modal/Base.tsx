@@ -45,7 +45,7 @@ const CloseBtn = styled.button`
 
 export interface IBaseModal {
   isOpen: boolean;
-  title?: string;
+  title?: React.ReactNode | string;
   body?: React.ReactNode;
   confirm?: {
     text: string;
@@ -82,9 +82,7 @@ const BaseModal: FC<IBaseModal> = (props) => {
           </CloseBtn>
         ) : null}
         {title ? (
-          <Header>
-            <Font level={"four"}>{title}</Font>
-          </Header>
+          <Header>{typeof title === "string" ? <Font level={"four"}>{title}</Font> : title}</Header>
         ) : null}
         {body ? (
           <Body>

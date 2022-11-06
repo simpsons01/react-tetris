@@ -59,6 +59,4 @@ export interface ISizeConfig {
 
 export const SizeConfigContext = createContext<ISizeConfig>({} as ISizeConfig);
 
-export const useSizeConfigContext = function () {
-  return useContext(SizeConfigContext);
-};
+export const useSizeConfigContext = () => useContext(SizeConfigContext);

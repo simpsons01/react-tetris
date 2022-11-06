@@ -32,6 +32,7 @@ import useHoldTetrimino from "../hooks/holdTetrimino";
 import Font from "../components/Font";
 import { Link } from "react-router-dom";
 import Overlay from "../components/Overlay";
+import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -186,6 +187,8 @@ const Single: FC = () => {
   const {
     mode: { single: singleSizeConfig },
   } = useSizeConfigContext();
+
+  const { open: openSettingModal } = useSettingModalVisibilityContext();
 
   const tetriminoFallingTimerHandler = useRef(() => {});
 
@@ -735,7 +738,7 @@ const Single: FC = () => {
                 </button>
               </li>
               <li>
-                <button>
+                <button onClick={openSettingModal}>
                   <Font color="#fff" inline={true} level={"two"}>
                     SETTINGS
                   </Font>
