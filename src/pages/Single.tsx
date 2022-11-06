@@ -29,9 +29,9 @@ import {
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import { Key } from "ts-key-enum";
 import useHoldTetrimino from "../hooks/holdTetrimino";
-import Modal from "../components/Modal";
 import Font from "../components/Font";
 import { Link } from "react-router-dom";
+import Overlay from "../components/Overlay";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -62,8 +62,12 @@ const Settings = styled.div`
   }
 `;
 
-const ToolModalList = styled.ul`
+const ToolList = styled.ul`
   li {
+    &:before {
+      color: #fff !important;
+    }
+
     a {
       text-decoration: none;
     }
@@ -72,6 +76,46 @@ const ToolModalList = styled.ul`
       border: none;
       background-color: transparent;
     }
+  }
+`;
+
+const CloseBtn = styled.button`
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  border: none;
+  background-color: transparent;
+  width: 40px;
+  height: 40px;
+
+  i {
+    transform: scale(2);
+    color: #fff;
+  }
+
+  &:after {
+    position: absolute;
+    content: "";
+    display: block;
+    background-color: #fff;
+    width: 40px;
+    height: 4px;
+
+    transform: rotate(45deg);
+    left: 0;
+    top: 15px;
+  }
+
+  &:before {
+    position: absolute;
+    content: "";
+    display: block;
+    background-color: #fff;
+    width: 40px;
+    height: 4px;
+    left: 0;
+    top: 15px;
+    transform: rotate(135deg);
   }
 `;
 
@@ -165,7 +209,7 @@ const Single: FC = () => {
     getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL)
   );
 
-  const [isToolModalOpen, setIsToolModalOpen] = useState(false);
+  const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
 
   const isGameStart = useMemo(() => gameState === GAME_STATE.START, [gameState]);
 
@@ -236,22 +280,26 @@ const Single: FC = () => {
   }, [pauseClearRowAnimation, pauseFillRowAnimation]);
 
   const handleGamePause = useCallback(() => {
-    // console.log("pause game!");
-    setGameState(GAME_STATE.PAUSE);
-    pauseClearRowAnimation();
-    pauseFillRowAnimation();
-    tetriminoFallingTimer.clear();
-    tetriminoCollideBottomTimer.clear();
-  }, [pauseClearRowAnimation, pauseFillRowAnimation]);
+    if (isGameStart) {
+      // console.log("pause game!");
+      setGameState(GAME_STATE.PAUSE);
+      pauseClearRowAnimation();
+      pauseFillRowAnimation();
+      tetriminoFallingTimer.clear();
+      tetriminoCollideBottomTimer.clear();
+    }
+  }, [isGameStart, pauseClearRowAnimation, pauseFillRowAnimation]);
 
   const handleGameContinue = useCallback(() => {
-    // console.log("continue game!");
-    setGameState(GAME_STATE.START);
-    continueClearRowAnimation();
-    continueFillRowAnimation();
-    tetriminoFallingTimer.clear();
-    tetriminoCollideBottomTimer.clear();
-  }, [continueClearRowAnimation, continueFillRowAnimation]);
+    if (isPausing) {
+      // console.log("continue game!");
+      setGameState(GAME_STATE.START);
+      continueClearRowAnimation();
+      continueFillRowAnimation();
+      tetriminoFallingTimer.clear();
+      tetriminoCollideBottomTimer.clear();
+    }
+  }, [isPausing, continueClearRowAnimation, continueFillRowAnimation]);
 
   const handleNextGame = useCallback(() => {
     resetMatrix();
@@ -273,9 +321,28 @@ const Single: FC = () => {
     resetPrevTetrimino,
   ]);
 
+  const openToolOverlay = useCallback(() => {
+    handleGamePause();
+    setIsToolOverlayOpen(true);
+  }, [handleGamePause]);
+
+  const closeToolOverlay = useCallback(() => {
+    handleGameContinue();
+    setIsToolOverlayOpen(false);
+  }, [handleGameContinue]);
+
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (isGameOver) return;
+      if (isGameOver) {
+        if (e.key === Key.Escape) {
+          if (isToolOverlayOpen) {
+            closeToolOverlay();
+          } else {
+            openToolOverlay();
+          }
+        }
+        return;
+      }
       if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
         if (e.key === Key.ArrowLeft) {
           const isSuccess = moveTetrimino(DIRECTION.LEFT);
@@ -336,7 +403,11 @@ const Single: FC = () => {
         }
       }
       if (e.key === Key.Escape) {
-        setIsToolModalOpen((prevIsToolModalOpen) => !prevIsToolModalOpen);
+        if (isToolOverlayOpen) {
+          closeToolOverlay();
+        } else {
+          openToolOverlay();
+        }
       }
     },
     [
@@ -345,6 +416,7 @@ const Single: FC = () => {
       matrixPhase,
       isHoldable,
       tetrimino.type,
+      isToolOverlayOpen,
       moveTetrimino,
       pushTetriminoMoveTypeRecord,
       changeTetriminoShape,
@@ -353,6 +425,8 @@ const Single: FC = () => {
       handleTetriminoCreate,
       handleGameOver,
       resetTetriminoMoveTypeRecord,
+      closeToolOverlay,
+      openToolOverlay,
     ]
   );
 
@@ -620,7 +694,7 @@ const Single: FC = () => {
               previewTetrimino={previewTetriminoCoordinates}
             />
             <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
-            <PlayField.PausePanel onPauseBtnClick={handleGameContinue} isPausing={isPausing} />
+            {/* <PlayField.PausePanel onPauseBtnClick={handleGameContinue} isPausing={isPausing} /> */}
             <PlayField.GameStartPanel onGameStart={handleGameStart} isGameStart={gameState == null} />
           </PlayField.Wrapper>
         </Column>
@@ -639,39 +713,38 @@ const Single: FC = () => {
           />
         </Column>
         <Settings>
-          <button onClick={() => setIsToolModalOpen(true)}>
+          <button onClick={openToolOverlay}>
             <img src={`${process.env.REACT_APP_STATIC_URL}/settings.png`} alt="setting" />
           </button>
         </Settings>
-        <Modal.Base
-          isOpen={isToolModalOpen}
-          onCloseBtnClick={() => setIsToolModalOpen(false)}
-          body={
-            <ToolModalList className="nes-list is-circle">
+        {isToolOverlayOpen ? (
+          <Overlay background="rgba(0, 0, 0, 0.8)">
+            <ToolList className="nes-list is-circle">
               <li>
                 <Link to="/">
-                  <Font inline={true} level={"two"}>
+                  <Font color="#fff" inline={true} level={"two"}>
                     HOME
                   </Font>
                 </Link>
               </li>
               <li>
                 <button onClick={() => {}}>
-                  <Font inline={true} level={"two"}>
+                  <Font color="#fff" inline={true} level={"two"}>
                     PLAY 2P
                   </Font>
                 </button>
               </li>
               <li>
                 <button>
-                  <Font inline={true} level={"two"}>
+                  <Font color="#fff" inline={true} level={"two"}>
                     SETTINGS
                   </Font>
                 </button>
               </li>
-            </ToolModalList>
-          }
-        />
+            </ToolList>
+            <CloseBtn onClick={closeToolOverlay} />
+          </Overlay>
+        ) : null}
       </Wrapper>
     </Fragment>
   );
