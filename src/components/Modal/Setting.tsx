@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { nanoid } from "nanoid";
+import { FC, useState } from "react";
 import styled from "styled-components";
 import { useSettingModalVisibilityContext } from "../../context/settingModalVisibility";
 import Font from "../Font";
@@ -9,7 +10,7 @@ const SettingModalBody = styled.div`
   min-width: 600px;
 `;
 
-const SettingModalSwitch = styled.div`
+const SettingModalTab = styled.div`
   position: relative;
   z-index: 1;
   ul {
@@ -42,13 +43,26 @@ const SettingModalSwitch = styled.div`
   }
 `;
 
-const SettingModalSwitchWrapper = styled.div`
+const SettingModalTabWrapper = styled.div`
   padding: 16px;
   border: 2px solid #212529;
   margin-top: -2px;
 `;
 
 const SettingModalControlWrapper = styled.div`
+  table {
+    width: calc(100% - 8px);
+    border-collapse: collapse;
+    border-spacing: 0px;
+
+    td {
+      padding: 8px;
+      border: 2px solid #212529;
+    }
+  }
+`;
+
+const SettingModalGamePlayWrapper = styled.div`
   table {
     width: calc(100% - 8px);
     border-collapse: collapse;
@@ -85,12 +99,147 @@ const KeyBoardKey = styled.div`
   }
 `;
 
+enum TAB {
+  CONTROL = "CONTROL",
+  GAMEPLAY = "GAMEPLAY",
+}
+
+const tabs = [
+  { tab: TAB.CONTROL, label: "CONTROL" },
+  { tab: TAB.GAMEPLAY, label: "GAMEPLAY" },
+].map((_) => ({ ..._, id: nanoid() }));
+
 export interface ISettingModal extends IBaseModal {}
 
 const Setting: FC<ISettingModal> = (props) => {
   const { isOpen } = props;
 
   const { close: closeSettingModal } = useSettingModalVisibilityContext();
+
+  const [tab, setTab] = useState(TAB.CONTROL);
+
+  let modalTabContent;
+
+  if (tab === TAB.CONTROL) {
+    modalTabContent = (
+      <SettingModalControlWrapper>
+        <table>
+          <colgroup>
+            <col style={{ width: "50%" }} />
+            <col style={{ width: "50%" }} />
+          </colgroup>
+          <tbody>
+            <tr>
+              <td>
+                <Font inline={true} level="six">
+                  LEFT
+                </Font>
+              </td>
+              <td>
+                <KeyBoardKey>
+                  <Font inline={true} level="six">
+                    ARROW LEFT
+                  </Font>
+                </KeyBoardKey>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Font inline={true} level="six">
+                  RIGHT
+                </Font>
+              </td>
+              <td>
+                <KeyBoardKey>
+                  <Font inline={true} level="six">
+                    ARROW RIGHT
+                  </Font>
+                </KeyBoardKey>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Font inline={true} level="six">
+                  ROTATION(CLOCKWISE)
+                </Font>
+              </td>
+              <td>
+                <KeyBoardKey>
+                  <Font inline={true} level="six">
+                    ARROW UP
+                  </Font>
+                </KeyBoardKey>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Font inline={true} level="six">
+                  ROTATION(COUNTER CLOCKWISE)
+                </Font>
+              </td>
+              <td>
+                <KeyBoardKey>
+                  <Font inline={true} level="six">
+                    Z
+                  </Font>
+                </KeyBoardKey>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Font inline={true} level="six">
+                  SOFT DROP
+                </Font>
+              </td>
+              <td>
+                <KeyBoardKey>
+                  <Font inline={true} level="six">
+                    ARROW DOWN
+                  </Font>
+                </KeyBoardKey>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Font inline={true} level="six">
+                  HARD DROP
+                </Font>
+              </td>
+              <td>
+                <KeyBoardKey>
+                  <Font inline={true} level="six">
+                    SPACE BAR
+                  </Font>
+                </KeyBoardKey>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Font inline={true} level="six">
+                  HOLD
+                </Font>
+              </td>
+              <td>
+                <KeyBoardKey>
+                  <Font inline={true} level="six">
+                    SHIFT
+                  </Font>
+                </KeyBoardKey>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </SettingModalControlWrapper>
+    );
+  } else {
+    modalTabContent = (
+      <SettingModalGamePlayWrapper>
+        <div>
+          <Font level="five">SINGLE</Font>
+        </div>
+      </SettingModalGamePlayWrapper>
+    );
+  }
 
   if (!isOpen) return null;
   return (
@@ -102,136 +251,23 @@ const Setting: FC<ISettingModal> = (props) => {
       }
       body={
         <SettingModalBody>
-          <SettingModalSwitch>
+          <SettingModalTab>
             <ul>
-              <li>
-                <button className="active">
-                  <Font color="#fff" inline={true} level="five">
-                    CONTROL
-                  </Font>
-                </button>
-              </li>
-              {/* <li>
-                <button>
-                  <Font inline={true} level="five">
-                    LANGUAGE
-                  </Font>
-                </button>
-              </li> */}
+              {tabs.map((_tab) => {
+                const isActive = _tab.tab === tab;
+                return (
+                  <li>
+                    <button onClick={() => setTab(_tab.tab)} className={isActive ? "active" : ""}>
+                      <Font color={isActive ? "#fff" : "#292929"} inline={true} level="five">
+                        {_tab.label}
+                      </Font>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
-          </SettingModalSwitch>
-          <SettingModalSwitchWrapper>
-            {
-              <SettingModalControlWrapper>
-                <table>
-                  <colgroup>
-                    <col style={{ width: "50%" }} />
-                    <col style={{ width: "50%" }} />
-                  </colgroup>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <Font inline={true} level="six">
-                          LEFT
-                        </Font>
-                      </td>
-                      <td>
-                        <KeyBoardKey>
-                          <Font inline={true} level="six">
-                            ARROW LEFT
-                          </Font>
-                        </KeyBoardKey>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Font inline={true} level="six">
-                          RIGHT
-                        </Font>
-                      </td>
-                      <td>
-                        <KeyBoardKey>
-                          <Font inline={true} level="six">
-                            ARROW RIGHT
-                          </Font>
-                        </KeyBoardKey>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Font inline={true} level="six">
-                          ROTATION(CLOCKWISE)
-                        </Font>
-                      </td>
-                      <td>
-                        <KeyBoardKey>
-                          <Font inline={true} level="six">
-                            ARROW UP
-                          </Font>
-                        </KeyBoardKey>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Font inline={true} level="six">
-                          ROTATION(COUNTER CLOCKWISE)
-                        </Font>
-                      </td>
-                      <td>
-                        <KeyBoardKey>
-                          <Font inline={true} level="six">
-                            Z
-                          </Font>
-                        </KeyBoardKey>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Font inline={true} level="six">
-                          SOFT DROP
-                        </Font>
-                      </td>
-                      <td>
-                        <KeyBoardKey>
-                          <Font inline={true} level="six">
-                            ARROW DOWN
-                          </Font>
-                        </KeyBoardKey>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Font inline={true} level="six">
-                          HARD DROP
-                        </Font>
-                      </td>
-                      <td>
-                        <KeyBoardKey>
-                          <Font inline={true} level="six">
-                            SPACE BAR
-                          </Font>
-                        </KeyBoardKey>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Font inline={true} level="six">
-                          HOLD
-                        </Font>
-                      </td>
-                      <td>
-                        <KeyBoardKey>
-                          <Font inline={true} level="six">
-                            SHIFT
-                          </Font>
-                        </KeyBoardKey>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </SettingModalControlWrapper>
-            }
-          </SettingModalSwitchWrapper>
+          </SettingModalTab>
+          <SettingModalTabWrapper>{modalTabContent}</SettingModalTabWrapper>
         </SettingModalBody>
       }
       isOpen={isOpen}
