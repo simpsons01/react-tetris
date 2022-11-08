@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   ICoordinate,
   TETRIMINO_SHAPE,
@@ -6,13 +6,7 @@ import {
   DEFAULT_TETRIMINO_SHAPE,
   getCoordinateByAnchorAndShapeAndType,
 } from "../common/tetrimino";
-import { setRef } from "../common/utils";
-
-const createInitialTetriminoState = () => ({
-  anchor: { x: -1, y: -1 },
-  shape: DEFAULT_TETRIMINO_SHAPE,
-  type: null,
-});
+import useCustomRef from "./customRef";
 
 export interface ITetrimino {
   anchor: ICoordinate;
@@ -20,9 +14,15 @@ export interface ITetrimino {
   type: TETRIMINO_TYPE | null;
 }
 
+const createInitialTetriminoState = (): ITetrimino => ({
+  anchor: { x: -1, y: -1 },
+  shape: DEFAULT_TETRIMINO_SHAPE,
+  type: null,
+});
+
 const useTetrimino = function () {
-  const [tetrimino, setTetrimino] = useState<ITetrimino>(createInitialTetriminoState());
-  const prevTetrimino = useRef<ITetrimino>(createInitialTetriminoState());
+  const [tetrimino, setTetrimino] = useState(createInitialTetriminoState());
+  const [prevTetriminoRef, setPrevTetriminoRef] = useCustomRef(createInitialTetriminoState());
 
   const tetriminoCoordinates = useMemo<Array<ICoordinate> | null>(() => {
     if (tetrimino.type == null) return null;
@@ -33,22 +33,18 @@ const useTetrimino = function () {
     setTetrimino(createInitialTetriminoState());
   }, [setTetrimino]);
 
-  const setPrevTetrimino = useCallback((tetrimino: ITetrimino) => {
-    setRef(prevTetrimino, tetrimino);
-  }, []);
-
-  const resetPrevTetrimino = useCallback(() => {
-    setRef(prevTetrimino, createInitialTetriminoState());
-  }, []);
+  const resetPrevTetriminoRef = useCallback(() => {
+    setPrevTetriminoRef(createInitialTetriminoState());
+  }, [setPrevTetriminoRef]);
 
   return {
     tetrimino,
     tetriminoCoordinates,
-    prevTetrimino,
+    prevTetriminoRef,
     setTetrimino,
     resetTetrimino,
-    setPrevTetrimino,
-    resetPrevTetrimino,
+    setPrevTetriminoRef,
+    resetPrevTetriminoRef,
   };
 };
 

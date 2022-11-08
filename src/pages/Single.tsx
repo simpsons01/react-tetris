@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef, FC, Fragment } from "react";
-import { setRef } from "../common/utils";
+import { useState, useEffect, useCallback, useMemo, FC, Fragment } from "react";
 import { createCountDownTimer } from "../common/timer";
 import useMatrix from "../hooks/matrix";
 import useNextTetriminoBag from "../hooks/nextTetriminoBag";
@@ -33,6 +32,8 @@ import Font from "../components/Font";
 import { Link } from "react-router-dom";
 import Overlay from "../components/Overlay";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
+import useCustomRef from "../hooks/customRef";
+import { AnyFunction } from "../common/utils";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -146,8 +147,11 @@ const Single: FC = () => {
     tetrimino,
     displayMatrix,
     displayTetriminoCoordinates,
-    prevTetrimino,
-    setPrevTetrimino,
+    prevTetriminoRef,
+    tetriminoMoveTypeRecordRef,
+    setPrevTetriminoRef,
+    setTetriminoMoveTypeRecordRef,
+    setLastTetriminoRotateWallKickPositionRef,
     setTetriminoToMatrix,
     getSpawnTetrimino,
     moveTetrimino,
@@ -169,32 +173,18 @@ const Single: FC = () => {
     setTetrimino,
     resetMatrix,
     getTSpinType,
-    resetTetriminoMoveTypeRecord,
-    pushTetriminoMoveTypeRecord,
-    resetLastTetriminoRotateWallKickPosition,
-    resetPrevTetrimino,
+    resetPrevTetriminoRef,
   } = useMatrix();
 
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag();
 
-  const {
-    isHoldable,
-    holdTetrimino,
-    changeHoldTetrimino,
-    setToHoldable: setHoldTetriminoToHoldable,
-  } = useHoldTetrimino();
+  const { isHoldableRef, holdTetrimino, changeHoldTetrimino, setIsHoldableRef } = useHoldTetrimino();
 
   const {
     mode: { single: singleSizeConfig },
   } = useSizeConfigContext();
 
   const { open: openSettingModal } = useSettingModalVisibilityContext();
-
-  const tetriminoFallingTimerHandler = useRef(() => {});
-
-  const isHardDrop = useRef(false);
-
-  const isSoftDropPress = useRef(false);
 
   const [matrixPhase, setMatrixPhase] = useState<MATRIX_PHASE | null>(null);
 
@@ -211,6 +201,14 @@ const Single: FC = () => {
   const [tetriminoFallingDelay, setTetriminoFallingDelay] = useState(
     getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL)
   );
+
+  const [tetriminoFallingTimerHandlerRef, setTetriminoFallingTimerHandlerRef] = useCustomRef<AnyFunction>(
+    () => {}
+  );
+
+  const [isHardDropRef, setIsHardDropRef] = useCustomRef(false);
+
+  const [isSoftDropPressRef, setIsSoftDropPressRef] = useCustomRef(false);
 
   const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
 
@@ -313,15 +311,21 @@ const Single: FC = () => {
     setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL));
     setGameState(null);
     setMatrixPhase(null);
-    resetLastTetriminoRotateWallKickPosition();
-    resetTetriminoMoveTypeRecord();
-    resetPrevTetrimino();
+    setLastTetriminoRotateWallKickPositionRef(0);
+    setTetriminoMoveTypeRecordRef([]);
+    setIsHardDropRef(false);
+    setIsSoftDropPressRef(false);
+    setIsHoldableRef(false);
+    resetPrevTetriminoRef();
   }, [
     resetMatrix,
     resetTetrimino,
-    resetLastTetriminoRotateWallKickPosition,
-    resetTetriminoMoveTypeRecord,
-    resetPrevTetrimino,
+    resetPrevTetriminoRef,
+    setLastTetriminoRotateWallKickPositionRef,
+    setTetriminoMoveTypeRecordRef,
+    setIsHardDropRef,
+    setIsSoftDropPressRef,
+    setIsHoldableRef,
   ]);
 
   const openToolOverlay = useCallback(() => {
@@ -350,38 +354,56 @@ const Single: FC = () => {
         if (e.key === Key.ArrowLeft) {
           const isSuccess = moveTetrimino(DIRECTION.LEFT);
           if (isSuccess) {
-            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.LEFT_MOVE);
+            setTetriminoMoveTypeRecordRef([
+              ...tetriminoMoveTypeRecordRef.current,
+              TETRIMINO_MOVE_TYPE.LEFT_MOVE,
+            ]);
           }
         } else if (e.key === Key.ArrowRight) {
           const isSuccess = moveTetrimino(DIRECTION.RIGHT);
           if (isSuccess) {
-            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.RIGHT_MOVE);
+            setTetriminoMoveTypeRecordRef([
+              ...tetriminoMoveTypeRecordRef.current,
+              TETRIMINO_MOVE_TYPE.RIGHT_MOVE,
+            ]);
           }
         } else if (e.key === Key.ArrowDown) {
-          if (e.repeat) setRef(isSoftDropPress, true);
+          if (e.repeat) setIsSoftDropPressRef(true);
           const isSuccess = moveTetrimino(DIRECTION.DOWN);
           if (isSuccess) {
-            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.SOFT_DROP);
+            setTetriminoMoveTypeRecordRef([
+              ...tetriminoMoveTypeRecordRef.current,
+              TETRIMINO_MOVE_TYPE.SOFT_DROP,
+            ]);
           }
         } else if (e.key === Key.ArrowUp) {
           const isSuccess = changeTetriminoShape(TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE);
           if (isSuccess) {
-            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.CLOCK_WISE_ROTATE);
+            setTetriminoMoveTypeRecordRef([
+              ...tetriminoMoveTypeRecordRef.current,
+              TETRIMINO_MOVE_TYPE.CLOCK_WISE_ROTATE,
+            ]);
           }
         } else if (e.key === "z") {
           const isSuccess = changeTetriminoShape(TETRIMINO_ROTATION_DIRECTION.COUNTER_CLOCK_WISE);
           if (isSuccess) {
-            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.COUNTER_CLOCK_WISE_ROTATE);
+            setTetriminoMoveTypeRecordRef([
+              ...tetriminoMoveTypeRecordRef.current,
+              TETRIMINO_MOVE_TYPE.COUNTER_CLOCK_WISE_ROTATE,
+            ]);
           }
         } else if (e.key === " ") {
-          setRef(isHardDrop, true);
+          setIsHardDropRef(true);
           const isSuccess = moveTetriminoToPreview();
           if (isSuccess) {
-            pushTetriminoMoveTypeRecord(TETRIMINO_MOVE_TYPE.HARD_DROP);
+            setTetriminoMoveTypeRecordRef([
+              ...tetriminoMoveTypeRecordRef.current,
+              TETRIMINO_MOVE_TYPE.HARD_DROP,
+            ]);
           }
         } else if (e.key === Key.Shift) {
-          resetTetriminoMoveTypeRecord();
-          if (matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING && isHoldable.current) {
+          setTetriminoMoveTypeRecordRef([]);
+          if (matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING && isHoldableRef.current) {
             if (tetriminoFallingTimer.isPending()) {
               tetriminoFallingTimer.clear();
             }
@@ -417,19 +439,21 @@ const Single: FC = () => {
       isGameOver,
       isPausing,
       matrixPhase,
-      isHoldable,
-      tetrimino.type,
       isToolOverlayOpen,
-      moveTetrimino,
-      pushTetriminoMoveTypeRecord,
-      changeTetriminoShape,
-      moveTetriminoToPreview,
-      changeHoldTetrimino,
-      handleTetriminoCreate,
-      handleGameOver,
-      resetTetriminoMoveTypeRecord,
+      tetriminoMoveTypeRecordRef,
       closeToolOverlay,
       openToolOverlay,
+      moveTetrimino,
+      setTetriminoMoveTypeRecordRef,
+      setIsSoftDropPressRef,
+      changeTetriminoShape,
+      setIsHardDropRef,
+      moveTetriminoToPreview,
+      isHoldableRef,
+      changeHoldTetrimino,
+      tetrimino.type,
+      handleTetriminoCreate,
+      handleGameOver,
     ]
   );
 
@@ -438,14 +462,14 @@ const Single: FC = () => {
   useEffect(() => {
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === Key.ArrowDown) {
-        setRef(isSoftDropPress, false);
+        setIsSoftDropPressRef(false);
       }
     };
     window.addEventListener("keyup", onKeyUp);
     return () => {
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, []);
+  }, [setIsSoftDropPressRef]);
 
   useEffect(() => {
     if (!isGameStart) return;
@@ -473,7 +497,7 @@ const Single: FC = () => {
               setMatrixPhase(MATRIX_PHASE.TETRIMINO_LOCK);
             }
           };
-          if (isHardDrop.current) {
+          if (isHardDropRef.current) {
             _();
           } else {
             tetriminoCollideBottomTimer.start(() => {
@@ -481,15 +505,15 @@ const Single: FC = () => {
             }, 500);
           }
         } else {
-          if (isSoftDropPress.current) {
+          if (isSoftDropPressRef.current) {
             tetriminoFallingTimer.clear();
           } else {
-            setRef(tetriminoFallingTimerHandler, () => {
+            setTetriminoFallingTimerHandlerRef(() => {
               moveTetrimino(DIRECTION.DOWN);
             });
             if (!tetriminoFallingTimer.isPending()) {
               tetriminoFallingTimer.start(() => {
-                tetriminoFallingTimerHandler.current();
+                tetriminoFallingTimerHandlerRef.current();
               }, tetriminoFallingDelay);
             }
           }
@@ -504,9 +528,9 @@ const Single: FC = () => {
         };
         break;
       case MATRIX_PHASE.TETRIMINO_LOCK:
-        setPrevTetrimino(tetrimino);
-        setHoldTetriminoToHoldable();
-        setRef(isHardDrop, false);
+        setPrevTetriminoRef(tetrimino);
+        setIsHoldableRef(true);
+        setIsHardDropRef(false);
         setTetriminoToMatrix();
         resetTetrimino();
         setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
@@ -529,20 +553,20 @@ const Single: FC = () => {
               enter: true,
               text: getScoreTextByTSpinAndLine(tSpinType, filledRow.length),
               coordinate: {
-                ...prevTetrimino.current.anchor,
-                y: prevTetrimino.current.anchor.y - DISPLAY_ZONE_ROW_START - offset,
+                ...prevTetriminoRef.current.anchor,
+                y: prevTetriminoRef.current.anchor.y - DISPLAY_ZONE_ROW_START - offset,
               },
             };
           });
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
-          resetLastTetriminoRotateWallKickPosition();
-          resetTetriminoMoveTypeRecord();
+          setLastTetriminoRotateWallKickPositionRef(0);
+          setTetriminoMoveTypeRecordRef([]);
           clearRowFilledWithCube(filledRow).then(() => {
             setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
         } else {
-          resetLastTetriminoRotateWallKickPosition();
-          resetTetriminoMoveTypeRecord();
+          setLastTetriminoRotateWallKickPositionRef(0);
+          setTetriminoMoveTypeRecordRef([]);
           setMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
         }
         break;
@@ -577,8 +601,10 @@ const Single: FC = () => {
     isGameStart,
     matrixPhase,
     tetrimino,
-    prevTetrimino,
-    isSoftDropPress,
+    prevTetriminoRef,
+    isSoftDropPressRef,
+    isHardDropRef,
+    tetriminoFallingTimerHandlerRef,
     handleTetriminoCreate,
     handleGameOver,
     setGameState,
@@ -590,13 +616,15 @@ const Single: FC = () => {
     setTetriminoToMatrix,
     moveTetrimino,
     getIsCoordinatesLockOut,
-    setHoldTetriminoToHoldable,
+    setIsHoldableRef,
     clearRowFilledWithCube,
-    resetTetriminoMoveTypeRecord,
-    resetLastTetriminoRotateWallKickPosition,
     getTSpinType,
-    setPrevTetrimino,
+    setPrevTetriminoRef,
     resetTetrimino,
+    setIsHardDropRef,
+    setTetriminoFallingTimerHandlerRef,
+    setLastTetriminoRotateWallKickPositionRef,
+    setTetriminoMoveTypeRecordRef,
   ]);
 
   useEffect(() => {

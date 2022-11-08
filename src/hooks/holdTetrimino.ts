@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { TETRIMINO_TYPE } from "../common/tetrimino";
-import { setRef } from "../common/utils";
+import useCustomRef from "./customRef";
 
 const useHoldTetrimino = function () {
-  const isHoldable = useRef(true);
+  const [isHoldableRef, setIsHoldableRef] = useCustomRef(true);
 
   const [holdTetrimino, setHoldTetrimino] = useState<null | TETRIMINO_TYPE>(null);
 
@@ -11,21 +11,16 @@ const useHoldTetrimino = function () {
     (tetriminoType: TETRIMINO_TYPE) => {
       const prevHoldTetrimino = holdTetrimino;
       setHoldTetrimino(tetriminoType);
-      setRef(isHoldable, false);
+      setIsHoldableRef(false);
       return prevHoldTetrimino;
     },
-    [holdTetrimino]
+    [holdTetrimino, setIsHoldableRef]
   );
-
-  const setToHoldable = useCallback(() => {
-    setRef(isHoldable, true);
-  }, []);
-
   return {
-    isHoldable,
+    isHoldableRef,
     holdTetrimino,
     changeHoldTetrimino,
-    setToHoldable,
+    setIsHoldableRef,
   };
 };
 
