@@ -331,22 +331,17 @@ const useMatrix = function () {
         },
       }[direction]());
       if (isSuccess) {
-        // console.log("moved!");
-        // console.log("current Tetrimino anchor y is :" + tetrimino.anchor.y + " and x is " + tetrimino.anchor.x);
-        // console.log(
-        //   "after Tetrimino anchor y is :" + (tetrimino.anchor.y + y) + " and x is " + (tetrimino.anchor.x + x)
-        // );
-        setTetrimino((prevTetriminoState) => ({
-          ...prevTetriminoState,
+        setTetrimino({
+          ...tetrimino,
           anchor: {
-            x: prevTetriminoState.anchor.x + x,
-            y: prevTetriminoState.anchor.y + y,
+            x: tetrimino.anchor.x + x,
+            y: tetrimino.anchor.y + y,
           },
-        }));
+        });
       }
       return isSuccess;
     },
-    [setTetrimino, getTetriminoIsCollideWithNearbyCube]
+    [tetrimino, setTetrimino, getTetriminoIsCollideWithNearbyCube]
   );
 
   const moveTetriminoToPreview = useCallback(() => {

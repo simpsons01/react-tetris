@@ -464,12 +464,6 @@ const Single: FC = () => {
       case MATRIX_PHASE.TETRIMINO_FALLING:
         const { isBottomCollide } = getTetriminoIsCollideWithNearbyCube();
         if (isBottomCollide) {
-          if (tetriminoFallingTimer.isPending()) {
-            tetriminoFallingTimer.clear();
-          }
-          if (tetriminoCollideBottomTimer.isPending()) {
-            tetriminoCollideBottomTimer.clear();
-          }
           const _ = () => {
             if (getIsCoordinatesLockOut(tetriminoCoordinates as Array<ICoordinate>)) {
               setGameState(GAME_STATE.OVER);
@@ -487,24 +481,27 @@ const Single: FC = () => {
             }, 500);
           }
         } else {
-          if (tetriminoCollideBottomTimer.isPending()) {
-            tetriminoCollideBottomTimer.clear();
-          }
           if (isSoftDropPress.current) {
-            if (tetriminoFallingTimer.isPending()) {
-              tetriminoFallingTimer.clear();
-            }
+            tetriminoFallingTimer.clear();
           } else {
-            if (tetriminoFallingTimer.isPending()) {
-              setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
-            } else {
-              setRef(tetriminoFallingTimerHandler, () => moveTetrimino(DIRECTION.DOWN));
+            setRef(tetriminoFallingTimerHandler, () => {
+              moveTetrimino(DIRECTION.DOWN);
+            });
+            if (!tetriminoFallingTimer.isPending()) {
               tetriminoFallingTimer.start(() => {
                 tetriminoFallingTimerHandler.current();
               }, tetriminoFallingDelay);
             }
           }
         }
+        effectCleaner = () => {
+          if (isBottomCollide) {
+            tetriminoFallingTimer.clear();
+            tetriminoCollideBottomTimer.clear();
+          } else {
+            tetriminoCollideBottomTimer.clear();
+          }
+        };
         break;
       case MATRIX_PHASE.TETRIMINO_LOCK:
         setPrevTetrimino(tetrimino);
