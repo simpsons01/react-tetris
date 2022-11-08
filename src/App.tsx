@@ -11,6 +11,8 @@ import { ScreenSizeContext } from "./context/screen";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import Font from "./components/Font";
 import Modal from "./components/Modal";
+import useSetting from "./hooks/setting";
+import { SettingContext } from "./context/setting";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -24,6 +26,8 @@ function App() {
   const [isHealthCheckFail, setIsHealthCheckFail] = useState(false);
 
   const [isInitial, setInitial] = useState(false);
+
+  const { setting, updateSetting } = useSetting();
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
 
@@ -76,22 +80,29 @@ function App() {
                 close: () => setIsSettingModalOpen(false),
               }}
             >
-              <SocketContext.Provider
+              <SettingContext.Provider
                 value={{
-                  isConnected,
-                  isConnectErrorOccur,
-                  socketInstance,
+                  setting,
+                  updateSetting,
                 }}
               >
-                <ScreenSizeContext.Provider value={screenSize}>
-                  <SizeConfigContext.Provider value={sizeConfig}>
-                    <Fragment>
-                      <Outlet />
-                      <Modal.Setting isOpen={isSettingModalOpen} />
-                    </Fragment>
-                  </SizeConfigContext.Provider>
-                </ScreenSizeContext.Provider>
-              </SocketContext.Provider>
+                <SocketContext.Provider
+                  value={{
+                    isConnected,
+                    isConnectErrorOccur,
+                    socketInstance,
+                  }}
+                >
+                  <ScreenSizeContext.Provider value={screenSize}>
+                    <SizeConfigContext.Provider value={sizeConfig}>
+                      <Fragment>
+                        <Outlet />
+                        <Modal.Setting isOpen={isSettingModalOpen} />
+                      </Fragment>
+                    </SizeConfigContext.Provider>
+                  </ScreenSizeContext.Provider>
+                </SocketContext.Provider>
+              </SettingContext.Provider>
             </SettingModalVisibilityContext.Provider>
           ) : (
             <Overlay background="#fff">

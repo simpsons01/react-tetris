@@ -4,8 +4,6 @@ export const PER_COL_CUBE_NUM = 10;
 
 export const PER_ROW_CUBE_NUM = 40;
 
-export const DEFAULT_START_LEVEL = 1;
-
 export const BUFFER_ZONE_ROW_START = 0;
 
 export const BUFFER_ZONE_ROW_END = 19;
@@ -14,7 +12,12 @@ export const DISPLAY_ZONE_ROW_START = 20;
 
 export const DISPLAY_ZONE_ROW_END = 39;
 
-export const getLevelByLine = (line: number): number => DEFAULT_START_LEVEL + Math.floor(line / 10);
+export const TOTAL_LEVEL = 15;
+
+export const getLevelByLine = (line: number, level: number): number => {
+  const calcLevel = 1 + Math.floor(line / 10);
+  return level > calcLevel ? level : calcLevel;
+};
 
 export const getTetriminoFallingDelayByLevel = (level: number) => {
   const sec = {

@@ -48,11 +48,11 @@ export interface IBaseModal {
   title?: React.ReactNode | string;
   body?: React.ReactNode;
   confirm?: {
-    text: string;
+    text?: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   };
   cancel?: {
-    text: string;
+    text?: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   };
   onCloseBtnClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -93,12 +93,12 @@ const BaseModal: FC<IBaseModal> = (props) => {
           <Footer>
             {cancel ? (
               <button className="cancel nes-btn" onClick={cancel.onClick}>
-                {cancel.text}
+                {cancel.text ?? "CANCEL"}
               </button>
             ) : null}
             {confirm ? (
               <button className="confirm nes-btn" onClick={confirm.onClick}>
-                {confirm.text}
+                {confirm.text ?? "CONFIRM"}
               </button>
             ) : null}
           </Footer>

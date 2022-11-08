@@ -314,7 +314,7 @@ const getScreenSize = () => {
   };
 };
 
-const useSizeConfig = function () {
+const useSizeConfig = () => {
   const [sizeConfig, setSizeConfig] = useState<ISizeConfig>(getSizeConfigByWindowWidth());
   const [screenSize, setScreenSize] = useState<IScreenSize>(getScreenSize());
 

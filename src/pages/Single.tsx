@@ -18,7 +18,6 @@ import {
   TETRIMINO_MOVE_TYPE,
 } from "../common/tetrimino";
 import {
-  DEFAULT_START_LEVEL,
   getLevelByLine,
   getTetriminoFallingDelayByLevel,
   getScoreByTSpinAndLevelAndLine,
@@ -34,6 +33,7 @@ import Overlay from "../components/Overlay";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 import useCustomRef from "../hooks/customRef";
 import { AnyFunction } from "../common/utils";
+import { useSettingContext } from "../context/setting";
 
 const Wrapper = styled.div<ISize>`
   position: relative;
@@ -176,6 +176,10 @@ const Single: FC = () => {
     resetPrevTetriminoRef,
   } = useMatrix();
 
+  const { setting } = useSettingContext();
+
+  const [defaultStartLevelRef] = useCustomRef(setting.gameplay.single.startLevel);
+
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag();
 
   const { isHoldableRef, holdTetrimino, changeHoldTetrimino, setIsHoldableRef } = useHoldTetrimino();
@@ -192,14 +196,16 @@ const Single: FC = () => {
 
   const [line, setLine] = useState(0);
 
-  const [level, setLevel] = useState(DEFAULT_START_LEVEL);
+  const [level, setLevel] = useState(defaultStartLevelRef.current);
 
   const [score, setScore] = useState(0);
 
   const [scoreText, setScoreText] = useState({ enter: false, text: "", coordinate: { x: 0, y: 0 } });
 
+  const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
+
   const [tetriminoFallingDelay, setTetriminoFallingDelay] = useState(
-    getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL)
+    getTetriminoFallingDelayByLevel(defaultStartLevelRef.current)
   );
 
   const [tetriminoFallingTimerHandlerRef, setTetriminoFallingTimerHandlerRef] = useCustomRef<AnyFunction>(
@@ -209,8 +215,6 @@ const Single: FC = () => {
   const [isHardDropRef, setIsHardDropRef] = useCustomRef(false);
 
   const [isSoftDropPressRef, setIsSoftDropPressRef] = useCustomRef(false);
-
-  const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
 
   const isGameStart = useMemo(() => gameState === GAME_STATE.START, [gameState]);
 
@@ -307,8 +311,8 @@ const Single: FC = () => {
     resetTetrimino();
     setLine(0);
     setScore(0);
-    setLevel(0);
-    setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(DEFAULT_START_LEVEL));
+    setLevel(defaultStartLevelRef.current);
+    setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(defaultStartLevelRef.current));
     setGameState(null);
     setMatrixPhase(null);
     setLastTetriminoRotateWallKickPositionRef(0);
@@ -318,6 +322,7 @@ const Single: FC = () => {
     setIsHoldableRef(false);
     resetPrevTetriminoRef();
   }, [
+    defaultStartLevelRef,
     resetMatrix,
     resetTetrimino,
     resetPrevTetriminoRef,
@@ -541,12 +546,12 @@ const Single: FC = () => {
         if (filledRow.length > 0) {
           setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
           const nextLineValue = line + filledRow.length;
-          const nextLevel = getLevelByLine(nextLineValue);
+          const nextLevel = getLevelByLine(nextLineValue, level);
           setScore(
             (prevScore) => prevScore + getScoreByTSpinAndLevelAndLine(tSpinType, level, filledRow.length)
           );
           setLine(nextLineValue);
-          setLevel(getLevelByLine(nextLineValue));
+          setLevel(nextLevel);
           setScoreText(() => {
             const offset = 3;
             return {
