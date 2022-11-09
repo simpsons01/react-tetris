@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { Key } from "ts-key-enum";
 import { AnyFunction } from "../common/utils";
 
-const useKeydownAutoRepeat = function (autoRepeat: Array<Key>, callback: AnyFunction<[KeyboardEvent]>) {
+const useKeydownAutoRepeat = (autoRepeat: Array<Key>, callback: AnyFunction<[KeyboardEvent]>) => {
   useEffect(() => {
-    const onKeyDown = function (e: KeyboardEvent) {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (autoRepeat.indexOf(e.key as Key) > -1) {
         callback(e);
       } else {

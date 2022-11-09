@@ -22,7 +22,7 @@ const AppContainer = styled.div`
   justify-content: center;
 `;
 
-function App() {
+const App = () => {
   const [isHealthCheckFail, setIsHealthCheckFail] = useState(false);
 
   const [isInitial, setInitial] = useState(false);
@@ -120,6 +120,6 @@ function App() {
         ))}
     </AppContainer>
   );
-}
+};
 
 export default App;

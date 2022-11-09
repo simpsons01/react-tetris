@@ -2,7 +2,7 @@ import { useRef, useState, useCallback } from "react";
 import { TETRIMINO_TYPE, getRandomTetriminoBag } from "../common/tetrimino";
 import { setRef } from "../common/utils";
 
-const useNextTetriminoBag = function () {
+const useNextTetriminoBag = () => {
   const nextTetriminoBagStore = useRef<Array<TETRIMINO_TYPE>>([]);
   const [nextTetriminoBag, setNextTetriminoBag] = useState(getRandomTetriminoBag());
 

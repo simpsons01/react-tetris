@@ -20,7 +20,7 @@ const createInitialTetriminoState = (): ITetrimino => ({
   type: null,
 });
 
-const useTetrimino = function () {
+const useTetrimino = () => {
   const [tetrimino, setTetrimino] = useState(createInitialTetriminoState());
   const [prevTetriminoRef, setPrevTetriminoRef] = useCustomRef(createInitialTetriminoState());
 

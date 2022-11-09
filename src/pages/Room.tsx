@@ -402,43 +402,40 @@ const Room: FC = () => {
     return isCollide;
   }, [selfTetriminoCoordinates, getSelfCoordinatesIsCollideWithFilledCube]);
 
-  useLayoutEffect(
-    function notifyOtherGameDataChange() {
-      const updatedPayloads: GameDataUpdatedPayloads = [];
-      if (prevSelfNextTetriminoType.current !== selfNextTetriminoType) {
-        updatedPayloads.push({
-          type: GameDataType.NEXT_TETRIMINO_TYPE,
-          data: selfNextTetriminoType,
-        });
-        setRef(prevSelfNextTetriminoType, selfNextTetriminoType);
-      }
-      if (prevSelfTetrimino.current !== selfTetrimino) {
-        updatedPayloads.push({
-          type: GameDataType.Tetrimino,
-          data: selfTetrimino,
-        });
-        setRef(prevSelfTetrimino, selfTetrimino);
-      }
-      if (prevSelfMatrix.current !== selfMatrix) {
-        updatedPayloads.push({
-          type: GameDataType.matrix,
-          data: selfMatrix,
-        });
-        setRef(prevSelfMatrix, selfMatrix);
-      }
-      if (prevSelfScore.current !== selfScore) {
-        updatedPayloads.push({
-          type: GameDataType.SCORE,
-          data: selfScore,
-        });
-        setRef(prevSelfScore, selfScore);
-      }
-      if (isConnected && updatedPayloads.length > 0) {
-        socketInstance.emit("game_data_updated", updatedPayloads);
-      }
-    },
-    [selfMatrix, selfScore, selfTetrimino, selfNextTetriminoType, socketInstance, isConnected]
-  );
+  useLayoutEffect(() => {
+    const updatedPayloads: GameDataUpdatedPayloads = [];
+    if (prevSelfNextTetriminoType.current !== selfNextTetriminoType) {
+      updatedPayloads.push({
+        type: GameDataType.NEXT_TETRIMINO_TYPE,
+        data: selfNextTetriminoType,
+      });
+      setRef(prevSelfNextTetriminoType, selfNextTetriminoType);
+    }
+    if (prevSelfTetrimino.current !== selfTetrimino) {
+      updatedPayloads.push({
+        type: GameDataType.Tetrimino,
+        data: selfTetrimino,
+      });
+      setRef(prevSelfTetrimino, selfTetrimino);
+    }
+    if (prevSelfMatrix.current !== selfMatrix) {
+      updatedPayloads.push({
+        type: GameDataType.matrix,
+        data: selfMatrix,
+      });
+      setRef(prevSelfMatrix, selfMatrix);
+    }
+    if (prevSelfScore.current !== selfScore) {
+      updatedPayloads.push({
+        type: GameDataType.SCORE,
+        data: selfScore,
+      });
+      setRef(prevSelfScore, selfScore);
+    }
+    if (isConnected && updatedPayloads.length > 0) {
+      socketInstance.emit("game_data_updated", updatedPayloads);
+    }
+  }, [selfMatrix, selfScore, selfTetrimino, selfNextTetriminoType, socketInstance, isConnected]);
 
   useEffect(() => {
     if (isConnected) {
@@ -458,224 +455,215 @@ const Room: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(
-    function handleKeyDown() {
-      const isRegisterKeyDownHandler =
-        roomState === ROOM_STATE.START &&
-        (gameState === GAME_STATE.START ||
-          gameState === GAME_STATE.NEXT_CYCLE ||
-          gameState === GAME_STATE.TETRIMINO_FALLING);
-      function keydownHandler(e: KeyboardEvent) {
-        // console.log("keyCode is " + e.keyCode);
-        if (e.keyCode === 37) {
-          moveSelfTetrimino(DIRECTION.LEFT);
-        } else if (e.keyCode === 39) {
-          moveSelfTetrimino(DIRECTION.RIGHT);
-        } else if (e.keyCode === 40) {
-          moveSelfTetrimino(DIRECTION.DOWN);
-        } else if (e.keyCode === 38) {
-          changeSelfTetriminoShape(TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE);
-        } else if (e.keyCode === 32) {
-          moveSelfTetriminoToPreview();
-        }
+  useEffect(() => {
+    const isRegisterKeyDownHandler =
+      roomState === ROOM_STATE.START &&
+      (gameState === GAME_STATE.START ||
+        gameState === GAME_STATE.NEXT_CYCLE ||
+        gameState === GAME_STATE.TETRIMINO_FALLING);
+    const keydownHandler = (e: KeyboardEvent) => {
+      // console.log("keyCode is " + e.keyCode);
+      if (e.keyCode === 37) {
+        moveSelfTetrimino(DIRECTION.LEFT);
+      } else if (e.keyCode === 39) {
+        moveSelfTetrimino(DIRECTION.RIGHT);
+      } else if (e.keyCode === 40) {
+        moveSelfTetrimino(DIRECTION.DOWN);
+      } else if (e.keyCode === 38) {
+        changeSelfTetriminoShape(TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE);
+      } else if (e.keyCode === 32) {
+        moveSelfTetriminoToPreview();
       }
+    };
+    if (isRegisterKeyDownHandler) {
+      window.addEventListener("keydown", keydownHandler);
+    }
+    return () => {
       if (isRegisterKeyDownHandler) {
-        window.addEventListener("keydown", keydownHandler);
+        window.removeEventListener("keydown", keydownHandler);
       }
-      return () => {
-        if (isRegisterKeyDownHandler) {
-          window.removeEventListener("keydown", keydownHandler);
-        }
-      };
-    },
-    [roomState, gameState, changeSelfTetriminoShape, moveSelfTetrimino, moveSelfTetriminoToPreview]
-  );
+    };
+  }, [roomState, gameState, changeSelfTetriminoShape, moveSelfTetrimino, moveSelfTetriminoToPreview]);
 
-  useEffect(
-    function handleGameStateChange() {
-      let effectCleaner = () => {};
-      switch (gameState) {
-        case GAME_STATE.BEFORE_START:
-          break;
-        case GAME_STATE.START:
+  useEffect(() => {
+    let effectCleaner = () => {};
+    switch (gameState) {
+      case GAME_STATE.BEFORE_START:
+        break;
+      case GAME_STATE.START:
+        setGameState(GAME_STATE.NEXT_CYCLE);
+        break;
+      case GAME_STATE.NEXT_CYCLE:
+        handleTetriminoCreate();
+        handleNextTetriminoTypeCreate();
+        setGameState(GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix);
+        break;
+      case GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix:
+        if (checkIsTetriminoCollideWithMatrix()) {
+          setGameState(GAME_STATE.ALL_ROW_FILLING);
+          fillSelfAllRow().then(() => {
+            resetSelfTetrimino();
+            resetSelfMatrix();
+            setGameState(GAME_STATE.NEXT_CYCLE);
+          });
+        } else {
+          setGameState(GAME_STATE.TETRIMINO_FALLING);
+        }
+        break;
+      case GAME_STATE.ALL_ROW_FILLING:
+        break;
+      case GAME_STATE.GAME_OVER:
+        handleGameOver();
+        break;
+      case GAME_STATE.TETRIMINO_FALLING:
+        handleTetriminoFalling().then((isBottomCollide) => {
+          if (isBottomCollide) {
+            setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
+          }
+        });
+        effectCleaner = () => {
+          TetriminoCollideBottomTimer.clear();
+          TetriminoFallingTimer.clear();
+        };
+        break;
+      case GAME_STATE.CHECK_IS_ROW_FILLED:
+        const filledRow = getSelfRowFilledWithCube();
+        if (filledRow) {
+          setGameState(GAME_STATE.ROW_FILLED_CLEARING);
+          setSelfScore(selfScore + filledRow.length);
+          clearSelfRowFilledWithCube(filledRow).then(() => {
+            setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
+          });
+        } else {
           setGameState(GAME_STATE.NEXT_CYCLE);
-          break;
-        case GAME_STATE.NEXT_CYCLE:
-          handleTetriminoCreate();
-          handleNextTetriminoTypeCreate();
-          setGameState(GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix);
-          break;
-        case GAME_STATE.CHECK_IS_Tetrimino_COLLIDE_WITH_matrix:
-          if (checkIsTetriminoCollideWithMatrix()) {
-            setGameState(GAME_STATE.ALL_ROW_FILLING);
-            fillSelfAllRow().then(() => {
-              resetSelfTetrimino();
-              resetSelfMatrix();
-              setGameState(GAME_STATE.NEXT_CYCLE);
-            });
-          } else {
-            setGameState(GAME_STATE.TETRIMINO_FALLING);
-          }
-          break;
-        case GAME_STATE.ALL_ROW_FILLING:
-          break;
-        case GAME_STATE.GAME_OVER:
-          handleGameOver();
-          break;
-        case GAME_STATE.TETRIMINO_FALLING:
-          handleTetriminoFalling().then((isBottomCollide) => {
-            if (isBottomCollide) {
-              setGameState(GAME_STATE.CHECK_IS_ROW_FILLED);
-            }
+        }
+        break;
+      case GAME_STATE.ROW_FILLED_CLEARING:
+        break;
+      case GAME_STATE.CHECK_IS_ROW_EMPTY:
+        const emptyRowGap = getSelfEmptyRow();
+        const isGapNotExist =
+          emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
+        if (!isGapNotExist) {
+          //console.log("fill empty row!");
+          setGameState(GAME_STATE.ROW_EMPTY_FILLING);
+          fillSelfEmptyRow(emptyRowGap).then(() => {
+            setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
           });
-          effectCleaner = () => {
-            TetriminoCollideBottomTimer.clear();
-            TetriminoFallingTimer.clear();
-          };
-          break;
-        case GAME_STATE.CHECK_IS_ROW_FILLED:
-          const filledRow = getSelfRowFilledWithCube();
-          if (filledRow) {
-            setGameState(GAME_STATE.ROW_FILLED_CLEARING);
-            setSelfScore(selfScore + filledRow.length);
-            clearSelfRowFilledWithCube(filledRow).then(() => {
-              setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
-            });
-          } else {
-            setGameState(GAME_STATE.NEXT_CYCLE);
-          }
-          break;
-        case GAME_STATE.ROW_FILLED_CLEARING:
-          break;
-        case GAME_STATE.CHECK_IS_ROW_EMPTY:
-          const emptyRowGap = getSelfEmptyRow();
-          const isGapNotExist =
-            emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
-          if (!isGapNotExist) {
-            //console.log("fill empty row!");
-            setGameState(GAME_STATE.ROW_EMPTY_FILLING);
-            fillSelfEmptyRow(emptyRowGap).then(() => {
-              setGameState(GAME_STATE.CHECK_IS_ROW_EMPTY);
-            });
-          } else {
-            setGameState(GAME_STATE.NEXT_CYCLE);
-          }
-          break;
-        case GAME_STATE.ROW_EMPTY_FILLING:
-          break;
-        default:
-          break;
-      }
-      return effectCleaner;
-    },
-    [
-      gameState,
-      selfScore,
-      checkIsTetriminoCollideWithMatrix,
-      handleNextTetriminoTypeCreate,
-      handleTetriminoCreate,
-      getSelfEmptyRow,
-      getSelfRowFilledWithCube,
-      fillSelfEmptyRow,
-      handleTetriminoFalling,
-      clearSelfRowFilledWithCube,
-      setGameState,
-      setSelfScore,
-      handleGameOver,
-      fillSelfAllRow,
-      resetSelfTetrimino,
-      resetSelfMatrix,
-      TetriminoCollideBottomTimer,
-      TetriminoFallingTimer,
-    ]
-  );
+        } else {
+          setGameState(GAME_STATE.NEXT_CYCLE);
+        }
+        break;
+      case GAME_STATE.ROW_EMPTY_FILLING:
+        break;
+      default:
+        break;
+    }
+    return effectCleaner;
+  }, [
+    gameState,
+    selfScore,
+    checkIsTetriminoCollideWithMatrix,
+    handleNextTetriminoTypeCreate,
+    handleTetriminoCreate,
+    getSelfEmptyRow,
+    getSelfRowFilledWithCube,
+    fillSelfEmptyRow,
+    handleTetriminoFalling,
+    clearSelfRowFilledWithCube,
+    setGameState,
+    setSelfScore,
+    handleGameOver,
+    fillSelfAllRow,
+    resetSelfTetrimino,
+    resetSelfMatrix,
+    TetriminoCollideBottomTimer,
+    TetriminoFallingTimer,
+  ]);
 
-  useEffect(
-    function socketHandler() {
-      if (isConnected) {
-        socketInstance.on("before_start_game", (leftSec) => {
-          if (roomState !== ROOM_STATE.BEFORE_START) {
-            setSelfNextTetriminoType(getRandomTetriminoType());
-            setRoomState(ROOM_STATE.BEFORE_START);
-          }
-          console.log("left sec is ", leftSec);
-          setBeforeStartCountDown(leftSec);
-        });
-        socketInstance.on("game_start", () => {
-          if (roomState !== ROOM_STATE.START) {
-            setGameState(GAME_STATE.START);
-            setRoomState(ROOM_STATE.START);
-          }
-        });
-        socketInstance.on("game_leftSec", (leftSec: number) => {
-          setLeftSec(leftSec);
-        });
-        socketInstance.on("game_over", ({ isTie, winnerId }) => {
-          if (isTie) {
-            setResult(RESULT.TIE);
+  useEffect(() => {
+    if (isConnected) {
+      socketInstance.on("before_start_game", (leftSec) => {
+        if (roomState !== ROOM_STATE.BEFORE_START) {
+          setSelfNextTetriminoType(getRandomTetriminoType());
+          setRoomState(ROOM_STATE.BEFORE_START);
+        }
+        console.log("left sec is ", leftSec);
+        setBeforeStartCountDown(leftSec);
+      });
+      socketInstance.on("game_start", () => {
+        if (roomState !== ROOM_STATE.START) {
+          setGameState(GAME_STATE.START);
+          setRoomState(ROOM_STATE.START);
+        }
+      });
+      socketInstance.on("game_leftSec", (leftSec: number) => {
+        setLeftSec(leftSec);
+      });
+      socketInstance.on("game_over", ({ isTie, winnerId }) => {
+        if (isTie) {
+          setResult(RESULT.TIE);
+        } else {
+          if (socketInstance.id === winnerId) {
+            setResult(RESULT.WIN);
           } else {
-            if (socketInstance.id === winnerId) {
-              setResult(RESULT.WIN);
-            } else {
-              setResult(RESULT.LOSE);
-            }
+            setResult(RESULT.LOSE);
           }
-          setRoomState(ROOM_STATE.END);
-          setGameState(GAME_STATE.GAME_OVER);
-        });
-        socketInstance.on("other_game_data_updated", (updatedPayloads: GameDataUpdatedPayloads) => {
-          updatedPayloads.forEach(({ type, data }) => {
-            if (type === GameDataType.NEXT_TETRIMINO_TYPE) {
-              setOpponentNextTetriminoType(data as TETRIMINO_TYPE);
-            } else if (type === GameDataType.SCORE) {
-              setOpponentScore(data as number);
-            } else if (type === GameDataType.matrix) {
-              setOpponentMatrix(data as IPlayFieldRenderer["matrix"]);
-            } else if (type === GameDataType.Tetrimino) {
-              setOpponentTetrimino(data as ITetrimino);
-            }
-          });
-        });
-        socketInstance.on("room_participant_leave", () => {
-          setGameState(GAME_STATE.GAME_OVER);
-          setRoomState(ROOM_STATE.PARTICIPANT_LEAVE);
-        });
-        socketInstance.on("room_host_leave", () => {
-          setGameState(GAME_STATE.GAME_OVER);
-          setRoomState(ROOM_STATE.HOST_LEAVE);
-        });
-        socketInstance.on("error_occur", () => {
-          setGameState(GAME_STATE.GAME_OVER);
-          setRoomState(ROOM_STATE.ERROR);
-        });
-      } else {
-        if (isCheckComplete) {
-          setGameState(GAME_STATE.GAME_OVER);
-          setRoomState(ROOM_STATE.ERROR);
         }
+        setRoomState(ROOM_STATE.END);
+        setGameState(GAME_STATE.GAME_OVER);
+      });
+      socketInstance.on("other_game_data_updated", (updatedPayloads: GameDataUpdatedPayloads) => {
+        updatedPayloads.forEach(({ type, data }) => {
+          if (type === GameDataType.NEXT_TETRIMINO_TYPE) {
+            setOpponentNextTetriminoType(data as TETRIMINO_TYPE);
+          } else if (type === GameDataType.SCORE) {
+            setOpponentScore(data as number);
+          } else if (type === GameDataType.matrix) {
+            setOpponentMatrix(data as IPlayFieldRenderer["matrix"]);
+          } else if (type === GameDataType.Tetrimino) {
+            setOpponentTetrimino(data as ITetrimino);
+          }
+        });
+      });
+      socketInstance.on("room_participant_leave", () => {
+        setGameState(GAME_STATE.GAME_OVER);
+        setRoomState(ROOM_STATE.PARTICIPANT_LEAVE);
+      });
+      socketInstance.on("room_host_leave", () => {
+        setGameState(GAME_STATE.GAME_OVER);
+        setRoomState(ROOM_STATE.HOST_LEAVE);
+      });
+      socketInstance.on("error_occur", () => {
+        setGameState(GAME_STATE.GAME_OVER);
+        setRoomState(ROOM_STATE.ERROR);
+      });
+    } else {
+      if (isCheckComplete) {
+        setGameState(GAME_STATE.GAME_OVER);
+        setRoomState(ROOM_STATE.ERROR);
       }
-      return () => {
-        if (isConnected) {
-          socketInstance.off("before_start_game");
-          socketInstance.off("game_start");
-          socketInstance.off("game_leftSec");
-          socketInstance.off("game_over");
-          socketInstance.off("other_game_data_updated");
-          socketInstance.off("room_participant_leave");
-          socketInstance.off("room_host_leave");
-        }
-      };
-    },
-    [
-      setRoomState,
-      setOpponentMatrix,
-      setOpponentTetrimino,
-      socketInstance,
-      isConnected,
-      roomState,
-      isCheckComplete,
-    ]
-  );
+    }
+    return () => {
+      if (isConnected) {
+        socketInstance.off("before_start_game");
+        socketInstance.off("game_start");
+        socketInstance.off("game_leftSec");
+        socketInstance.off("game_over");
+        socketInstance.off("other_game_data_updated");
+        socketInstance.off("room_participant_leave");
+        socketInstance.off("room_host_leave");
+      }
+    };
+  }, [
+    setRoomState,
+    setOpponentMatrix,
+    setOpponentTetrimino,
+    socketInstance,
+    isConnected,
+    roomState,
+    isCheckComplete,
+  ]);
 
   return (
     <Wrapper>

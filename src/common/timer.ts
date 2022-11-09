@@ -4,10 +4,10 @@ export const createCountDownTimer = ({ autoClear }: { autoClear: boolean } = { a
   let timer: number | null = null;
   const _ = {
     isPending: () => timer != null,
-    start(cb: AnyFunction, leftsec: number) {
+    start(fn: AnyFunction, leftsec: number) {
       if (autoClear) _.clear();
       timer = window.setTimeout(() => {
-        cb();
+        fn();
         timer = null;
       }, leftsec);
     },

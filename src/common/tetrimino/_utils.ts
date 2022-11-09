@@ -14,7 +14,7 @@ import { T } from "./T";
 import { Z } from "./Z";
 import { getRandomMixMax } from "../utils";
 
-export const getTetriminoConfig = function (type: TETRIMINO_TYPE): Readonly<ITetriminoConfig> {
+export const getTetriminoConfig = (type: TETRIMINO_TYPE): Readonly<ITetriminoConfig> => {
   const _ = {
     [TETRIMINO_TYPE.I]: I,
     [TETRIMINO_TYPE.J]: J,
@@ -36,12 +36,12 @@ const list = [
   TETRIMINO_TYPE.T,
   TETRIMINO_TYPE.Z,
 ];
-export const getRandomTetriminoType = function (): TETRIMINO_TYPE {
+export const getRandomTetriminoType = (): TETRIMINO_TYPE => {
   return list[getRandomMixMax(0, list.length - 1)];
 };
 
 const BAGS_LENGTH = 7;
-export const getRandomTetriminoBag = function (): Array<TETRIMINO_TYPE> {
+export const getRandomTetriminoBag = (): Array<TETRIMINO_TYPE> => {
   const bags: Array<TETRIMINO_TYPE> = [];
   while (bags.length < BAGS_LENGTH) {
     if (bags.length === BAGS_LENGTH - 1) {
@@ -60,12 +60,14 @@ export const getRandomTetriminoBag = function (): Array<TETRIMINO_TYPE> {
   return bags;
 };
 
-export const getRangeByCoordinates = function (coordinates: Array<ICoordinate>): {
+export const getRangeByCoordinates = (
+  coordinates: Array<ICoordinate>
+): {
   minX: number;
   minY: number;
   maxX: number;
   maxY: number;
-} {
+} => {
   const _x = coordinates.map(({ x }) => x);
   const _y = coordinates.map(({ y }) => y);
   return {
@@ -76,10 +78,12 @@ export const getRangeByCoordinates = function (coordinates: Array<ICoordinate>):
   };
 };
 
-export const getSizeByCoordinates = function (coordinates: Array<ICoordinate>): {
+export const getSizeByCoordinates = (
+  coordinates: Array<ICoordinate>
+): {
   horizontal: number;
   vertical: number;
-} {
+} => {
   const { maxX, minX, maxY, minY } = getRangeByCoordinates(coordinates);
   return {
     vertical: maxY - minY + 1,
@@ -87,11 +91,11 @@ export const getSizeByCoordinates = function (coordinates: Array<ICoordinate>): 
   };
 };
 
-export const getCoordinateByAnchorAndShapeAndType = function (
+export const getCoordinateByAnchorAndShapeAndType = (
   anchor: ICoordinate,
   type: TETRIMINO_TYPE,
   shape: TETRIMINO_SHAPE
-): Array<ICoordinate> {
+): Array<ICoordinate> => {
   const TetriminoConfig = getTetriminoConfig(type);
   return TetriminoConfig.config[shape].shape.coordinates.map(({ x, y }) => {
     return {
@@ -101,11 +105,11 @@ export const getCoordinateByAnchorAndShapeAndType = function (
   });
 };
 
-export const getBoundaryByCoordinatesAndShapeAndType = function (
+export const getBoundaryByCoordinatesAndShapeAndType = (
   coordinates: Array<ICoordinate>,
   type: TETRIMINO_TYPE,
   shape: TETRIMINO_SHAPE
-): Array<ICoordinate> {
+): Array<ICoordinate> => {
   const TetriminoConfig = getTetriminoConfig(type);
   const anchor = coordinates[TetriminoConfig.config[shape].shape.anchorIndex];
   const anchorPosition =
@@ -122,11 +126,11 @@ export const getBoundaryByCoordinatesAndShapeAndType = function (
   return ary;
 };
 
-export const getNextCoordinateByBoundaryAndTypeAndShape = function (
+export const getNextCoordinateByBoundaryAndTypeAndShape = (
   boundary: Array<ICoordinate>,
   type: TETRIMINO_TYPE,
   nextShape: TETRIMINO_SHAPE
-): Array<ICoordinate> {
+): Array<ICoordinate> => {
   const TetriminoConfig = getTetriminoConfig(type);
   return TetriminoConfig.config[nextShape].boundary.position.map((item) => {
     const index = item.x + item.y * TetriminoConfig.config[nextShape].boundary.size;
@@ -135,19 +139,16 @@ export const getNextCoordinateByBoundaryAndTypeAndShape = function (
   });
 };
 
-export const getAnchorByCoordinatesAndTypeAndShape = function (
+export const getAnchorByCoordinatesAndTypeAndShape = (
   coordinates: Array<ICoordinate>,
   type: TETRIMINO_TYPE,
   shape: TETRIMINO_SHAPE
-): ICoordinate {
+): ICoordinate => {
   const TetriminoConfig = getTetriminoConfig(type);
   return coordinates[TetriminoConfig.config[shape].shape.anchorIndex];
 };
 
-export const getTetriminoNextShape = function (
-  shape: TETRIMINO_SHAPE,
-  rotation: TETRIMINO_ROTATION_DIRECTION
-) {
+export const getTetriminoNextShape = (shape: TETRIMINO_SHAPE, rotation: TETRIMINO_ROTATION_DIRECTION) => {
   if (rotation === TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE) {
     if (shape === TETRIMINO_SHAPE.INITIAL) {
       return TETRIMINO_SHAPE.RIGHT;

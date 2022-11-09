@@ -28,10 +28,10 @@ export const getKeys = <T extends object, K extends keyof T>(obj: T): Array<K> =
   return Object.keys(obj) as Array<K>;
 };
 
-export function getRandomMixMax(min: number, max: number): number {
+export const getRandomMixMax = (min: number, max: number): number => {
   return Math.floor(min + (max - min + 1) * Math.random());
-}
+};
 
-export function minMax(val: number, min: number, max: number): number {
+export const minMax = (val: number, min: number, max: number): number => {
   return Math.min(Math.max(val, min), max);
-}
+};

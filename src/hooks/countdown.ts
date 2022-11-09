@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { createCountDownTimer } from "../common/timer";
 
-const useCountdown = function (sec: number) {
+const useCountdown = (sec: number) => {
   const { current: countDownTimer } = useRef<ReturnType<typeof createCountDownTimer>>(createCountDownTimer());
   const [leftsec, setLeftsec] = useState<number>(sec);
   const [isStartCountDown, setIsStartCountDown] = useState<boolean>(false);

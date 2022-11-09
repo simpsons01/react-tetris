@@ -45,7 +45,7 @@ const createMatrix = () =>
 
 type createAnimationReturnVal = ReturnType<typeof createAnimation>;
 
-const useMatrix = function () {
+const useMatrix = () => {
   const {
     tetrimino,
     tetriminoCoordinates,
