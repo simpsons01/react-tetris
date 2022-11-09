@@ -1,8 +1,10 @@
 import { nanoid } from "nanoid";
-import { FC, useEffect, useState } from "react";
+import { AnyFunction } from "ramda";
+import { FC, Fragment, useEffect, useState, ChangeEvent } from "react";
 import styled from "styled-components";
 import { useSettingContext } from "../../../context/setting";
 import { useSettingModalVisibilityContext } from "../../../context/settingModalVisibility";
+import useCustomRef from "../../../hooks/customRef";
 import { createDefaultSetting } from "../../../hooks/setting";
 import Font from "../../Font";
 import BaseModal, { IBaseModal } from "../Base";
@@ -11,7 +13,7 @@ import GameplayTab from "./GameplayTab";
 
 const SettingModalBody = styled.div`
   padding: 16px;
-  min-width: 600px;
+  min-width: 800px;
 `;
 
 const SettingModalTab = styled.div`
@@ -63,41 +65,66 @@ const tabs = [
   { tab: TAB.GAMEPLAY, label: "GAMEPLAY" },
 ].map((_) => ({ ..._, id: nanoid() }));
 
+const NOT_SHOW_ALERT_MODAL_AGAIN_KEY = "notShowAlertModalAgain";
+
 export interface ISettingModal extends IBaseModal {}
 
 const Setting: FC<ISettingModal> = (props) => {
   const { isOpen } = props;
 
+  const { settingRef, saveSetting } = useSettingContext();
+
   const { close: closeSettingModal } = useSettingModalVisibilityContext();
 
   const [modalTempSetting, setModalTempSetting] = useState(createDefaultSetting());
 
-  const { setting, updateSetting } = useSettingContext();
+  const [isSettingAlertModalShow, setIsSettingAlertModalShow] = useState(false);
+
+  const [isSettingAlertModalShowNoMore, setIsSettingAlertModalShowNoMore] = useState(() => {
+    try {
+      const valFromLocalStorage = localStorage.getItem(NOT_SHOW_ALERT_MODAL_AGAIN_KEY);
+      return valFromLocalStorage ? JSON.parse(valFromLocalStorage) : false;
+    } catch {
+      return false;
+    }
+  });
 
   const [tab, setTab] = useState(TAB.CONTROL);
 
+  const [isUpdatedModalSettingRef, setIsUpdatedModalSettingRef] = useCustomRef(false);
+
+  const [withHandleIsUpdatedModalSettingToTrueRef] = useCustomRef((fn: AnyFunction) => {
+    if (!isUpdatedModalSettingRef.current) {
+      setIsUpdatedModalSettingRef(true);
+    }
+    fn();
+  });
+
   useEffect(() => {
     if (isOpen) {
-      setModalTempSetting(setting);
+      setModalTempSetting(settingRef.current);
+    } else {
+      setIsUpdatedModalSettingRef(false);
     }
-  }, [setting, isOpen]);
+  }, [isOpen, settingRef, setIsUpdatedModalSettingRef]);
 
   let modalTabContent;
   if (tab === TAB.CONTROL) {
-    modalTabContent = <ControlTab key={TAB.CONTROL} />;
+    modalTabContent = <ControlTab />;
   } else {
     modalTabContent = (
       <GameplayTab
-        key={TAB.GAMEPLAY}
         setting={modalTempSetting.gameplay}
         updateSetting={(gamePlaySetting) => {
-          setModalTempSetting((prevModalTempSetting) => ({
-            ...prevModalTempSetting,
-            gameplay: {
-              ...prevModalTempSetting.gameplay,
-              ...gamePlaySetting,
-            },
-          }));
+          withHandleIsUpdatedModalSettingToTrueRef.current(() => {
+            setModalTempSetting((prevModalTempSetting) => ({
+              ...prevModalTempSetting,
+              gameplay: {
+                ...prevModalTempSetting.gameplay,
+                ...gamePlaySetting,
+              },
+            }));
+          });
         }}
       />
     );
@@ -105,47 +132,95 @@ const Setting: FC<ISettingModal> = (props) => {
 
   if (!isOpen) return null;
   return (
-    <BaseModal
-      title={
-        <Font level={"four"} align={"center"}>
-          SETTING
-        </Font>
-      }
-      body={
-        <SettingModalBody>
-          <SettingModalTab>
-            <ul>
-              {tabs.map((_tab) => {
-                const isActive = _tab.tab === tab;
-                return (
-                  <li key={_tab.tab}>
-                    <button onClick={() => setTab(_tab.tab)} className={isActive ? "active" : ""}>
-                      <Font color={isActive ? "#fff" : "#292929"} inline={true} level="five">
-                        {_tab.label}
-                      </Font>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </SettingModalTab>
-          <SettingModalTabWrapper>{modalTabContent}</SettingModalTabWrapper>
-        </SettingModalBody>
-      }
-      isOpen={isOpen}
-      onCloseBtnClick={closeSettingModal}
-      cancel={{
-        onClick: () => {
-          closeSettingModal();
-        },
-      }}
-      confirm={{
-        onClick: () => {
-          closeSettingModal();
-          updateSetting(modalTempSetting);
-        },
-      }}
-    />
+    <Fragment>
+      <BaseModal
+        title={
+          <Font level={"four"} align={"center"}>
+            SETTING
+          </Font>
+        }
+        body={
+          <SettingModalBody>
+            <SettingModalTab>
+              <ul>
+                {tabs.map((_tab) => {
+                  const isActive = _tab.tab === tab;
+                  return (
+                    <li key={_tab.tab}>
+                      <button onClick={() => setTab(_tab.tab)} className={isActive ? "active" : ""}>
+                        <Font color={isActive ? "#fff" : "#292929"} inline={true} level="five">
+                          {_tab.label}
+                        </Font>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </SettingModalTab>
+            <SettingModalTabWrapper>{modalTabContent}</SettingModalTabWrapper>
+          </SettingModalBody>
+        }
+        isOpen={isOpen}
+        onCloseBtnClick={closeSettingModal}
+        cancel={{
+          onClick: () => {
+            closeSettingModal();
+          },
+        }}
+        confirm={{
+          onClick: () => {
+            saveSetting(modalTempSetting);
+            if (isUpdatedModalSettingRef.current && !isSettingAlertModalShowNoMore) {
+              setIsSettingAlertModalShow(true);
+            } else {
+              closeSettingModal();
+            }
+          },
+        }}
+      />
+      <BaseModal
+        isOpen={isSettingAlertModalShow}
+        body={
+          <div>
+            <Font level="four">Updated setting will take effect when you visit website next time</Font>
+            <div
+              style={{
+                marginTop: "16px",
+              }}
+            >
+              <label>
+                <input
+                  checked={isSettingAlertModalShowNoMore}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                    setIsSettingAlertModalShowNoMore(event.target.checked);
+                    if (event.target.checked) {
+                      localStorage.setItem(NOT_SHOW_ALERT_MODAL_AGAIN_KEY, "true");
+                    } else {
+                      localStorage.removeItem(NOT_SHOW_ALERT_MODAL_AGAIN_KEY);
+                    }
+                  }}
+                  className="nes-checkbox"
+                  type="checkbox"
+                />
+                <span>Don't show anymore</span>
+              </label>
+            </div>
+          </div>
+        }
+        cancel={{
+          onClick: () => {
+            closeSettingModal();
+            setIsSettingAlertModalShow(false);
+          },
+        }}
+        confirm={{
+          text: "RELOAD NOW!",
+          onClick: () => {
+            window.location.reload();
+          },
+        }}
+      />
+    </Fragment>
   );
 };
 

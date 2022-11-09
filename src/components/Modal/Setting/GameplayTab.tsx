@@ -91,9 +91,6 @@ const GameplayTab: FC<IGameplayTab> = (props) => {
             </tbody>
           </table>
         </TableWrapper>
-        <Tips>
-          <Font level="six">※ updated setting will take effect when you enter single game next time</Font>
-        </Tips>
       </div>
     </Wrapper>
   );

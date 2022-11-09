@@ -27,7 +27,7 @@ const App = () => {
 
   const [isInitial, setInitial] = useState(false);
 
-  const { setting, updateSetting } = useSetting();
+  const { settingRef, saveSetting } = useSetting();
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
 
@@ -82,8 +82,8 @@ const App = () => {
             >
               <SettingContext.Provider
                 value={{
-                  setting,
-                  updateSetting,
+                  settingRef,
+                  saveSetting,
                 }}
               >
                 <SocketContext.Provider

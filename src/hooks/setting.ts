@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import useCustomRef from "./customRef";
 
 export interface ISetting {
   gameplay: {
@@ -16,31 +17,28 @@ export const createDefaultSetting = (): ISetting => ({
   },
 });
 
-const LOCAL_STORAGE_KEY = "setting";
+const SETTING_KEY = "setting";
+
+const setting = (() => {
+  const defaultSetting = createDefaultSetting();
+  try {
+    const settingFromLocalStorage = localStorage.getItem(SETTING_KEY);
+    return settingFromLocalStorage ? JSON.parse(settingFromLocalStorage) : defaultSetting;
+  } catch {
+    return defaultSetting;
+  }
+})();
 
 const useSetting = () => {
-  const [setting, setSetting] = useState<ISetting>(() => {
-    const defaultSetting = createDefaultSetting();
-    try {
-      const settingFromLocalStorage = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (settingFromLocalStorage) {
-        return JSON.parse(settingFromLocalStorage);
-      } else {
-        return defaultSetting;
-      }
-    } catch {
-      return defaultSetting;
-    }
-  });
+  const [settingRef] = useCustomRef<ISetting>(setting);
 
-  const updateSetting = useCallback((newSetting: ISetting) => {
-    setSetting(newSetting);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSetting));
+  const saveSetting = useCallback((setting: ISetting) => {
+    localStorage.setItem(SETTING_KEY, JSON.stringify(setting));
   }, []);
 
   return {
-    setting,
-    updateSetting,
+    settingRef,
+    saveSetting,
   };
 };
 

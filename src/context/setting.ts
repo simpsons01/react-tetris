@@ -1,9 +1,9 @@
-import { createContext, useContext } from "react";
+import { createContext, MutableRefObject, useContext } from "react";
 import { ISetting } from "../hooks/setting";
 
 export interface ISettingContext {
-  setting: ISetting;
-  updateSetting(newSetting: ISetting): void;
+  settingRef: MutableRefObject<ISetting>;
+  saveSetting(setting: ISetting): void;
 }
 
 export const SettingContext = createContext<ISettingContext>({} as ISettingContext);

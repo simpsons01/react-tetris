@@ -176,9 +176,9 @@ const Single: FC = () => {
     resetPrevTetriminoRef,
   } = useMatrix();
 
-  const { setting } = useSettingContext();
+  const { settingRef } = useSettingContext();
 
-  const [defaultStartLevelRef] = useCustomRef(setting.gameplay.single.startLevel);
+  const [defaultStartLevelRef] = useCustomRef(settingRef.current.gameplay.single.startLevel);
 
   const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag();
 
