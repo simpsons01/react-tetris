@@ -21,7 +21,6 @@ import {
   getLevelByLine,
   getTetriminoFallingDelayByLevel,
   getScoreByTSpinAndLevelAndLine,
-  getScoreTextByTSpinAndLine,
   DISPLAY_ZONE_ROW_START,
 } from "../common/matrix";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
@@ -199,8 +198,6 @@ const Single: FC = () => {
   const [level, setLevel] = useState(defaultStartLevelRef.current);
 
   const [score, setScore] = useState(0);
-
-  const [scoreText, setScoreText] = useState({ enter: false, text: "", coordinate: { x: 0, y: 0 } });
 
   const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
 
@@ -553,17 +550,6 @@ const Single: FC = () => {
           );
           setLine(nextLineValue);
           setLevel(nextLevel);
-          setScoreText(() => {
-            const offset = 3;
-            return {
-              enter: true,
-              text: getScoreTextByTSpinAndLine(tSpinType, filledRow.length),
-              coordinate: {
-                ...prevTetriminoRef.current.anchor,
-                y: prevTetriminoRef.current.anchor.y - DISPLAY_ZONE_ROW_START - offset,
-              },
-            };
-          });
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
           setLastTetriminoRotateWallKickPositionRef(0);
           setTetriminoMoveTypeRecordRef([]);
@@ -632,18 +618,6 @@ const Single: FC = () => {
     setLastTetriminoRotateWallKickPositionRef,
     setTetriminoMoveTypeRecordRef,
   ]);
-
-  useEffect(() => {
-    let timer: number | undefined;
-    if (scoreText.enter) {
-      timer = window.setTimeout(() => {
-        setScoreText((prevScoreText) => ({ ...prevScoreText, enter: false }));
-      }, 500);
-    }
-    return () => {
-      if (timer) window.clearTimeout(timer);
-    };
-  }, [scoreText]);
 
   return (
     <Fragment>
@@ -721,7 +695,6 @@ const Single: FC = () => {
             height={singleSizeConfig.playField.height}
           >
             <PlayField.Renderer
-              scoreText={scoreText}
               cubeDistance={singleSizeConfig.playField.cube}
               matrix={displayMatrix}
               tetrimino={displayTetriminoCoordinates}
