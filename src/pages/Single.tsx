@@ -398,6 +398,7 @@ const Single: FC = () => {
             ]);
           }
         } else if (e.key === " ") {
+          tetriminoFallingTimer.clear();
           setIsHardDropRef(true);
           const isSuccess = moveTetriminoToPreview();
           if (isSuccess) {
@@ -446,6 +447,8 @@ const Single: FC = () => {
       matrixPhase,
       isToolOverlayOpen,
       tetriminoMoveTypeRecordRef,
+      isHoldableRef,
+      tetrimino.type,
       closeToolOverlay,
       openToolOverlay,
       moveTetrimino,
@@ -454,9 +457,7 @@ const Single: FC = () => {
       changeTetriminoShape,
       setIsHardDropRef,
       moveTetriminoToPreview,
-      isHoldableRef,
       changeHoldTetrimino,
-      tetrimino.type,
       handleTetriminoCreate,
       handleGameOver,
     ]
