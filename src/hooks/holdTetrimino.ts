@@ -21,6 +21,7 @@ const useHoldTetrimino = () => {
     holdTetrimino,
     changeHoldTetrimino,
     setIsHoldableRef,
+    setHoldTetrimino,
   };
 };
 

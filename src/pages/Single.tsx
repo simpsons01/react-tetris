@@ -17,12 +17,12 @@ import {
   TETRIMINO_TYPE,
   TETRIMINO_MOVE_TYPE,
 } from "../common/tetrimino";
+import { DISPLAY_ZONE_ROW_START, MATRIX_PHASE } from "../common/matrix";
 import {
   getLevelByLine,
   getTetriminoFallingDelayByLevel,
   getScoreByTSpinAndLevelAndLine,
-  DISPLAY_ZONE_ROW_START,
-} from "../common/matrix";
+} from "../common/game";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import { Key } from "ts-key-enum";
 import useHoldTetrimino from "../hooks/holdTetrimino";
@@ -120,16 +120,6 @@ const CloseBtn = styled.button`
   }
 `;
 
-enum MATRIX_PHASE {
-  TETRIMINO_CREATE = "TETRIMINO_CREATE",
-  TETRIMINO_FALLING = "TETRIMINO_FALLING",
-  TETRIMINO_LOCK = "TETRIMINO_LOCK",
-  CHECK_IS_ROW_FILLED = "CHECK_IS_ROW_FILLED",
-  ROW_FILLED_CLEARING = "ROW_FILLED_CLEARING",
-  CHECK_IS_ROW_EMPTY = "CHECK_IS_ROW_EMPTY",
-  ROW_EMPTY_FILLING = "ROW_EMPTY_FILLING",
-}
-
 enum GAME_STATE {
   START = "START",
   PAUSE = "PAUSE",
@@ -146,7 +136,6 @@ const Single: FC = () => {
     tetrimino,
     displayMatrix,
     displayTetriminoCoordinates,
-    prevTetriminoRef,
     tetriminoMoveTypeRecordRef,
     setPrevTetriminoRef,
     setTetriminoMoveTypeRecordRef,
@@ -179,9 +168,11 @@ const Single: FC = () => {
 
   const [defaultStartLevelRef] = useCustomRef(settingRef.current.gameplay.single.startLevel);
 
-  const { nextTetriminoBag, popNextTetriminoType } = useNextTetriminoBag();
+  const { nextTetriminoBag, popNextTetriminoType, setNextTetriminoBag, initialNextTetriminoBag } =
+    useNextTetriminoBag();
 
-  const { isHoldableRef, holdTetrimino, changeHoldTetrimino, setIsHoldableRef } = useHoldTetrimino();
+  const { isHoldableRef, holdTetrimino, changeHoldTetrimino, setIsHoldableRef, setHoldTetrimino } =
+    useHoldTetrimino();
 
   const {
     mode: { single: singleSizeConfig },
@@ -311,6 +302,7 @@ const Single: FC = () => {
     setLevel(defaultStartLevelRef.current);
     setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(defaultStartLevelRef.current));
     setGameState(null);
+    setHoldTetrimino(null);
     setMatrixPhase(null);
     setLastTetriminoRotateWallKickPositionRef(0);
     setTetriminoMoveTypeRecordRef([]);
@@ -318,6 +310,7 @@ const Single: FC = () => {
     setIsSoftDropPressRef(false);
     setIsHoldableRef(false);
     resetPrevTetriminoRef();
+    initialNextTetriminoBag();
   }, [
     defaultStartLevelRef,
     resetMatrix,
@@ -328,6 +321,8 @@ const Single: FC = () => {
     setIsHardDropRef,
     setIsSoftDropPressRef,
     setIsHoldableRef,
+    setHoldTetrimino,
+    initialNextTetriminoBag,
   ]);
 
   const openToolOverlay = useCallback(() => {
@@ -593,7 +588,6 @@ const Single: FC = () => {
     isGameStart,
     matrixPhase,
     tetrimino,
-    prevTetriminoRef,
     isSoftDropPressRef,
     isHardDropRef,
     tetriminoFallingTimerHandlerRef,
@@ -701,7 +695,6 @@ const Single: FC = () => {
               previewTetrimino={previewTetriminoCoordinates}
             />
             <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
-            {/* <PlayField.PausePanel onPauseBtnClick={handleGameContinue} isPausing={isPausing} /> */}
             <PlayField.GameStartPanel onGameStart={handleGameStart} isGameStart={gameState == null} />
           </PlayField.Wrapper>
         </Column>
@@ -714,7 +707,7 @@ const Single: FC = () => {
             fontLevel={"three"}
             cubeDistance={singleSizeConfig.widget.nextTetrimino.cube}
             displayTetriminoNum={5}
-            tetriminoBag={nextTetriminoBag}
+            tetriminoBag={nextTetriminoBag.length === 0 ? null : nextTetriminoBag}
             width={singleSizeConfig.widget.nextTetrimino.width}
             height={singleSizeConfig.widget.nextTetrimino.height}
           />

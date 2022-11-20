@@ -327,17 +327,17 @@ const useMatrix = () => {
         },
       }[direction]());
       if (isSuccess) {
-        setTetrimino({
-          ...tetrimino,
+        setTetrimino((prevTetrimino) => ({
+          ...prevTetrimino,
           anchor: {
-            x: tetrimino.anchor.x + x,
-            y: tetrimino.anchor.y + y,
+            x: prevTetrimino.anchor.x + x,
+            y: prevTetrimino.anchor.y + y,
           },
-        });
+        }));
       }
       return isSuccess;
     },
-    [tetrimino, setTetrimino, getTetriminoIsCollideWithNearbyCube]
+    [setTetrimino, getTetriminoIsCollideWithNearbyCube]
   );
 
   const moveTetriminoToPreview = useCallback(() => {

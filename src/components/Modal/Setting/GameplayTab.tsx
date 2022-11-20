@@ -25,11 +25,6 @@ const TableWrapper = styled.div`
   }
 `;
 
-const Tips = styled.div`
-  padding: 0 16px;
-  margin-top: 12px;
-`;
-
 interface IGameplayTab {
   setting: ISetting["gameplay"];
   updateSetting: (setting: ISetting["gameplay"]) => void;
