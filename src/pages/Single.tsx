@@ -726,13 +726,13 @@ const Single: FC = () => {
                   </Font>
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <button onClick={() => {}}>
                   <Font color="#fff" inline={true} level={"two"}>
                     PLAY 2P
                   </Font>
                 </button>
-              </li>
+              </li> */}
               <li>
                 <button onClick={openSettingModal}>
                   <Font color="#fff" inline={true} level={"two"}>
