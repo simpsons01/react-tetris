@@ -348,11 +348,7 @@ const Single: FC = () => {
         }
         return;
       }
-      if (
-        renderIdRef.current === currentRerenderIdRef &&
-        !isPausing &&
-        matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING
-      ) {
+      if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
         if (e.key === Key.ArrowLeft) {
           const isSuccess = moveTetrimino(DIRECTION.LEFT);
           if (isSuccess) {
@@ -370,12 +366,14 @@ const Single: FC = () => {
             ]);
           }
         } else if (e.key === Key.ArrowDown) {
-          const isSuccess = moveTetrimino(DIRECTION.DOWN);
-          if (isSuccess) {
-            setTetriminoMoveTypeRecordRef([
-              ...tetriminoMoveTypeRecordRef.current,
-              TETRIMINO_MOVE_TYPE.SOFT_DROP,
-            ]);
+          if (renderIdRef.current === currentRerenderIdRef) {
+            const isSuccess = moveTetrimino(DIRECTION.DOWN);
+            if (isSuccess) {
+              setTetriminoMoveTypeRecordRef([
+                ...tetriminoMoveTypeRecordRef.current,
+                TETRIMINO_MOVE_TYPE.SOFT_DROP,
+              ]);
+            }
           }
         } else if (e.key === Key.ArrowUp) {
           const isSuccess = changeTetriminoShape(TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE);

@@ -466,7 +466,7 @@ const Room: FC = () => {
   const handleSelfMatrixNextCycle = useCallback(() => {
     resetSelfMatrix();
     resetSelfTetrimino();
-    setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(0));
+    setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(1));
     setSelfHoldTetrimino(null);
     setSelfLastTetriminoRotateWallKickPositionRef(0);
     setSelfTetriminoMoveTypeRecordRef([]);
@@ -592,11 +592,7 @@ const Room: FC = () => {
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (
-        isGameStart &&
-        selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING &&
-        renderIdRef.current === currentRerenderIdRef
-      ) {
+      if (isGameStart && selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
         if (e.key === Key.ArrowLeft) {
           const isSuccess = moveSelfTetrimino(DIRECTION.LEFT);
           if (isSuccess) {
@@ -614,12 +610,14 @@ const Room: FC = () => {
             ]);
           }
         } else if (e.key === Key.ArrowDown) {
-          const isSuccess = moveSelfTetrimino(DIRECTION.DOWN);
-          if (isSuccess) {
-            setSelfTetriminoMoveTypeRecordRef([
-              ...selfTetriminoMoveTypeRecordRef.current,
-              TETRIMINO_MOVE_TYPE.SOFT_DROP,
-            ]);
+          if (renderIdRef.current === currentRerenderIdRef) {
+            const isSuccess = moveSelfTetrimino(DIRECTION.DOWN);
+            if (isSuccess) {
+              setSelfTetriminoMoveTypeRecordRef([
+                ...selfTetriminoMoveTypeRecordRef.current,
+                TETRIMINO_MOVE_TYPE.SOFT_DROP,
+              ]);
+            }
           }
         } else if (e.key === Key.ArrowUp) {
           const isSuccess = changeSelfTetriminoShape(TETRIMINO_ROTATION_DIRECTION.CLOCK_WISE);
