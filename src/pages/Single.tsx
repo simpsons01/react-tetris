@@ -168,8 +168,7 @@ const Single: FC = () => {
 
   const [defaultStartLevelRef] = useCustomRef(settingRef.current.gameplay.single.startLevel);
 
-  const { nextTetriminoBag, popNextTetriminoType, setNextTetriminoBag, initialNextTetriminoBag } =
-    useNextTetriminoBag();
+  const { nextTetriminoBag, popNextTetriminoType, initialNextTetriminoBag } = useNextTetriminoBag();
 
   const { isHoldableRef, holdTetrimino, changeHoldTetrimino, setIsHoldableRef, setHoldTetrimino } =
     useHoldTetrimino();
@@ -202,7 +201,11 @@ const Single: FC = () => {
 
   const [isHardDropRef, setIsHardDropRef] = useCustomRef(false);
 
-  const [isSoftDropPressRef, setIsSoftDropPressRef] = useCustomRef(false);
+  const [renderIdRef, setRenderIdRef] = useCustomRef(0);
+
+  setRenderIdRef(renderIdRef.current + 1);
+
+  const currentRerenderIdRef = renderIdRef.current;
 
   const isGameStart = useMemo(() => gameState === GAME_STATE.START, [gameState]);
 
@@ -307,7 +310,6 @@ const Single: FC = () => {
     setLastTetriminoRotateWallKickPositionRef(0);
     setTetriminoMoveTypeRecordRef([]);
     setIsHardDropRef(false);
-    setIsSoftDropPressRef(false);
     setIsHoldableRef(false);
     resetPrevTetriminoRef();
     initialNextTetriminoBag();
@@ -319,7 +321,6 @@ const Single: FC = () => {
     setLastTetriminoRotateWallKickPositionRef,
     setTetriminoMoveTypeRecordRef,
     setIsHardDropRef,
-    setIsSoftDropPressRef,
     setIsHoldableRef,
     setHoldTetrimino,
     initialNextTetriminoBag,
@@ -347,7 +348,11 @@ const Single: FC = () => {
         }
         return;
       }
-      if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
+      if (
+        renderIdRef.current === currentRerenderIdRef &&
+        !isPausing &&
+        matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING
+      ) {
         if (e.key === Key.ArrowLeft) {
           const isSuccess = moveTetrimino(DIRECTION.LEFT);
           if (isSuccess) {
@@ -365,7 +370,6 @@ const Single: FC = () => {
             ]);
           }
         } else if (e.key === Key.ArrowDown) {
-          if (e.repeat) setIsSoftDropPressRef(true);
           const isSuccess = moveTetrimino(DIRECTION.DOWN);
           if (isSuccess) {
             setTetriminoMoveTypeRecordRef([
@@ -439,13 +443,14 @@ const Single: FC = () => {
       matrixPhase,
       isToolOverlayOpen,
       tetriminoMoveTypeRecordRef,
+      currentRerenderIdRef,
       isHoldableRef,
       tetrimino.type,
+      renderIdRef,
       closeToolOverlay,
       openToolOverlay,
       moveTetrimino,
       setTetriminoMoveTypeRecordRef,
-      setIsSoftDropPressRef,
       changeTetriminoShape,
       setIsHardDropRef,
       moveTetriminoToPreview,
@@ -456,18 +461,6 @@ const Single: FC = () => {
   );
 
   useKeydownAutoRepeat([Key.ArrowLeft, Key.ArrowRight, Key.ArrowDown], onKeyDown);
-
-  useEffect(() => {
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === Key.ArrowDown) {
-        setIsSoftDropPressRef(false);
-      }
-    };
-    window.addEventListener("keyup", onKeyUp);
-    return () => {
-      window.removeEventListener("keyup", onKeyUp);
-    };
-  }, [setIsSoftDropPressRef]);
 
   useEffect(() => {
     if (!isGameStart) return;
@@ -503,17 +496,21 @@ const Single: FC = () => {
             }, 500);
           }
         } else {
-          if (isSoftDropPressRef.current) {
-            tetriminoFallingTimer.clear();
-          } else {
-            setTetriminoFallingTimerHandlerRef(() => {
-              moveTetrimino(DIRECTION.DOWN);
-            });
-            if (!tetriminoFallingTimer.isPending()) {
-              tetriminoFallingTimer.start(() => {
-                tetriminoFallingTimerHandlerRef.current();
-              }, tetriminoFallingDelay);
+          setTetriminoFallingTimerHandlerRef(() => {
+            if (renderIdRef.current === currentRerenderIdRef) {
+              const isSuccess = moveTetrimino(DIRECTION.DOWN);
+              if (isSuccess) {
+                setTetriminoMoveTypeRecordRef([
+                  ...tetriminoMoveTypeRecordRef.current,
+                  TETRIMINO_MOVE_TYPE.AUTO_FALLING,
+                ]);
+              }
             }
+          });
+          if (!tetriminoFallingTimer.isPending()) {
+            tetriminoFallingTimer.start(() => {
+              tetriminoFallingTimerHandlerRef.current();
+            }, tetriminoFallingDelay);
           }
         }
         effectCleaner = () => {
@@ -588,9 +585,11 @@ const Single: FC = () => {
     isGameStart,
     matrixPhase,
     tetrimino,
-    isSoftDropPressRef,
     isHardDropRef,
     tetriminoFallingTimerHandlerRef,
+    tetriminoMoveTypeRecordRef,
+    renderIdRef,
+    currentRerenderIdRef,
     handleTetriminoCreate,
     handleGameOver,
     setGameState,
