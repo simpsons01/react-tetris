@@ -115,7 +115,6 @@ const NotifierWithButton = styled(Notifier)`
 `;
 
 enum ROOM_STATE {
-  READY = "READY",
   WAIT_OTHER_READY = "WAIT_OTHER_READY",
   BEFORE_GAME_START = "BEFORE_GAME_START",
   GAME_START = "GAME_START",
@@ -241,8 +240,6 @@ const Room: FC = () => {
 
   const [isSelfHardDropRef, setIsSelfHardDropRef] = useCustomRef(false);
 
-  const [isSelfSoftDropPressRef, setIsSelfSoftDropPressRef] = useCustomRef(false);
-
   const [selfTetriminoFallingTimerHandlerRef, setSelfTetriminoFallingTimerHandlerRef] =
     useCustomRef<AnyFunction>(() => {});
 
@@ -260,6 +257,12 @@ const Room: FC = () => {
     useCustomRef(selfNextTetriminoBag);
 
   const [prevSelfRenderHoldTetriminoRef, setPrevSelRenderHoldTetriminoRef] = useCustomRef(selfHoldTetrimino);
+
+  const [renderIdRef, setRenderIdRef] = useCustomRef(0);
+
+  setRenderIdRef(renderIdRef.current + 1);
+
+  const currentRerenderIdRef = renderIdRef.current;
 
   const selfPreviewTetrimino = useMemo((): Array<ICube> | null => {
     const previewCoordinate = getSelfTetriminoPreviewCoordinates();
@@ -315,15 +318,15 @@ const Room: FC = () => {
 
   const [beforeStartCountDown, setBeforeStartCountDown] = useState<number>(0);
 
-  const [result, setResult] = useState<number>(RESULT.LOSE);
+  const [result, setResult] = useState<number | null>(null);
 
   const [leftSec, setLeftSec] = useState<number | null>(null);
 
-  const [roomState, setRoomState] = useState<ROOM_STATE>(ROOM_STATE.READY);
+  const [roomState, setRoomState] = useState<ROOM_STATE | null>(null);
 
   const isGameStart = useMemo(() => roomState === ROOM_STATE.GAME_START, [roomState]);
 
-  const handlResetAllSelfState = useCallback(() => {
+  const handleResetAllSelfState = useCallback(() => {
     resetSelfMatrix();
     resetSelfTetrimino();
     setSelfLevel(1);
@@ -335,7 +338,6 @@ const Room: FC = () => {
     setSelfLastTetriminoRotateWallKickPositionRef(0);
     setSelfTetriminoMoveTypeRecordRef([]);
     setIsSelfHardDropRef(false);
-    setIsSelfSoftDropPressRef(false);
     setIsSelfHoldableRef(false);
     resetSelfPrevTetriminoRef();
     setSelfNextTetriminoBag([]);
@@ -345,14 +347,13 @@ const Room: FC = () => {
     resetSelfTetrimino,
     setIsSelfHardDropRef,
     setIsSelfHoldableRef,
-    setIsSelfSoftDropPressRef,
     setSelfHoldTetrimino,
     setSelfLastTetriminoRotateWallKickPositionRef,
     setSelfTetriminoMoveTypeRecordRef,
     setSelfNextTetriminoBag,
   ]);
 
-  const handlResetAllOpponentState = useCallback(() => {
+  const handleResetAllOpponentState = useCallback(() => {
     resetOpponentMatrix();
     resetOpponentTetrimino();
     setOpponentHoldTetrimino(null);
@@ -362,7 +363,11 @@ const Room: FC = () => {
     setOpponentLine(1);
   }, [resetOpponentMatrix, resetOpponentTetrimino, setOpponentHoldTetrimino, setOpponentNextTetriminoBag]);
 
-  const handlResetGameState = useCallback(() => {}, []);
+  const handleResetGameState = useCallback(() => {
+    setResult(null);
+    setLeftSec(null);
+    setRoomState(null);
+  }, []);
 
   const handleSelfReady = useCallback(() => {
     if (isConnected) {
@@ -382,15 +387,9 @@ const Room: FC = () => {
       socketInstance.emit("reset_room", ({ metadata: { isSuccess, isError, message } }) => {
         if (isError) return;
         if (isSuccess) {
-          resetOpponentTetrimino();
-          resetOpponentMatrix();
-          resetSelfTetrimino();
-          resetSelfMatrix();
-          setSelfScore(0);
-          setOpponentScore(0);
-          setLeftSec(null);
-          setRoomState(ROOM_STATE.READY);
-          setSelfMatrixPhase(null);
+          handleResetAllSelfState();
+          handleResetAllOpponentState();
+          handleResetGameState();
         } else {
           createAlertModal(message ? message : "OOPS", {
             text: "TO ROOMS",
@@ -402,10 +401,9 @@ const Room: FC = () => {
   }, [
     isConnected,
     socketInstance,
-    resetOpponentTetrimino,
-    resetOpponentMatrix,
-    resetSelfTetrimino,
-    resetSelfMatrix,
+    handleResetAllSelfState,
+    handleResetAllOpponentState,
+    handleResetGameState,
     navigate,
   ]);
 
@@ -473,7 +471,6 @@ const Room: FC = () => {
     setSelfLastTetriminoRotateWallKickPositionRef(0);
     setSelfTetriminoMoveTypeRecordRef([]);
     setIsSelfHardDropRef(false);
-    setIsSelfSoftDropPressRef(false);
     setIsSelfHoldableRef(false);
     resetSelfPrevTetriminoRef();
   }, [
@@ -482,7 +479,6 @@ const Room: FC = () => {
     resetSelfTetrimino,
     setIsSelfHardDropRef,
     setIsSelfHoldableRef,
-    setIsSelfSoftDropPressRef,
     setSelfHoldTetrimino,
     setSelfLastTetriminoRotateWallKickPositionRef,
     setSelfTetriminoMoveTypeRecordRef,
@@ -596,7 +592,11 @@ const Room: FC = () => {
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (isGameStart && selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
+      if (
+        isGameStart &&
+        selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING &&
+        renderIdRef.current === currentRerenderIdRef
+      ) {
         if (e.key === Key.ArrowLeft) {
           const isSuccess = moveSelfTetrimino(DIRECTION.LEFT);
           if (isSuccess) {
@@ -614,7 +614,6 @@ const Room: FC = () => {
             ]);
           }
         } else if (e.key === Key.ArrowDown) {
-          if (e.repeat) setIsSelfSoftDropPressRef(true);
           const isSuccess = moveSelfTetrimino(DIRECTION.DOWN);
           if (isSuccess) {
             setSelfTetriminoMoveTypeRecordRef([
@@ -678,6 +677,8 @@ const Room: FC = () => {
       }
     },
     [
+      renderIdRef,
+      currentRerenderIdRef,
       isGameStart,
       isSelfHoldableRef,
       selfMatrixPhase,
@@ -691,7 +692,6 @@ const Room: FC = () => {
       moveSelfTetrimino,
       moveSelfTetriminoToPreview,
       setIsSelfHardDropRef,
-      setIsSelfSoftDropPressRef,
       setSelfTetriminoMoveTypeRecordRef,
     ]
   );
@@ -735,17 +735,19 @@ const Room: FC = () => {
             }, 500);
           }
         } else {
-          if (isSelfSoftDropPressRef.current) {
-            selfTetriminoFallingTimer.clear();
-          } else {
-            setSelfTetriminoFallingTimerHandlerRef(() => {
-              moveSelfTetrimino(DIRECTION.DOWN);
-            });
-            if (!selfTetriminoFallingTimer.isPending()) {
-              selfTetriminoFallingTimer.start(() => {
-                selfTetriminoFallingTimerHandlerRef.current();
-              }, selfTetriminoFallingDelay);
+          setSelfTetriminoFallingTimerHandlerRef(() => {
+            const isSuccess = moveSelfTetrimino(DIRECTION.DOWN);
+            if (isSuccess) {
+              setSelfTetriminoMoveTypeRecordRef([
+                ...selfTetriminoMoveTypeRecordRef.current,
+                TETRIMINO_MOVE_TYPE.AUTO_FALLING,
+              ]);
             }
+          });
+          if (!selfTetriminoFallingTimer.isPending()) {
+            selfTetriminoFallingTimer.start(() => {
+              selfTetriminoFallingTimerHandlerRef.current();
+            }, selfTetriminoFallingDelay);
           }
         }
         effectCleaner = () => {
@@ -821,7 +823,7 @@ const Room: FC = () => {
     selfTetriminoFallingDelay,
     selfTetriminoFallingTimerHandlerRef,
     isSelfHardDropRef,
-    isSelfSoftDropPressRef,
+    selfTetriminoMoveTypeRecordRef,
     clearSelfRowFilledWithCube,
     fillSelfAllRow,
     fillSelfEmptyRow,
@@ -1123,7 +1125,7 @@ const Room: FC = () => {
       {(() => {
         const roomStateNotifier = (() => {
           let notifier = null;
-          if (roomState === ROOM_STATE.READY || roomState === ROOM_STATE.WAIT_OTHER_READY) {
+          if (roomState === null || roomState === ROOM_STATE.WAIT_OTHER_READY) {
             notifier = (
               <NotifierWithButton>
                 <Font level={"one"} color="#fff">
@@ -1133,10 +1135,10 @@ const Room: FC = () => {
                   <span
                     style={{
                       position: "relative",
-                      left: roomState === ROOM_STATE.READY ? "0" : "-16px",
+                      left: roomState === null ? "0" : "-16px",
                     }}
                   >
-                    {roomState === ROOM_STATE.READY ? "READY" : <Loading.Dot>WAIT</Loading.Dot>}
+                    {roomState === null ? "READY" : <Loading.Dot>WAIT</Loading.Dot>}
                   </span>
                 </button>
                 <button onClick={handleSelfLeaveRoom} className="nes-btn">
