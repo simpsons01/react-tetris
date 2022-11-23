@@ -89,11 +89,6 @@ const CloseBtn = styled.button`
   width: 40px;
   height: 40px;
 
-  i {
-    transform: scale(2);
-    color: #fff;
-  }
-
   &:after {
     position: absolute;
     content: "";
