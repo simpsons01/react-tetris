@@ -1,11 +1,9 @@
 import { Outlet, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import useSizeConfig from "./hooks/size";
-import useSocket from "./hooks/socket";
 import Overlay from "./components/Overlay";
 import http from "./common/http";
 import { useState, useMemo, useEffect, Fragment } from "react";
-import { SocketContext } from "./context/socket";
 import { SizeConfigContext } from "./context/sizeConfig";
 import { ScreenSizeContext } from "./context/screen";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
@@ -31,8 +29,6 @@ const App = () => {
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
 
-  const { isConnected, isConnectErrorOccur, socketInstance } = useSocket();
-
   const { sizeConfig, screenSize } = useSizeConfig();
 
   const location = useLocation();
@@ -57,15 +53,13 @@ const App = () => {
   }, [sizeConfig, location, screenSize]);
 
   useEffect(() => {
-    http
-      .get("/health-check", { timeout: 5000 })
+    Promise.all([http.get("/health-check"), http.get("/connect/health-check")])
       .then(() => {
         setInitial(true);
       })
       .catch(() => {
         setInitial(true);
         setIsHealthCheckFail(true);
-        // do something when error occur
       });
   }, []);
 
@@ -86,22 +80,14 @@ const App = () => {
                   saveSetting,
                 }}
               >
-                <SocketContext.Provider
-                  value={{
-                    isConnected,
-                    isConnectErrorOccur,
-                    socketInstance,
-                  }}
-                >
-                  <ScreenSizeContext.Provider value={screenSize}>
-                    <SizeConfigContext.Provider value={sizeConfig}>
-                      <Fragment>
-                        <Outlet />
-                        <Modal.Setting isOpen={isSettingModalOpen} />
-                      </Fragment>
-                    </SizeConfigContext.Provider>
-                  </ScreenSizeContext.Provider>
-                </SocketContext.Provider>
+                <ScreenSizeContext.Provider value={screenSize}>
+                  <SizeConfigContext.Provider value={sizeConfig}>
+                    <Fragment>
+                      <Outlet />
+                      <Modal.Setting isOpen={isSettingModalOpen} />
+                    </Fragment>
+                  </SizeConfigContext.Provider>
+                </ScreenSizeContext.Provider>
               </SettingContext.Provider>
             </SettingModalVisibilityContext.Provider>
           ) : (

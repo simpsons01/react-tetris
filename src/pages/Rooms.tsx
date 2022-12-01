@@ -11,6 +11,7 @@ import Font from "../components/Font";
 import Overlay from "../components/Overlay";
 import { Link } from "react-router-dom";
 import { Key } from "ts-key-enum";
+import http from "../common/http";
 
 const RoomsContainer = styled.div`
   width: 100%;
@@ -242,22 +243,6 @@ const Rooms: FC<{}> = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (isConnected) {
-      socketInstance.emit("get_socket_data", ({ data: { name } }) => {
-        setIsCheckComplete(true);
-        if (!name) {
-          navigate("/");
-        } else {
-          handleGetRooms();
-        }
-      });
-    } else {
-      navigate("/");
-    }
-    return () => {
-      if (isConnected) {
-      }
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
