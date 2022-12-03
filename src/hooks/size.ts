@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import GRID from "../common/grid";
-import { IScreenSize } from "../context/screen";
 import { ISizeConfig } from "../context/sizeConfig";
+import { ISize } from "../common/utils";
 
 const allSizeConfig = {
   twoExtraLarge: {
@@ -316,7 +316,7 @@ const getScreenSize = () => {
 
 const useSizeConfig = () => {
   const [sizeConfig, setSizeConfig] = useState<ISizeConfig>(getSizeConfigByWindowWidth());
-  const [screenSize, setScreenSize] = useState<IScreenSize>(getScreenSize());
+  const [screenSize, setScreenSize] = useState<ISize>(getScreenSize());
 
   useEffect(() => {
     const resizeHandler = () => {

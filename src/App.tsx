@@ -5,7 +5,7 @@ import Overlay from "./components/Overlay";
 import http from "./common/http";
 import { useState, useMemo, useEffect, Fragment } from "react";
 import { SizeConfigContext } from "./context/sizeConfig";
-import { ScreenSizeContext } from "./context/screen";
+import { PlayerContext, IPlayer } from "./context/player";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import Font from "./components/Font";
 import Modal from "./components/Modal";
@@ -21,9 +21,7 @@ const AppContainer = styled.div`
 `;
 
 const App = () => {
-  const [isHealthCheckFail, setIsHealthCheckFail] = useState(false);
-
-  const [isInitial, setInitial] = useState(false);
+  const [player, setPlayer] = useState<IPlayer>({ name: "", id: "" });
 
   const { settingRef, saveSetting } = useSetting();
 
@@ -52,58 +50,46 @@ const App = () => {
     return isPlayable;
   }, [sizeConfig, location, screenSize]);
 
-  useEffect(() => {
-    Promise.all([http.get("/health-check"), http.get("/connect/health-check")])
-      .then(() => {
-        setInitial(true);
-      })
-      .catch(() => {
-        setInitial(true);
-        setIsHealthCheckFail(true);
-      });
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <AppContainer>
-      {isInitial &&
-        (!isHealthCheckFail ? (
-          isScreenSizePlayable ? (
-            <SettingModalVisibilityContext.Provider
+      {isScreenSizePlayable ? (
+        <PlayerContext.Provider
+          value={{
+            player: player,
+            isNil: () => !player.name || !player.id,
+            set: (newPlayer: IPlayer) => setPlayer(newPlayer),
+          }}
+        >
+          <SettingModalVisibilityContext.Provider
+            value={{
+              open: () => setIsSettingModalOpen(true),
+              close: () => setIsSettingModalOpen(false),
+            }}
+          >
+            <SettingContext.Provider
               value={{
-                open: () => setIsSettingModalOpen(true),
-                close: () => setIsSettingModalOpen(false),
+                settingRef,
+                saveSetting,
               }}
             >
-              <SettingContext.Provider
-                value={{
-                  settingRef,
-                  saveSetting,
-                }}
-              >
-                <ScreenSizeContext.Provider value={screenSize}>
-                  <SizeConfigContext.Provider value={sizeConfig}>
-                    <Fragment>
-                      <Outlet />
-                      <Modal.Setting isOpen={isSettingModalOpen} />
-                    </Fragment>
-                  </SizeConfigContext.Provider>
-                </ScreenSizeContext.Provider>
-              </SettingContext.Provider>
-            </SettingModalVisibilityContext.Provider>
-          ) : (
-            <Overlay background="#fff">
-              <Font align="center" color="#292929" level={"one"}>
-                OOPS! THE SIZE IS NOT SUPPORTED
-              </Font>
-            </Overlay>
-          )
-        ) : (
-          <Overlay background="#fff" color="#292929">
-            <Font align="center" color="#292929" level={"one"}>
-              OOPS! THE PAGE IS NOT WORKED
-            </Font>
-          </Overlay>
-        ))}
+              <SizeConfigContext.Provider value={sizeConfig}>
+                <Fragment>
+                  <Outlet />
+                  <Modal.Setting isOpen={isSettingModalOpen} />
+                </Fragment>
+              </SizeConfigContext.Provider>
+            </SettingContext.Provider>
+          </SettingModalVisibilityContext.Provider>
+        </PlayerContext.Provider>
+      ) : (
+        <Overlay background="#fff">
+          <Font align="center" color="#292929" level={"one"}>
+            OOPS! THE SIZE IS NOT SUPPORTED
+          </Font>
+        </Overlay>
+      )}
     </AppContainer>
   );
 };
