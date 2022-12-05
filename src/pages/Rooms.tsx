@@ -1,17 +1,16 @@
-import { useCallback, useContext, useState, useEffect, FC, Fragment } from "react";
+import { useCallback, useState, useEffect, FC, Fragment } from "react";
 import styled from "styled-components";
 import Modal from "../components/Modal";
-import { ISocketContext, SocketContext } from "../context/socket";
 import { IRoom } from "../common/rooms";
 import { useNavigate } from "react-router-dom";
 import { KEYCODE } from "../common/keyboard";
-import { createAlertModal } from "../common/alert";
-import { ClientToServerCallback } from "../common/socket";
 import Font from "../components/Font";
 import Overlay from "../components/Overlay";
 import { Link } from "react-router-dom";
 import { Key } from "ts-key-enum";
-import http from "../common/http";
+import useRequest from "../hooks/request";
+import Loading from "../components/Loading";
+import * as http from "../common/http";
 
 const RoomsContainer = styled.div`
   width: 100%;
@@ -45,6 +44,13 @@ const RoomsLeftPanel = styled.div`
   flex: 0 0 calc(80% - 23px);
   padding-right: 5px;
   position: relative;
+`;
+
+const RoomsLoading = styled.div`
+  display: flex;
+  align-items: center;
+  padding-top: 32px;
+  justify-content: center;
 `;
 
 const RoomsEmpty = styled.div`
@@ -142,126 +148,71 @@ const Settings = styled.div`
   }
 `;
 
-enum ROOM_STATE {
-  CREATED,
-  WAITING_ROOM_FULL,
-  GAME_BEFORE_START,
-  GAME_START,
-  GAME_INTERRUPT,
-  GAME_END,
-}
+const getHostName = (room: IRoom) => {
+  let hostName = "";
+  const host = room.players.find((player) => player.id === room.hostId);
+  if (host) {
+    hostName = host.name;
+  }
+  return hostName;
+};
 
 const Rooms: FC = () => {
   const navigate = useNavigate();
-
-  const { socketInstance, isConnected, isConnectErrorOccur } = useContext<
-    ISocketContext<
-      {
-        error_occur: () => void;
-      },
-      {
-        get_socket_data: (done: ClientToServerCallback<{ roomId: string; name: string }>) => void;
-        get_rooms: (done: ClientToServerCallback<{ rooms: Array<IRoom> }>) => void;
-        join_room: (roomId: string, done: ClientToServerCallback) => void;
-        create_room: (roomName: string, done: ClientToServerCallback<{ roomId: string | null }>) => void;
-      }
-    >
-  >(SocketContext);
 
   const [isNoRoomsModalOpen, setIsNoRoomsModalOpen] = useState(false);
 
   const [isCreateRoomModalOpen, setIsCreateRoomsModalOpen] = useState(false);
 
+  const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
+
   const [rooms, setRooms] = useState<Array<IRoom>>([]);
 
   const [roomName, setRoomName] = useState("");
 
-  const [isCheckComplete, setIsCheckComplete] = useState(false);
+  const [processingGetRooms, getRooms] = useRequest(http.getRooms);
 
-  const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
+  const [processingCreateRoom, createRoom] = useRequest(http.createRoom);
 
-  const handleGetRooms = useCallback(() => {
-    if (isConnected) {
-      socketInstance.emit("get_rooms", ({ data: { rooms }, metadata: { isError } }) => {
-        if (isError) return;
-        const waitingOtherJoinRooms = rooms.filter((room) => room.state === ROOM_STATE.WAITING_ROOM_FULL);
-        setRooms(waitingOtherJoinRooms);
-        if (waitingOtherJoinRooms.length === 0) {
-          setIsNoRoomsModalOpen(true);
-        }
-      });
+  const [processingJoinRoom, joinRoom] = useRequest(http.joinRoom);
+
+  const handleGetRooms = useCallback(async () => {
+    if (!processingGetRooms) {
+      try {
+        const {
+          data: {
+            data: { list: rooms },
+          },
+        } = await getRooms();
+        setRooms(rooms);
+      } catch (error) {}
     }
-  }, [isConnected, socketInstance]);
+  }, [getRooms, processingGetRooms]);
 
   const handleJoinRoom = useCallback(
-    (roomId: string) => {
-      if (isConnected) {
-        socketInstance.emit(
-          "join_room",
-          roomId,
-          ({ data: {}, metadata: { isSuccess, isError, message } }) => {
-            if (isError) return;
-            if (isSuccess) {
-              navigate(`/room/${roomId}`);
-            } else {
-              createAlertModal(message ? message : "JOIN ROOM FAILED");
-            }
-          }
-        );
+    async (roomId: string) => {
+      if (!processingJoinRoom) {
+        try {
+          await joinRoom(roomId);
+          navigate(`/room/${roomId}`);
+        } catch (error) {}
       }
     },
-    [isConnected, socketInstance, navigate]
+    [joinRoom, processingJoinRoom, navigate]
   );
 
-  const handleCreateRoom = useCallback(
-    (roomName: string) => {
-      if (isConnected) {
-        socketInstance.emit(
-          "create_room",
-          roomName,
-          ({ data: { roomId }, metadata: { isSuccess, isError, message } }) => {
-            if (isError) return;
-            if (isSuccess) {
-              navigate(`/room/${roomId as string}`);
-            } else {
-              createAlertModal(message ? message : "CREATE ROOM FAILED");
-            }
-          }
-        );
-      }
-    },
-    [isConnected, socketInstance, navigate]
-  );
-
-  const handleOnError = useCallback(() => {
-    createAlertModal("ERROR OCCUR", {
-      text: "confirm",
-      onClick: () => {
-        navigate("/");
-      },
-    });
-  }, [navigate]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (isConnected) {
-      socketInstance.on("error_occur", () => {
-        handleOnError();
-      });
-    } else {
-      if (isCheckComplete) {
-        handleOnError();
-      }
+  const handleCreateRoom = useCallback(async () => {
+    if (!processingCreateRoom) {
+      try {
+        const {
+          data: {
+            data: { roomId },
+          },
+        } = await createRoom({ name: roomName });
+        navigate(`/room/${roomId}`);
+      } catch (error) {}
     }
-    return () => {
-      if (isConnected) {
-        socketInstance.off("error_occur");
-      }
-    };
-  }, [socketInstance, isConnected, isConnectErrorOccur, isCheckComplete, handleOnError]);
+  }, [createRoom, navigate, processingCreateRoom, roomName]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -275,11 +226,22 @@ const Rooms: FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    handleGetRooms();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Fragment>
       <RoomsContainer>
         <RoomsLeftPanel>
-          {rooms.length > 0 ? (
+          {processingGetRooms ? (
+            <RoomsLoading>
+              <Font level="three">
+                <Loading.Dot>FETCHING ROOMS</Loading.Dot>
+              </Font>
+            </RoomsLoading>
+          ) : rooms.length > 0 ? (
             rooms.map((room) => (
               <Room
                 onClick={() => {
@@ -289,7 +251,8 @@ const Rooms: FC = () => {
                 className="nes-btn"
               >
                 <Font level={"six"}>ROOM NAME: {room.name}</Font>
-                <Font level={"six"}>HOST NAME: {room.host.name}</Font>
+                <Font level={"six"}>HOST NAME: {getHostName(room)}</Font>
+                <Font level={"six"}>START LEVEL: {room.config.initialLevel}</Font>
               </Room>
             ))
           ) : (
@@ -343,7 +306,7 @@ const Rooms: FC = () => {
                 }}
                 onKeyDown={(event: React.KeyboardEvent) => {
                   if (event.key === KEYCODE.ENTER) {
-                    handleCreateRoom(roomName);
+                    handleCreateRoom();
                   }
                 }}
               />
@@ -352,7 +315,7 @@ const Rooms: FC = () => {
           confirm={{
             text: "CREATE",
             onClick: () => {
-              handleCreateRoom(roomName);
+              handleCreateRoom();
             },
           }}
           cancel={{

@@ -1,4 +1,4 @@
-import { useCallback, useState, useContext, useEffect, useMemo, useLayoutEffect, FC, Fragment } from "react";
+import { useCallback, useState, useEffect, useMemo, useLayoutEffect, FC, Fragment } from "react";
 import {
   DIRECTION,
   TETRIMINO_TYPE,
@@ -14,10 +14,9 @@ import Overlay from "../components/Overlay";
 import Loading from "../components/Loading";
 import useMatrix from "../hooks/matrix";
 import useNextTetriminoBag from "../hooks/nextTetriminoBag";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ITetrimino } from "../hooks/tetrimino";
 import { createCountDownTimer } from "../common/timer";
-import { ISocketContext, SocketContext } from "../context/socket";
 import { ISize } from "../common/utils";
 import { ClientToServerCallback } from "../common/socket";
 import styled from "styled-components";
@@ -37,8 +36,10 @@ import useHoldTetrimino from "../hooks/holdTetrimino";
 import { Key } from "ts-key-enum";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import { createAlertModal } from "../common/alert";
-import { Link } from "react-router-dom";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
+import useSocket from "../hooks/socket";
+import { getToken } from "../common/token";
+import { usePlayerContext } from "../context/player";
 
 const Wrapper = styled.div`
   width: 100vw;
@@ -181,6 +182,8 @@ const Settings = styled.div`
 `;
 
 enum ROOM_STATE {
+  CONNECTING = "CONNECTING",
+  SELF_NOT_READY = "SELF_NOT_READY",
   WAIT_OTHER_READY = "WAIT_OTHER_READY",
   BEFORE_GAME_START = "BEFORE_GAME_START",
   GAME_START = "GAME_START",
@@ -219,30 +222,36 @@ const Room: FC = () => {
     mode: { double: doubleSizeConfig },
   } = useSizeConfigContext();
 
+  const { playerRef } = usePlayerContext();
+
   const { open: openSettingModal } = useSettingModalVisibilityContext();
 
-  const { socketInstance, isConnected } = useContext<
-    ISocketContext<
-      {
-        error_occur: () => void;
-        before_start_game: (leftsec: number) => void;
-        game_start: () => void;
-        game_leftSec: (leftsec: number) => void;
-        game_over: (result: { isTie: boolean; winnerId: string; loserId: string }) => void;
-        room_participant_leave: () => void;
-        room_host_leave: () => void;
-        other_game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
-      },
-      {
-        get_socket_data: (done: ClientToServerCallback<{ roomId: string; name: string }>) => void;
-        ready: (done: ClientToServerCallback<{}>) => void;
-        leave_room: (done: ClientToServerCallback<{}>) => void;
-        force_leave_room: (done: ClientToServerCallback<{}>) => void;
-        reset_room: (done: ClientToServerCallback<{}>) => void;
-        game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
-      }
-    >
-  >(SocketContext);
+  const { id: roomId } = useParams();
+
+  const { socketInstance, isConnected } = useSocket<
+    {
+      error_occur: () => void;
+      before_start_game: (leftsec: number) => void;
+      game_start: () => void;
+      game_leftSec: (leftsec: number) => void;
+      game_over: (result: { isTie: boolean; winnerId: string; loserId: string }) => void;
+      room_participant_leave: () => void;
+      room_host_leave: () => void;
+      other_game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
+    },
+    {
+      get_socket_data: (done: ClientToServerCallback<{ roomId: string; name: string }>) => void;
+      ready: (done: ClientToServerCallback<{}>) => void;
+      leave_room: (done: ClientToServerCallback<{}>) => void;
+      force_leave_room: (done: ClientToServerCallback<{}>) => void;
+      reset_room: (done: ClientToServerCallback<{}>) => void;
+      game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
+    }
+  >(getToken() as string, {
+    roomId,
+    playerId: playerRef.current.id,
+    playerName: playerRef.current.name,
+  });
 
   // self state
   const {
@@ -381,16 +390,13 @@ const Room: FC = () => {
     return null;
   }, [getOpponentTetriminoPreviewCoordinates, opponentTetrimino]);
 
-  // game state
-  const [isCheckComplete, setIsCheckComplete] = useState(false);
-
   const [beforeStartCountDown, setBeforeStartCountDown] = useState<number>(0);
 
   const [result, setResult] = useState<number | null>(null);
 
   const [leftSec, setLeftSec] = useState<number | null>(null);
 
-  const [roomState, setRoomState] = useState<ROOM_STATE | null>(null);
+  const [roomState, setRoomState] = useState<ROOM_STATE>(ROOM_STATE.CONNECTING);
 
   const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
 
@@ -436,7 +442,7 @@ const Room: FC = () => {
   const handleResetGameState = useCallback(() => {
     setResult(null);
     setLeftSec(null);
-    setRoomState(null);
+    setRoomState(ROOM_STATE.SELF_NOT_READY);
   }, []);
 
   const handleSelfReady = useCallback(() => {
@@ -479,19 +485,9 @@ const Room: FC = () => {
 
   const handleSelfLeaveRoom = useCallback(
     (path = "/rooms") => {
-      if (isConnected) {
-        socketInstance.emit("leave_room", ({ metadata: { isError } }) => {
-          if (isError) {
-            socketInstance.emit("force_leave_room", () => {
-              navigate(path);
-            });
-            return;
-          }
-          navigate(path);
-        });
-      }
+      navigate(path);
     },
-    [isConnected, navigate, socketInstance]
+    [navigate]
   );
 
   const handleSelfTetriminoCreate = useCallback(
@@ -644,24 +640,6 @@ const Room: FC = () => {
     setPrevSelfRenderScoreRef,
     setPrevSelfRenderTetriminoRef,
   ]);
-
-  useEffect(() => {
-    if (isConnected) {
-      socketInstance.emit("get_socket_data", ({ data: { name, roomId } }) => {
-        setIsCheckComplete(true);
-        if (!name || !roomId) {
-          navigate("/");
-        }
-      });
-    } else {
-      navigate("/");
-    }
-    return () => {
-      if (isConnected) {
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -921,6 +899,9 @@ const Room: FC = () => {
 
   useEffect(() => {
     if (isConnected) {
+      if (roomState === ROOM_STATE.CONNECTING) {
+        setRoomState(ROOM_STATE.SELF_NOT_READY);
+      }
       socketInstance.on("before_start_game", (leftSec) => {
         if (roomState !== ROOM_STATE.BEFORE_GAME_START) {
           initialOpponentNextTetriminoBag();
@@ -984,9 +965,7 @@ const Room: FC = () => {
         setRoomState(ROOM_STATE.ERROR);
       });
     } else {
-      if (isCheckComplete) {
-        setRoomState(ROOM_STATE.ERROR);
-      }
+      setRoomState(ROOM_STATE.CONNECTING);
     }
     return () => {
       if (isConnected) {
@@ -1003,7 +982,6 @@ const Room: FC = () => {
     socketInstance,
     isConnected,
     roomState,
-    isCheckComplete,
     setRoomState,
     setOpponentMatrix,
     setOpponentTetrimino,
@@ -1200,26 +1178,35 @@ const Room: FC = () => {
         {(() => {
           const roomStateNotifier = (() => {
             let notifier = null;
-            if (roomState === null || roomState === ROOM_STATE.WAIT_OTHER_READY) {
+            if (roomState === ROOM_STATE.CONNECTING) {
+              notifier = (
+                <Notifier>
+                  <Font level={"one"} color="#fff">
+                    <Loading.Dot>CONNECTING</Loading.Dot>
+                  </Font>
+                </Notifier>
+              );
+            } else if (roomState === ROOM_STATE.SELF_NOT_READY) {
               notifier = (
                 <NotifierWithButton>
                   <Font level={"one"} color="#fff">
                     READY OR NOT
                   </Font>
                   <button className="nes-btn" onClick={handleSelfReady}>
-                    <span
-                      style={{
-                        position: "relative",
-                        left: roomState === null ? "0" : "-16px",
-                      }}
-                    >
-                      {roomState === null ? "READY" : <Loading.Dot>WAIT</Loading.Dot>}
-                    </span>
+                    READY
                   </button>
                   <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
                     QUIT
                   </button>
                 </NotifierWithButton>
+              );
+            } else if (roomState === ROOM_STATE.WAIT_OTHER_READY) {
+              notifier = (
+                <Notifier>
+                  <Font level={"one"} color="#fff">
+                    <Loading.Dot>WAITING OTHER READY</Loading.Dot>
+                  </Font>
+                </Notifier>
               );
             } else if (roomState === ROOM_STATE.BEFORE_GAME_START) {
               notifier = (

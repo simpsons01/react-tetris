@@ -1,24 +1,14 @@
-export enum ROOM_STATE {
-  CREATED,
-  WAITING_ROOM_FULL,
-  GAME_BEFORE_START,
-  GAME_START,
-  GAME_INTERRUPT,
-  GAME_END,
-}
+import { IPlayer } from "./player";
 
-export interface IParticipant {
-  id: string;
-  name: string;
-  score: number;
-  isReady: boolean;
-}
+export type RoomConfig = {
+  initialLevel: number;
+  playerLimitNum: number;
+};
 
 export interface IRoom {
   id: string;
-  state: ROOM_STATE;
   name: string;
-  host: IParticipant;
-  participantLimitNum: number;
-  participants: Array<IParticipant>;
+  hostId: string;
+  config: RoomConfig;
+  players: Array<IPlayer>;
 }

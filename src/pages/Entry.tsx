@@ -49,10 +49,10 @@ const Entry: FC = () => {
 
   const { open: openSettingModal } = useSettingModalVisibilityContext();
 
-  const [handleCreatePlayerProcessing, handleCreatePlayer] = useRequest(http.createPlayer);
+  const [processingHandleCreatePlayer, handleCreatePlayer] = useRequest(http.createPlayer);
 
   const saveName = useCallback(async () => {
-    if (!handleCreatePlayerProcessing) {
+    if (!processingHandleCreatePlayer) {
       try {
         const {
           data: {
@@ -66,7 +66,7 @@ const Entry: FC = () => {
         console.log(error);
       }
     }
-  }, [handleCreatePlayerProcessing, setPlayerRef, playerName, handleCreatePlayer, navigate]);
+  }, [processingHandleCreatePlayer, playerName, setPlayerRef, handleCreatePlayer, navigate]);
 
   const toRooms = useCallback(
     (e: React.MouseEvent) => {
