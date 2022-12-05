@@ -8,7 +8,7 @@ import { useSettingModalVisibilityContext } from "../context/settingModalVisibil
 import * as http from "../common/http";
 import { saveToken } from "../common/token";
 import { usePlayerContext } from "../context/player";
-import useRequest from "../hooks/useRequest";
+import useRequest from "../hooks/request";
 
 const EntryContainer = styled.div``;
 
