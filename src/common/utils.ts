@@ -12,17 +12,11 @@ export interface IPosition {
   top: number;
 }
 
-export interface AnyObject<T = any> {
-  [key: string]: T;
+export interface AnyObject {
+  [key: string]: any;
 }
 
-export type AnyFunction<T extends Array<any> = Array<any>, K = any | undefined | void | unknown> = (
-  ...args: T
-) => K;
-
-export const setRef = <T = any>(ref: React.MutableRefObject<T>, val: T) => {
-  ref.current = val;
-};
+export type AnyFunction = (...args: Array<any>) => any;
 
 export const getKeys = <T extends object, K extends keyof T>(obj: T): Array<K> => {
   return Object.keys(obj) as Array<K>;

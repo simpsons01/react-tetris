@@ -7,20 +7,39 @@ import Entry from "./pages/Entry";
 import Single from "./pages/Single";
 import Rooms from "./pages/Rooms";
 import Room from "./pages/Room";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Error from "./pages/Error";
+import { Route, createBrowserRouter, createRoutesFromElements, RouterProvider } from "react-router-dom";
+import initialLoader from "./router/loader/initial";
+import CheckPlayer from "./router/middlewares/CheckPlayer";
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" loader={initialLoader} element={<App />} errorElement={<Error />}>
+      <Route index element={<Entry />} />
+      <Route path="single" element={<Single />} />
+      <Route
+        path="room/:id"
+        element={
+          <CheckPlayer>
+            <Room />
+          </CheckPlayer>
+        }
+      />
+      <Route
+        path="rooms"
+        element={
+          <CheckPlayer>
+            <Rooms />
+          </CheckPlayer>
+        }
+      />
+    </Route>
+  )
+);
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />}>
-          <Route index element={<Entry />} />
-          <Route path="single" element={<Single />} />
-          <Route path="room/:id" element={<Room />} />
-          <Route path="rooms" element={<Rooms />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );

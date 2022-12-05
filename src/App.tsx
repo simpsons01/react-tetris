@@ -1,16 +1,17 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLoaderData, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import useSizeConfig from "./hooks/size";
 import Overlay from "./components/Overlay";
-import http from "./common/http";
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { SizeConfigContext } from "./context/sizeConfig";
-import { PlayerContext, IPlayer } from "./context/player";
+import { PlayerContext } from "./context/player";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import Font from "./components/Font";
 import Modal from "./components/Modal";
 import useSetting from "./hooks/setting";
 import { SettingContext } from "./context/setting";
+import { IPlayer } from "./common/player";
+import useCustomRef from "./hooks/customRef";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -21,11 +22,13 @@ const AppContainer = styled.div`
 `;
 
 const App = () => {
-  const [player, setPlayer] = useState<IPlayer>({ name: "", id: "" });
-
-  const { settingRef, saveSetting } = useSetting();
+  const loaderData = useLoaderData() as { player: IPlayer };
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
+
+  const [playerRef, setPlayerRef] = useCustomRef<IPlayer>(loaderData.player);
+
+  const { settingRef, saveSetting } = useSetting();
 
   const { sizeConfig, screenSize } = useSizeConfig();
 
@@ -50,16 +53,14 @@ const App = () => {
     return isPlayable;
   }, [sizeConfig, location, screenSize]);
 
-  useEffect(() => {}, []);
-
   return (
     <AppContainer>
       {isScreenSizePlayable ? (
         <PlayerContext.Provider
           value={{
-            player: player,
-            isNil: () => !player.name || !player.id,
-            set: (newPlayer: IPlayer) => setPlayer(newPlayer),
+            playerRef,
+            setPlayerRef,
+            isPlayerNil: () => !playerRef.current.name || !playerRef.current.id,
           }}
         >
           <SettingModalVisibilityContext.Provider

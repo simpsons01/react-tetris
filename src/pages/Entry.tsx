@@ -1,13 +1,14 @@
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import Modal from "../components/Modal";
-import { useCallback, useContext, useState, FC } from "react";
+import { useCallback, useState, FC } from "react";
 import { KEYCODE } from "../common/keyboard";
-import { ISocketContext, SocketContext } from "../context/socket";
-import { createAlertModal } from "../common/alert";
-import { ClientToServerCallback } from "../common/socket";
 import Font from "../components/Font";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
+import * as http from "../common/http";
+import { saveToken } from "../common/token";
+import { usePlayerContext } from "../context/player";
+import useRequest from "../hooks/useRequest";
 
 const EntryContainer = styled.div``;
 
@@ -40,59 +41,43 @@ const ListWrapper = styled.div`
 const Entry: FC = () => {
   const navigate = useNavigate();
 
-  const { socketInstance, isConnected } = useContext<
-    ISocketContext<
-      {},
-      {
-        set_name: (name: string, done: ClientToServerCallback<{}>) => void;
-        get_socket_data: (done: ClientToServerCallback<{ roomId: string; name: string }>) => void;
-      }
-    >
-  >(SocketContext);
+  const { setPlayerRef, isPlayerNil } = usePlayerContext();
 
-  const [isCreateUsernameModalOpen, setIsCreateNameModalOpen] = useState<boolean>(false);
+  const [isCreatePlayerNameModalOpen, setIsCreatePlayerNameModalOpen] = useState(false);
 
-  const [userName, setUserName] = useState<string>("");
+  const [playerName, setPlayerName] = useState("");
 
   const { open: openSettingModal } = useSettingModalVisibilityContext();
 
-  const saveName = useCallback(
-    (name: string) => {
-      const onFail = () => {
-        setIsCreateNameModalOpen(false);
-        createAlertModal("FAILED");
-      };
-      if (isConnected) {
-        socketInstance.emit("set_name", name, ({ metadata: { isSuccess, isError } }) => {
-          if (isError) {
-            onFail();
-            return;
-          }
-          if (isSuccess) {
-            navigate("/rooms");
-          } else {
-            onFail();
-          }
-        });
+  const [handleCreatePlayerProcessing, handleCreatePlayer] = useRequest(http.createPlayer);
+
+  const saveName = useCallback(async () => {
+    if (!handleCreatePlayerProcessing) {
+      try {
+        const {
+          data: {
+            data: { playerId, token },
+          },
+        } = await handleCreatePlayer({ name: playerName });
+        saveToken(token);
+        setPlayerRef({ name: playerName, id: playerId });
+        navigate("/rooms");
+      } catch (error) {
+        console.log(error);
       }
-    },
-    [isConnected, navigate, socketInstance]
-  );
+    }
+  }, [handleCreatePlayerProcessing, setPlayerRef, playerName, handleCreatePlayer, navigate]);
 
   const toRooms = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
-      if (isConnected) {
-        socketInstance.emit("get_socket_data", ({ data: { name } }) => {
-          if (name) {
-            navigate("/rooms");
-          } else {
-            setIsCreateNameModalOpen(true);
-          }
-        });
+      if (!isPlayerNil()) {
+        navigate("/rooms");
+      } else {
+        setIsCreatePlayerNameModalOpen(true);
       }
     },
-    [isConnected, navigate, socketInstance]
+    [isPlayerNil, navigate]
   );
 
   return (
@@ -124,20 +109,20 @@ const Entry: FC = () => {
         </ul>
       </ListWrapper>
       <Modal.Base
-        isOpen={isCreateUsernameModalOpen}
+        isOpen={isCreatePlayerNameModalOpen}
         title="ENTER YOUR NAME"
         body={
           <div className="nes-field">
             <input
-              value={userName}
+              value={playerName}
               className="nes-input"
               type="text"
               onInput={(event: React.FormEvent<HTMLInputElement>) => {
-                setUserName(event.currentTarget.value);
+                setPlayerName(event.currentTarget.value);
               }}
               onKeyDown={(event: React.KeyboardEvent) => {
                 if (event.key === KEYCODE.ENTER) {
-                  saveName(userName);
+                  saveName();
                 }
               }}
             />
@@ -146,13 +131,13 @@ const Entry: FC = () => {
         confirm={{
           text: "CREATE",
           onClick: () => {
-            saveName(userName);
+            saveName();
           },
         }}
         cancel={{
           text: "CANCEL",
           onClick: () => {
-            setIsCreateNameModalOpen(false);
+            setIsCreatePlayerNameModalOpen(false);
           },
         }}
       />

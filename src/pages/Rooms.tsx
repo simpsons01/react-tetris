@@ -151,7 +151,7 @@ enum ROOM_STATE {
   GAME_END,
 }
 
-const Rooms: FC<{}> = () => {
+const Rooms: FC = () => {
   const navigate = useNavigate();
 
   const { socketInstance, isConnected, isConnectErrorOccur } = useContext<

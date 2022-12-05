@@ -1,14 +1,9 @@
-import { createContext, useContext } from "react";
-
-export interface IPlayer {
-  name: string;
-  id: string;
-}
-
+import { IPlayer } from "./../common/player";
+import { createContext, useContext, MutableRefObject } from "react";
 export interface IPlayerContext {
-  player: IPlayer;
-  isNil(): boolean;
-  set(newPlayer: IPlayer): void;
+  playerRef: MutableRefObject<IPlayer>;
+  setPlayerRef: (player: IPlayer) => void;
+  isPlayerNil(): boolean;
 }
 
 export const PlayerContext = createContext<IPlayerContext>({} as IPlayerContext);
