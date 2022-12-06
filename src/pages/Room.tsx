@@ -228,7 +228,7 @@ const Room: FC = () => {
 
   const { id: roomId } = useParams();
 
-  const { socketInstance, isConnected } = useSocket<
+  const { socketInstance, isConnected, isConnectErrorOccur } = useSocket<
     {
       error_occur: () => void;
       before_start_game: (leftsec: number) => void;
@@ -965,7 +965,11 @@ const Room: FC = () => {
         setRoomState(ROOM_STATE.ERROR);
       });
     } else {
-      setRoomState(ROOM_STATE.CONNECTING);
+      if (isConnectErrorOccur) {
+        setRoomState(ROOM_STATE.ERROR);
+      } else {
+        setRoomState(ROOM_STATE.CONNECTING);
+      }
     }
     return () => {
       if (isConnected) {
@@ -979,6 +983,7 @@ const Room: FC = () => {
       }
     };
   }, [
+    isConnectErrorOccur,
     playerRef,
     socketInstance,
     isConnected,
