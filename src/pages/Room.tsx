@@ -925,7 +925,7 @@ const Room: FC = () => {
         if (isTie) {
           setResult(RESULT.TIE);
         } else {
-          if (socketInstance.id === winnerId) {
+          if (playerRef.current.id === winnerId) {
             setResult(RESULT.WIN);
           } else {
             setResult(RESULT.LOSE);
@@ -979,6 +979,7 @@ const Room: FC = () => {
       }
     };
   }, [
+    playerRef,
     socketInstance,
     isConnected,
     roomState,
