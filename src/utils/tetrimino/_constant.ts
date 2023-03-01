@@ -1,0 +1,7 @@
+import { TETRIMINO_SHAPE } from "./_type";
+
+export const DEFAULT_TETRIMINO_SHAPE = TETRIMINO_SHAPE.INITIAL;
+
+export const PER_TETRIMINO_CUBE_NUM = 4;
+
+export const NEXT_TETRIMINO_BAGS_NUM = 5;
