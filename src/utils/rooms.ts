@@ -18,11 +18,16 @@ export enum PLAYER_STATE {
   NOT_READY = "not_ready",
 }
 
+export interface IRoomPlayer extends IPlayer {
+  score: number;
+  ready: PLAYER_STATE;
+}
+
 export interface IRoom {
   id: string;
   name: string;
   host: IPlayer;
   config: RoomConfig;
   state: ROOM_STATE;
-  players: Array<IPlayer & { ready: PLAYER_STATE; score: number }>;
+  players: Array<IRoomPlayer>;
 }

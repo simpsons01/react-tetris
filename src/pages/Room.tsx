@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import type { IPlayFieldRenderer } from "../components/PlayField/Renderer";
 import type { ISize } from "../utils/common";
+import type { IRoomPlayer } from "../utils/rooms";
 import type { ICube, ICoordinate } from "../utils/tetrimino";
 import {
   DIRECTION,
@@ -114,6 +115,15 @@ const NotifierWithButton = styled(Notifier)`
     width: 150px;
     margin-top: 16px;
   }
+`;
+
+const Name = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 0;
+  padding: 8px;
+  transform: translate(-50%, calc(-100% - 4px));
+  border-bottom: 0;
 `;
 
 const ToolList = styled.ul`
@@ -249,7 +259,7 @@ const Room: FC = () => {
       },
       {
         room_config: (done: ClientToServerCallback<{ initialLevel: number }>) => void;
-        ready: (done: ClientToServerCallback<{}>) => void;
+        ready: (done: ClientToServerCallback<{ players?: Array<IRoomPlayer> }>) => void;
         leave_room: (done: ClientToServerCallback<{}>) => void;
         force_leave_room: (done: ClientToServerCallback<{}>) => void;
         reset_room: (done: ClientToServerCallback<{}>) => void;
@@ -328,6 +338,8 @@ const Room: FC = () => {
 
   const [selfMatrixPhase, setSelfMatrixPhase] = useState<MATRIX_PHASE | null>(null);
 
+  const [selfName, setSelfName] = useState("");
+
   const [isSelMatrixAnimationRunningRef, setIsSelMatrixAnimationRunningRef] = useCustomRef(false);
 
   const [isSelfHardDropRef, setIsSelfHardDropRef] = useCustomRef(false);
@@ -384,6 +396,8 @@ const Room: FC = () => {
   const [opponentLine, setOpponentLine] = useState(0);
 
   const [opponentLevel, setOpponentLevel] = useState(1);
+
+  const [opponentName, setOpponentName] = useState("");
 
   const opponentPreviewTetrimino = useMemo((): Array<ICube> | null => {
     const previewCoordinate = getOpponentTetriminoPreviewCoordinates();
@@ -462,13 +476,22 @@ const Room: FC = () => {
 
   const handleSelfReady = useCallback(() => {
     if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-      socketInstanceRef.current.emit("ready", ({ metadata: { status } }) => {
+      socketInstanceRef.current.emit("ready", ({ data: { players }, metadata: { status } }) => {
         if (status === EVENT_OPERATION_STATUS.SUCCESS) {
           setRoomState(ROOM_STATE.WAIT_OTHER_READY);
+          if (players) {
+            players.forEach((player) => {
+              if (player.id === playerRef.current.id) {
+                setSelfName(player.name);
+              } else {
+                setOpponentName(player.name);
+              }
+            });
+          }
         }
       });
     }
-  }, [socketInstanceRef, isSocketInstanceNotNil]);
+  }, [socketInstanceRef, playerRef, isSocketInstanceNotNil]);
 
   const handleSelfNextGame = useCallback(() => {
     if (isSocketInstanceNotNil(socketInstanceRef.current)) {
@@ -1119,6 +1142,7 @@ const Room: FC = () => {
               width={doubleSizeConfig.playField.width}
               height={doubleSizeConfig.playField.height}
             >
+              {selfName ? <Name className="nes-container">{selfName}</Name> : null}
               <PlayField.Renderer
                 cubeDistance={doubleSizeConfig.playField.cube}
                 matrix={selfDisplayMatrix}
@@ -1211,6 +1235,7 @@ const Room: FC = () => {
               width={doubleSizeConfig.playField.width}
               height={doubleSizeConfig.playField.height}
             >
+              {opponentName ? <Name className="nes-container">{opponentName}</Name> : null}
               <PlayField.Renderer
                 cubeDistance={doubleSizeConfig.playField.cube}
                 matrix={opponentDisplayMatrix}
