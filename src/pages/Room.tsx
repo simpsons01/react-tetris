@@ -246,7 +246,7 @@ const Room: FC = () => {
       {
         error_occur: () => void;
         before_start_game: (leftsec: number) => void;
-        game_start: () => void;
+        game_start: (players: Array<IRoomPlayer>) => void;
         game_leftSec: (leftsec: number) => void;
         game_over: (result: { isTie: boolean; winnerId: string; loserId: string }) => void;
         room_participant_leave: () => void;
@@ -255,7 +255,7 @@ const Room: FC = () => {
       },
       {
         room_config: (done: ClientToServerCallback<{ initialLevel: number }>) => void;
-        ready: (done: ClientToServerCallback<{ players?: Array<IRoomPlayer> }>) => void;
+        ready: (done: ClientToServerCallback<{}>) => void;
         leave_room: (done: ClientToServerCallback<{}>) => void;
         force_leave_room: (done: ClientToServerCallback<{}>) => void;
         reset_room: (done: ClientToServerCallback<{}>) => void;
@@ -472,22 +472,13 @@ const Room: FC = () => {
 
   const handleSelfReady = useCallback(() => {
     if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-      socketInstanceRef.current.emit("ready", ({ data: { players }, metadata: { status } }) => {
+      socketInstanceRef.current.emit("ready", ({ metadata: { status } }) => {
         if (status === EVENT_OPERATION_STATUS.SUCCESS) {
           setRoomState(ROOM_STATE.WAIT_OTHER_READY);
-          if (players) {
-            players.forEach((player) => {
-              if (player.id === playerRef.current.id) {
-                setSelfName(player.name);
-              } else {
-                setOpponentName(player.name);
-              }
-            });
-          }
         }
       });
     }
-  }, [socketInstanceRef, playerRef, isSocketInstanceNotNil]);
+  }, [socketInstanceRef, isSocketInstanceNotNil]);
 
   const handleSelfNextGame = useCallback(() => {
     if (isSocketInstanceNotNil(socketInstanceRef.current)) {
@@ -953,11 +944,18 @@ const Room: FC = () => {
         // console.log("before game start left sec is ", leftSec);
         setBeforeStartCountDown(leftSec);
       });
-      socketInstanceRef.current.on("game_start", () => {
+      socketInstanceRef.current.on("game_start", (players) => {
         if (roomState !== ROOM_STATE.GAME_START) {
           setRoomState(ROOM_STATE.GAME_START);
           setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
         }
+        players.forEach((player) => {
+          if (player.id === playerRef.current.id) {
+            setSelfName(player.name);
+          } else {
+            setOpponentName(player.name);
+          }
+        });
       });
       socketInstanceRef.current.on("game_leftSec", (leftSec: number) => {
         setLeftSec(leftSec);
