@@ -430,7 +430,10 @@ const Single: FC = () => {
     }
   });
 
-  useKeydownAutoRepeat([KEYCODE.VALUE_LEFT, KEYCODE.VALUE_RIGHT, KEYCODE.VALUE_DOWN], onKeyDown);
+  useKeydownAutoRepeat(
+    [controlSetting.moveRight, controlSetting.moveLeft, controlSetting.softDrop],
+    onKeyDown
+  );
 
   useEffect(() => {
     if (!isGameStart) return;
