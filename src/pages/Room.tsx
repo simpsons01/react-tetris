@@ -1,6 +1,5 @@
 import type { FC } from "react";
 import type { IPlayFieldRenderer } from "../components/PlayField/Renderer";
-import type { ISize } from "../utils/common";
 import type { IRoomPlayer } from "../utils/rooms";
 import type { ICube, ICoordinate } from "../utils/tetrimino";
 import {
@@ -42,9 +41,9 @@ import { useSettingContext } from "../context/setting";
 import { useCallback, useState, useEffect, useMemo, useLayoutEffect, Fragment } from "react";
 
 const Wrapper = styled.div`
-  width: 100vw;
-  height: 100vh;
   position: relative;
+  height: calc(70vh + 8px);
+  display: flex;
 `;
 
 const SelfGame = styled.div`
@@ -68,8 +67,8 @@ const Divider = styled.div`
 `;
 
 const CountDown = styled.div`
-  width: 50px;
-  height: 50px;
+  width: 5vh;
+  height: 5vh;
   left: 50%;
   top: 0;
   transform: translateX(-50%);
@@ -93,10 +92,9 @@ const OpponentGame = styled.div`
   justify-content: center;
 `;
 
-const Column = styled.div<ISize>`
+const Column = styled.div`
   position: relative;
-  flex: ${(props) => `0 0 ${props.width}px`};
-  height: ${(props) => `${props.height}px`};
+  flex: 0 0 auto;
 `;
 
 const Notifier = styled.div`
@@ -111,7 +109,7 @@ const NotifierWithButton = styled(Notifier)`
   text-align: left;
 
   button {
-    font-size: 16px;
+    font-size: 1rem;
     width: 150px;
     margin-top: 16px;
   }
@@ -145,15 +143,15 @@ const CloseBtn = styled.button`
   top: 16px;
   border: none;
   background-color: transparent;
-  width: 40px;
-  height: 40px;
+  width: 4vh;
+  height: 4vh;
 
   &:after {
     position: absolute;
     content: "";
     display: block;
     background-color: #fff;
-    width: 40px;
+    width: 4vh;
     height: 4px;
 
     transform: rotate(45deg);
@@ -166,7 +164,7 @@ const CloseBtn = styled.button`
     content: "";
     display: block;
     background-color: #fff;
-    width: 40px;
+    width: 4vh;
     height: 4px;
     left: 0;
     top: 15px;
@@ -227,9 +225,7 @@ const selfTetriminoCollideBottomTimer = createCountDownTimer();
 const Room: FC = () => {
   const navigate = useNavigate();
 
-  const {
-    mode: { double: doubleSizeConfig },
-  } = useSizeConfigContext();
+  const { playable: isPlayable } = useSizeConfigContext();
 
   const {
     setting: { control: controlSetting },
@@ -1047,7 +1043,7 @@ const Room: FC = () => {
   ]);
 
   useEffect(() => {
-    if (!doubleSizeConfig.playable) {
+    if (!isPlayable) {
       if (isSocketInstanceNotNil(socketInstanceRef.current)) {
         socketInstanceRef.current.offAny();
         socketInstanceRef.current.disconnect();
@@ -1056,7 +1052,7 @@ const Room: FC = () => {
       setRoomState(ROOM_STATE.ERROR);
       handlePauseSelfMatrixAnimation();
     }
-  }, [socketInstanceRef, doubleSizeConfig.playable, handlePauseSelfMatrixAnimation, isSocketInstanceNotNil]);
+  }, [socketInstanceRef, isPlayable, handlePauseSelfMatrixAnimation, isSocketInstanceNotNil]);
 
   useEffect(() => {
     const checkSocketLatencyInterval = 5 * 1000;
@@ -1076,294 +1072,236 @@ const Room: FC = () => {
 
   return (
     <Fragment>
-      <Wrapper>
-        <SelfGame>
-          <Column
-            width={doubleSizeConfig.widget.displayNumber.width}
-            height={doubleSizeConfig.playField.height}
-          >
+      <SelfGame>
+        <Wrapper>
+          <Column>
             <div
               style={{
-                marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+                marginBottom: "2vh",
               }}
             >
               <Widget.DisplayTetrimino
                 title={"HOLD"}
                 fontLevel={["six", "xl-five"]}
-                cubeDistance={doubleSizeConfig.widget.hold.cube}
                 displayTetriminoNum={1}
                 tetriminoBag={selfHoldTetrimino ? [selfHoldTetrimino] : null}
-                width={doubleSizeConfig.widget.hold.width}
-                height={doubleSizeConfig.widget.hold.height}
               />
             </div>
             <div
               style={{
-                marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+                marginBottom: "2vh",
               }}
             >
-              <Widget.DisplayNumber
-                fontLevel={["six", "xl-five"]}
-                width={doubleSizeConfig.widget.displayNumber.width}
-                height={doubleSizeConfig.widget.displayNumber.height}
-                title={"LINE"}
-                displayValue={selfLine}
-              />
+              <Widget.DisplayNumber fontLevel={["six", "xl-five"]} title={"LINE"} displayValue={selfLine} />
             </div>
             <div
               style={{
-                marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+                marginBottom: "2vh",
               }}
             >
-              <Widget.DisplayNumber
-                fontLevel={["six", "xl-five"]}
-                width={doubleSizeConfig.widget.displayNumber.width}
-                height={doubleSizeConfig.widget.displayNumber.height}
-                title={"LEVEL"}
-                displayValue={selfLevel}
-              />
+              <Widget.DisplayNumber fontLevel={["six", "xl-five"]} title={"LEVEL"} displayValue={selfLevel} />
             </div>
-            <Widget.DisplayNumber
-              fontLevel={["six", "xl-five"]}
-              width={doubleSizeConfig.widget.displayNumber.width}
-              height={doubleSizeConfig.widget.displayNumber.height}
-              title={"SCORE"}
-              displayValue={selfScore}
-            />
+            <Widget.DisplayNumber fontLevel={["six", "xl-five"]} title={"SCORE"} displayValue={selfScore} />
           </Column>
           <Column
-            width={doubleSizeConfig.playField.width}
-            height={doubleSizeConfig.playField.height}
             style={{
-              margin: `0 ${doubleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
+              margin: "0 2vh",
             }}
           >
-            <PlayField.Wrapper
-              width={doubleSizeConfig.playField.width}
-              height={doubleSizeConfig.playField.height}
-            >
+            <PlayField.Wrapper>
               {selfName ? <Name className="nes-container">{selfName}</Name> : null}
               <PlayField.Renderer
-                cubeDistance={doubleSizeConfig.playField.cube}
                 matrix={selfDisplayMatrix}
                 tetrimino={selfDisplayTetriminoCoordinates}
                 previewTetrimino={selfPreviewTetrimino}
               />
             </PlayField.Wrapper>
           </Column>
-          <Column
-            width={doubleSizeConfig.widget.displayNumber.width}
-            height={doubleSizeConfig.playField.height}
-          >
+          <Column>
             <Widget.DisplayTetrimino
               title="NEXT"
               fontLevel={["six", "xl-five"]}
-              cubeDistance={doubleSizeConfig.widget.nextTetrimino.cube}
               displayTetriminoNum={5}
               tetriminoBag={selfNextTetriminoBag.length === 0 ? null : selfNextTetriminoBag}
-              width={doubleSizeConfig.widget.nextTetrimino.width}
-              height={doubleSizeConfig.widget.nextTetrimino.height}
             />
           </Column>
-        </SelfGame>
-        <Divider></Divider>
-        <CountDown className="nes-container">
-          <Font level={leftSec && leftSec > 100 ? "five" : "four"}>{leftSec}</Font>
-        </CountDown>
-        <OpponentGame>
-          <Column
-            width={doubleSizeConfig.widget.displayNumber.width}
-            height={doubleSizeConfig.playField.height}
-          >
+        </Wrapper>
+      </SelfGame>
+      <Divider></Divider>
+      <CountDown className="nes-container">
+        <Font level={leftSec && leftSec > 100 ? "five" : "four"}>{leftSec}</Font>
+      </CountDown>
+      <OpponentGame>
+        <Wrapper>
+          <Column>
             <div
               style={{
-                marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+                marginBottom: "2vh",
               }}
             >
               <Widget.DisplayTetrimino
                 title={"HOLD"}
                 fontLevel={["six", "xl-five"]}
-                cubeDistance={doubleSizeConfig.widget.hold.cube}
                 displayTetriminoNum={1}
                 tetriminoBag={opponentHoldTetrimino ? [opponentHoldTetrimino] : null}
-                width={doubleSizeConfig.widget.hold.width}
-                height={doubleSizeConfig.widget.hold.height}
               />
             </div>
             <div
               style={{
-                marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+                marginBottom: "2vh",
               }}
             >
               <Widget.DisplayNumber
                 fontLevel={["six", "xl-five"]}
-                width={doubleSizeConfig.widget.displayNumber.width}
-                height={doubleSizeConfig.widget.displayNumber.height}
                 title={"LINE"}
                 displayValue={opponentLine}
               />
             </div>
             <div
               style={{
-                marginBottom: `${doubleSizeConfig.distanceBetweenWidgetAndWidget}px`,
+                marginBottom: "2vh",
               }}
             >
               <Widget.DisplayNumber
                 fontLevel={["six", "xl-five"]}
-                width={doubleSizeConfig.widget.displayNumber.width}
-                height={doubleSizeConfig.widget.displayNumber.height}
                 title={"LEVEL"}
                 displayValue={opponentLevel}
               />
             </div>
             <Widget.DisplayNumber
               fontLevel={["six", "xl-five"]}
-              width={doubleSizeConfig.widget.displayNumber.width}
-              height={doubleSizeConfig.widget.displayNumber.height}
               title={"SCORE"}
               displayValue={opponentScore}
             />
           </Column>
           <Column
-            width={doubleSizeConfig.playField.width}
-            height={doubleSizeConfig.playField.height}
             style={{
-              margin: `0 ${doubleSizeConfig.distanceBetweenPlayFieldAndWidget}px`,
+              margin: "0 2vh",
             }}
           >
-            <PlayField.Wrapper
-              width={doubleSizeConfig.playField.width}
-              height={doubleSizeConfig.playField.height}
-            >
+            <PlayField.Wrapper>
               {opponentName ? <Name className="nes-container">{opponentName}</Name> : null}
               <PlayField.Renderer
-                cubeDistance={doubleSizeConfig.playField.cube}
                 matrix={opponentDisplayMatrix}
                 tetrimino={opponentDisplayTetriminoCoordinates}
                 previewTetrimino={opponentPreviewTetrimino}
               />
             </PlayField.Wrapper>
           </Column>
-          <Column
-            width={doubleSizeConfig.widget.displayNumber.width}
-            height={doubleSizeConfig.playField.height}
-          >
+          <Column>
             <Widget.DisplayTetrimino
               title="NEXT"
               fontLevel={["six", "xl-five"]}
-              cubeDistance={doubleSizeConfig.widget.nextTetrimino.cube}
               displayTetriminoNum={5}
               tetriminoBag={opponentNextTetriminoBag.length === 0 ? null : opponentNextTetriminoBag}
-              width={doubleSizeConfig.widget.nextTetrimino.width}
-              height={doubleSizeConfig.widget.nextTetrimino.height}
             />
           </Column>
-        </OpponentGame>
-        {(() => {
-          const roomStateNotifier = (() => {
-            let notifier = null;
-            if (roomState === ROOM_STATE.CONNECTING) {
-              notifier = (
-                <Notifier>
-                  <Font level={"one"} color="#fff">
-                    <Loading.Dot>CONNECTING</Loading.Dot>
-                  </Font>
-                </Notifier>
-              );
-            } else if (roomState === ROOM_STATE.SELF_NOT_READY) {
-              notifier = (
-                <NotifierWithButton>
-                  <Font level={"one"} color="#fff">
-                    READY OR NOT
-                  </Font>
-                  <button className="nes-btn" onClick={handleSelfReady}>
-                    READY
-                  </button>
-                  <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
-                    QUIT
-                  </button>
-                </NotifierWithButton>
-              );
-            } else if (roomState === ROOM_STATE.WAIT_OTHER_READY) {
-              notifier = (
-                <Notifier>
-                  <Font level={"one"} color="#fff">
-                    <Loading.Dot>WAITING OTHER READY</Loading.Dot>
-                  </Font>
-                </Notifier>
-              );
-            } else if (roomState === ROOM_STATE.BEFORE_GAME_START) {
-              notifier = (
-                <Notifier>
-                  <Font level={"one"} color="#fff">
-                    {beforeStartCountDown}
-                  </Font>
-                </Notifier>
-              );
-            } else if (roomState === ROOM_STATE.PARTICIPANT_LEAVE) {
-              notifier = (
-                <NotifierWithButton>
-                  <Font level={"one"} color="#fff">
-                    GAME INTERRUPTED
-                  </Font>
-                  <button onClick={handleSelfNextGame} className="nes-btn">
-                    NEXT
-                  </button>
-                  <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
-                    QUIT
-                  </button>
-                </NotifierWithButton>
-              );
-            } else if (roomState === ROOM_STATE.HOST_LEAVE) {
-              notifier = (
-                <NotifierWithButton>
-                  <Font level={"one"} color="#fff">
-                    HOST LEAVE
-                  </Font>
-                  <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
-                    QUIT
-                  </button>
-                </NotifierWithButton>
-              );
-            } else if (roomState === ROOM_STATE.GAME_END) {
-              let text = "";
-              if (result === RESULT.TIE) {
-                text = "GAME IS TIE";
-              } else if (result === RESULT.WIN) {
-                text = "YOU WIN";
-              } else if (result === RESULT.LOSE) {
-                text = "YOU LOSE";
-              }
-              notifier = (
-                <NotifierWithButton>
-                  <Font level={"one"} color="#fff">
-                    {text}
-                  </Font>
-                  <button onClick={handleSelfNextGame} className="nes-btn">
-                    NEXT
-                  </button>
-                  <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
-                    QUIT
-                  </button>
-                </NotifierWithButton>
-              );
-            } else if (roomState === ROOM_STATE.ERROR) {
-              notifier = (
-                <NotifierWithButton>
-                  <Font level={"one"} color="#fff">
-                    ERROR
-                  </Font>
-                  <button onClick={() => navigate("/rooms")} className="nes-btn">
-                    QUIT
-                  </button>
-                </NotifierWithButton>
-              );
+        </Wrapper>
+      </OpponentGame>
+      {(() => {
+        const roomStateNotifier = (() => {
+          let notifier = null;
+          if (roomState === ROOM_STATE.CONNECTING) {
+            notifier = (
+              <Notifier>
+                <Font level={"one"} color="#fff">
+                  <Loading.Dot>CONNECTING</Loading.Dot>
+                </Font>
+              </Notifier>
+            );
+          } else if (roomState === ROOM_STATE.SELF_NOT_READY) {
+            notifier = (
+              <NotifierWithButton>
+                <Font level={"one"} color="#fff">
+                  READY OR NOT
+                </Font>
+                <button className="nes-btn" onClick={handleSelfReady}>
+                  READY
+                </button>
+                <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.WAIT_OTHER_READY) {
+            notifier = (
+              <Notifier>
+                <Font level={"one"} color="#fff">
+                  <Loading.Dot>WAITING OTHER READY</Loading.Dot>
+                </Font>
+              </Notifier>
+            );
+          } else if (roomState === ROOM_STATE.BEFORE_GAME_START) {
+            notifier = (
+              <Notifier>
+                <Font level={"one"} color="#fff">
+                  {beforeStartCountDown}
+                </Font>
+              </Notifier>
+            );
+          } else if (roomState === ROOM_STATE.PARTICIPANT_LEAVE) {
+            notifier = (
+              <NotifierWithButton>
+                <Font level={"one"} color="#fff">
+                  GAME INTERRUPTED
+                </Font>
+                <button onClick={handleSelfNextGame} className="nes-btn">
+                  NEXT
+                </button>
+                <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.HOST_LEAVE) {
+            notifier = (
+              <NotifierWithButton>
+                <Font level={"one"} color="#fff">
+                  HOST LEAVE
+                </Font>
+                <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.GAME_END) {
+            let text = "";
+            if (result === RESULT.TIE) {
+              text = "GAME IS TIE";
+            } else if (result === RESULT.WIN) {
+              text = "YOU WIN";
+            } else if (result === RESULT.LOSE) {
+              text = "YOU LOSE";
             }
-            return notifier;
-          })();
-          return roomStateNotifier !== null ? <Overlay>{roomStateNotifier}</Overlay> : null;
-        })()}
-      </Wrapper>
+            notifier = (
+              <NotifierWithButton>
+                <Font level={"one"} color="#fff">
+                  {text}
+                </Font>
+                <button onClick={handleSelfNextGame} className="nes-btn">
+                  NEXT
+                </button>
+                <button onClick={() => handleSelfLeaveRoom()} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          } else if (roomState === ROOM_STATE.ERROR) {
+            notifier = (
+              <NotifierWithButton>
+                <Font level={"one"} color="#fff">
+                  ERROR
+                </Font>
+                <button onClick={() => navigate("/rooms")} className="nes-btn">
+                  QUIT
+                </button>
+              </NotifierWithButton>
+            );
+          }
+          return notifier;
+        })();
+        return roomStateNotifier !== null ? <Overlay>{roomStateNotifier}</Overlay> : null;
+      })()}
       <Settings>
         <button onClick={() => setIsToolOverlayOpen(true)}>
           <img src={`${process.env.REACT_APP_STATIC_URL}/settings.png`} alt="setting" />
