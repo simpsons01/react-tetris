@@ -169,6 +169,9 @@ const ControlTab: FC<IGameplayTab> = (props) => {
         confirm={{
           onClick: () => {
             if (!updateCustomControlKeyRef.current) return;
+            if (!customControlKeyInputVal) {
+              return createAlertModal("press key first!");
+            }
             const updateCustomControlKey = updateCustomControlKeyRef.current as keyof ISetting["control"];
             setIsCustomControlKeyModalOpen(false);
             const newSetting = getKeys(setting).reduce((acc, key) => {
