@@ -46,7 +46,7 @@ const App = () => {
   useEffect(() => {
     const resizeHandler = () => {
       const { height: screenHeight, width: screenWidth } = getScreenSize();
-      document.documentElement.style.fontSize = `${(screenHeight / 100) * 2}px`;
+      document.documentElement.style.fontSize = `${(screenHeight / 100) * 1.5}px`;
       setScreenRatio(screenHeight / screenWidth);
     };
     window.addEventListener("resize", resizeHandler);

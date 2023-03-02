@@ -1082,7 +1082,7 @@ const Room: FC = () => {
             >
               <Widget.DisplayTetrimino
                 title={"HOLD"}
-                fontLevel={["six", "xl-five"]}
+                fontLevel={"three"}
                 displayTetriminoNum={1}
                 tetriminoBag={selfHoldTetrimino ? [selfHoldTetrimino] : null}
               />
@@ -1092,16 +1092,16 @@ const Room: FC = () => {
                 marginBottom: "2vh",
               }}
             >
-              <Widget.DisplayNumber fontLevel={["six", "xl-five"]} title={"LINE"} displayValue={selfLine} />
+              <Widget.DisplayNumber fontLevel={"three"} title={"LINE"} displayValue={selfLine} />
             </div>
             <div
               style={{
                 marginBottom: "2vh",
               }}
             >
-              <Widget.DisplayNumber fontLevel={["six", "xl-five"]} title={"LEVEL"} displayValue={selfLevel} />
+              <Widget.DisplayNumber fontLevel={"three"} title={"LEVEL"} displayValue={selfLevel} />
             </div>
-            <Widget.DisplayNumber fontLevel={["six", "xl-five"]} title={"SCORE"} displayValue={selfScore} />
+            <Widget.DisplayNumber fontLevel={"three"} title={"SCORE"} displayValue={selfScore} />
           </Column>
           <Column
             style={{
@@ -1120,7 +1120,7 @@ const Room: FC = () => {
           <Column>
             <Widget.DisplayTetrimino
               title="NEXT"
-              fontLevel={["six", "xl-five"]}
+              fontLevel={"three"}
               displayTetriminoNum={5}
               tetriminoBag={selfNextTetriminoBag.length === 0 ? null : selfNextTetriminoBag}
             />
@@ -1141,7 +1141,7 @@ const Room: FC = () => {
             >
               <Widget.DisplayTetrimino
                 title={"HOLD"}
-                fontLevel={["six", "xl-five"]}
+                fontLevel={"three"}
                 displayTetriminoNum={1}
                 tetriminoBag={opponentHoldTetrimino ? [opponentHoldTetrimino] : null}
               />
@@ -1151,28 +1151,16 @@ const Room: FC = () => {
                 marginBottom: "2vh",
               }}
             >
-              <Widget.DisplayNumber
-                fontLevel={["six", "xl-five"]}
-                title={"LINE"}
-                displayValue={opponentLine}
-              />
+              <Widget.DisplayNumber fontLevel={"three"} title={"LINE"} displayValue={opponentLine} />
             </div>
             <div
               style={{
                 marginBottom: "2vh",
               }}
             >
-              <Widget.DisplayNumber
-                fontLevel={["six", "xl-five"]}
-                title={"LEVEL"}
-                displayValue={opponentLevel}
-              />
+              <Widget.DisplayNumber fontLevel={"three"} title={"LEVEL"} displayValue={opponentLevel} />
             </div>
-            <Widget.DisplayNumber
-              fontLevel={["six", "xl-five"]}
-              title={"SCORE"}
-              displayValue={opponentScore}
-            />
+            <Widget.DisplayNumber fontLevel={"three"} title={"SCORE"} displayValue={opponentScore} />
           </Column>
           <Column
             style={{
@@ -1191,7 +1179,7 @@ const Room: FC = () => {
           <Column>
             <Widget.DisplayTetrimino
               title="NEXT"
-              fontLevel={["six", "xl-five"]}
+              fontLevel={"three"}
               displayTetriminoNum={5}
               tetriminoBag={opponentNextTetriminoBag.length === 0 ? null : opponentNextTetriminoBag}
             />
