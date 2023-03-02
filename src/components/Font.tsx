@@ -6,12 +6,12 @@ import { getKeys } from "../utils/common";
 const createFontStyle = () => {
   let styled = "";
   const fontLevel = {
-    one: 40,
-    two: 32,
-    three: 28,
-    four: 24,
-    five: 20,
-    six: 16,
+    one: 2.5,
+    two: 2,
+    three: 1.75,
+    four: 1.5,
+    five: 1.25,
+    six: 1,
   };
   const size = {
     sm: GRID.SMALL,
@@ -24,14 +24,14 @@ const createFontStyle = () => {
   getKeys(fontLevel).forEach((fontLevelKey) => {
     styled += `
       &.${fontLevelKey} {
-        font-size: ${fontLevel[fontLevelKey]}px;
+        font-size: ${fontLevel[fontLevelKey]}rem;
       }
     `;
     getKeys(size).forEach((sizeKey) => {
       styled += `
         &&.${sizeKey}-${fontLevelKey} {
           @media screen and (min-width: ${size[sizeKey]}px) {
-            font-size: ${fontLevel[fontLevelKey]}px;
+            font-size: ${fontLevel[fontLevelKey]}rem;
           }
         }
       `;

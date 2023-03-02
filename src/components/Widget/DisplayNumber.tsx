@@ -1,17 +1,16 @@
 import type { FC } from "react";
-import type { ISize } from "../../utils/common";
 import styled from "styled-components";
 import Font from "../Font";
 import { useMemo } from "react";
 
 const Wrapper = styled.div``;
 
-const Panel = styled.div<ISize>`
+const Panel = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: ${(props) => `${props.width}px`};
-  height: ${(props) => `${props.height}px`};
+  width: calc(14vh + 16px);
+  height: calc(7vh + 16px);
   background-color: #eeeeee;
 
   &&& {
@@ -24,14 +23,14 @@ const DisplayNumber = styled.div<{ ratio: number }>`
   transform: ${(props) => `scale(${props.ratio})`};
 `;
 
-export interface INumberWidget extends ISize {
+export interface INumberWidget {
   fontLevel: string | Array<string>;
   title: string;
   displayValue: number;
 }
 
 const NumberWidget: FC<INumberWidget> = (props) => {
-  const { fontLevel, displayValue, title, width, height } = props;
+  const { fontLevel, displayValue, title } = props;
   const calcDisplayValueRatio = useMemo<number>(() => {
     let ratio = 0;
     if (displayValue < 999) {
@@ -65,7 +64,7 @@ const NumberWidget: FC<INumberWidget> = (props) => {
   return (
     <Wrapper>
       <Font level={fontLevel}>{title}</Font>
-      <Panel className={"nes-container is-rounded"} width={width} height={height}>
+      <Panel className={"nes-container is-rounded"}>
         <DisplayNumber ratio={calcDisplayValueRatio}>
           <Font level={fontLevel}>{displayNumText}</Font>
         </DisplayNumber>

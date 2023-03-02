@@ -1,18 +1,18 @@
+import type { IPlayer } from "./utils/player";
 import { Outlet, useLoaderData } from "react-router-dom";
 import styled from "styled-components";
-import useSizeConfig from "./hooks/size";
 import Overlay from "./components/Overlay";
-import { useState, useMemo, Fragment } from "react";
-import { SizeConfigContext } from "./context/sizeConfig";
-import { PlayerContext } from "./context/player";
-import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import Font from "./components/Font";
 import Modal from "./components/Modal";
 import useSetting from "./hooks/setting";
 import { SettingContext } from "./context/setting";
-import { IPlayer } from "./utils/player";
 import useCustomRef from "./hooks/customRef";
+import { useState, useMemo, Fragment, useEffect } from "react";
+import { SizeConfigContext } from "./context/sizeConfig";
+import { PlayerContext } from "./context/player";
+import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import { parse } from "bowser";
+import { getScreenSize, MAX_PLAYABLE_RATIO } from "./utils/size";
 
 const {
   platform: { type: platformType },
@@ -33,18 +33,28 @@ const App = () => {
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
 
+  const [screenRatio, setScreenRatio] = useState(0);
+
   const [playerRef, setPlayerRef] = useCustomRef<IPlayer>(loaderData.player);
 
   const { setting, setSetting, saveSetting } = useSetting();
 
-  const { sizeConfig } = useSizeConfig();
-
   const isPlayable = useMemo(() => {
-    const isDoubleGamePlayable = sizeConfig.mode.double.playable;
-    const isSingleGamePlayable = sizeConfig.mode.single.playable;
+    return isDesktop && screenRatio <= MAX_PLAYABLE_RATIO;
+  }, [screenRatio]);
 
-    return isDesktop && isDoubleGamePlayable && isSingleGamePlayable;
-  }, [sizeConfig]);
+  useEffect(() => {
+    const resizeHandler = () => {
+      const { height: screenHeight, width: screenWidth } = getScreenSize();
+      document.documentElement.style.fontSize = `${(screenHeight / 100) * 1.5}px`;
+      setScreenRatio(screenHeight / screenWidth);
+    };
+    window.addEventListener("resize", resizeHandler);
+    resizeHandler();
+    return () => {
+      window.removeEventListener("resize", resizeHandler);
+    };
+  }, []);
 
   return (
     <AppContainer>
@@ -69,7 +79,11 @@ const App = () => {
               saveSetting,
             }}
           >
-            <SizeConfigContext.Provider value={sizeConfig}>
+            <SizeConfigContext.Provider
+              value={{
+                playable: isPlayable,
+              }}
+            >
               <Fragment>
                 <Outlet />
                 <Modal.Setting isOpen={isSettingModalOpen} />
