@@ -420,6 +420,8 @@ const Room: FC = () => {
 
   const isGameStart = useMemo(() => roomState === ROOM_STATE.GAME_START, [roomState]);
 
+  const freshIsGameStart = useGetter(() => isGameStart)
+
   const handleResetAllSelfState = useCallback(() => {
     resetSelfMatrix();
     resetSelfTetrimino();
@@ -746,8 +748,10 @@ const Room: FC = () => {
             setIsSelMatrixAnimationRunningRef(true);
             fillSelfAllRow().then(() => {
               setIsSelMatrixAnimationRunningRef(false);
-              handleSelfMatrixNextCycle();
-              setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+              if(freshIsGameStart()) {
+                handleSelfMatrixNextCycle();
+                setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+              }
             });
           }
         }
@@ -793,8 +797,10 @@ const Room: FC = () => {
             setIsSelMatrixAnimationRunningRef(true);
             fillSelfAllRow().then(() => {
               setIsSelMatrixAnimationRunningRef(false);
-              handleSelfMatrixNextCycle();
-              setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+              if(freshIsGameStart()) {
+                handleSelfMatrixNextCycle();
+                setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+              } 
             });
           }
           break;
@@ -807,8 +813,10 @@ const Room: FC = () => {
                 setIsSelMatrixAnimationRunningRef(true);
                 fillSelfAllRow().then(() => {
                   setIsSelMatrixAnimationRunningRef(false);
-                  handleSelfMatrixNextCycle();
-                  setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+                  if(freshIsGameStart()) {
+                    handleSelfMatrixNextCycle();
+                    setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+                  }
                 });
               } else {
                 setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_LOCK);
@@ -864,7 +872,9 @@ const Room: FC = () => {
             setIsSelMatrixAnimationRunningRef(true);
             clearSelfRowFilledWithCube(filledRow).then(() => {
               setIsSelMatrixAnimationRunningRef(false);
-              setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+              if(freshIsGameStart()) {
+                setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+              }
             });
           } else {
             setSelfLastTetriminoRotateWallKickPositionRef(0);
@@ -884,7 +894,9 @@ const Room: FC = () => {
             setIsSelMatrixAnimationRunningRef(true);
             fillSelfEmptyRow(emptyRowGap).then(() => {
               setIsSelMatrixAnimationRunningRef(false);
-              setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+              if(freshIsGameStart()) {
+                setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+              }
             });
           } else {
             setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
@@ -927,6 +939,7 @@ const Room: FC = () => {
     setSelfPrevTetriminoRef,
     setSelfTetriminoMoveTypeRecordRef,
     setSelfTetriminoToMatrix,
+    freshIsGameStart
   ]);
 
   useEffect(() => {
