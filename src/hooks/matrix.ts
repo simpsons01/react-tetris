@@ -1,17 +1,17 @@
 import type { IPlayFieldRenderer } from "../components/PlayField/Renderer";
-import type { ICoordinate, ICube, ITetriminoConfig } from "../utils/tetrimino";
-import type { ITetrimino } from "../utils/tetrimino";
+import type { ICoordinate, ICube, ITetriminoConfig } from "../common/tetrimino";
+import type { ITetrimino } from "../common/tetrimino";
 import useTetrimino from "./tetrimino";
 import useCustomRef from "./customRef";
-import { getKeys, minMax } from "../utils/common";
-import { createAnimation } from "../utils/animation";
+import { getKeys, minMax } from "../common/utils";
+import { createAnimation } from "../common/animation";
 import { nanoid } from "nanoid";
 import {
   PER_ROW_CUBE_NUM,
   PER_COL_CUBE_NUM,
   DISPLAY_ZONE_ROW_START,
   DISPLAY_ZONE_ROW_END,
-} from "../utils/matrix";
+} from "../common/matrix";
 import {
   CUBE_STATE,
   DEFAULT_TETRIMINO_SHAPE,
@@ -27,7 +27,7 @@ import {
   getAnchorByCoordinatesAndTypeAndShape,
   TETRIMINO_MOVE_TYPE,
   T_SPIN_TYPE,
-} from "../utils/tetrimino";
+} from "../common/tetrimino";
 import { useCallback, useState, useMemo } from "react";
 
 const condition = (index: number, col: number) => false;
@@ -324,7 +324,7 @@ const useMatrix = () => {
           y = isTopCollide ? 0 : -1;
           isSuccess = !isTopCollide;
         },
-      }[direction]());
+      })[direction]();
       if (isSuccess) {
         setTetrimino((prevTetrimino) => ({
           ...prevTetrimino,

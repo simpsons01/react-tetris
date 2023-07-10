@@ -3,7 +3,7 @@ import axios from "axios";
 import useCustomRef from "./customRef";
 import { useNavigate } from "react-router-dom";
 import { usePlayerContext } from "../context/player";
-import { createAlertModal } from "../utils/alert";
+import { createAlertModal } from "../common/alert";
 import { useCallback, useState } from "react";
 
 type PromiseFn = (...args: Array<any>) => Promise<any>;

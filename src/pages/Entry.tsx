@@ -3,11 +3,11 @@ import styled from "styled-components";
 import Modal from "../components/Modal";
 import Font from "../components/Font";
 import useRequest from "../hooks/request";
-import * as http from "../utils/http";
+import * as http from "../common/http";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { saveToken } from "../utils/token";
+import { saveToken } from "../common/token";
 import { usePlayerContext } from "../context/player";
 
 const EntryContainer = styled.div``;

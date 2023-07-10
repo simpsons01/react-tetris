@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import type { ICube, ICoordinate } from "../utils/tetrimino";
+import type { ICube, ICoordinate } from "../common/tetrimino";
 import useMatrix from "../hooks/matrix";
 import useNextTetriminoBag from "../hooks/nextTetriminoBag";
 import styled from "styled-components";
@@ -20,18 +20,18 @@ import {
   getSizeByCoordinates,
   TETRIMINO_TYPE,
   TETRIMINO_MOVE_TYPE,
-} from "../utils/tetrimino";
-import { DISPLAY_ZONE_ROW_START, MATRIX_PHASE } from "../utils/matrix";
+} from "../common/tetrimino";
+import { DISPLAY_ZONE_ROW_START, MATRIX_PHASE } from "../common/matrix";
 import {
   getLevelByLine,
   getTetriminoFallingDelayByLevel,
   getScoreByTSpinAndLevelAndLine,
-} from "../utils/game";
+} from "../common/game";
 import { Link } from "react-router-dom";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 import { useSettingContext } from "../context/setting";
 import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
-import { createCountDownTimer } from "../utils/timer";
+import { createCountDownTimer } from "../common/timer";
 
 const Wrapper = styled.div`
   position: relative;

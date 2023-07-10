@@ -1,4 +1,4 @@
-import type { IPlayer } from "./utils/player";
+import type { IPlayer } from "./common/player";
 import { Outlet, useLoaderData } from "react-router-dom";
 import styled from "styled-components";
 import Overlay from "./components/Overlay";
@@ -12,7 +12,7 @@ import { SizeConfigContext } from "./context/sizeConfig";
 import { PlayerContext } from "./context/player";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import { parse } from "bowser";
-import { getScreenSize, MAX_PLAYABLE_RATIO } from "./utils/size";
+import { getScreenSize, MAX_PLAYABLE_RATIO } from "./common/size";
 
 const {
   platform: { type: platformType },

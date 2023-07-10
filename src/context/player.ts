@@ -1,4 +1,4 @@
-import type { IPlayer } from "../utils/player";
+import type { IPlayer } from "../common/player";
 import { createContext, useContext, MutableRefObject } from "react";
 
 export interface IPlayerContext {

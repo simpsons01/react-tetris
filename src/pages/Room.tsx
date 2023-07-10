@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import type { IPlayFieldRenderer } from "../components/PlayField/Renderer";
-import type { IRoomPlayer } from "../utils/rooms";
-import type { ICube, ICoordinate } from "../utils/tetrimino";
+import type { IRoomPlayer } from "../common/rooms";
+import type { ICube, ICoordinate } from "../common/tetrimino";
 import {
   DIRECTION,
   TETRIMINO_TYPE,
@@ -9,7 +9,7 @@ import {
   TETRIMINO_MOVE_TYPE,
   getCoordinateByAnchorAndShapeAndType,
   getSizeByCoordinates,
-} from "../utils/tetrimino";
+} from "../common/tetrimino";
 import styled from "styled-components";
 import Overlay from "../components/Overlay";
 import Loading from "../components/Loading";
@@ -25,17 +25,17 @@ import useSocket from "../hooks/socket";
 import useGetter from "../hooks/getter";
 import * as KEYCODE from "keycode-js";
 import { useNavigate, useParams } from "react-router-dom";
-import { createCountDownTimer } from "../utils/timer";
-import { ClientToServerCallback, EVENT_OPERATION_STATUS } from "../utils/socket";
+import { createCountDownTimer } from "../common/timer";
+import { ClientToServerCallback, EVENT_OPERATION_STATUS } from "../common/socket";
 import { useSizeConfigContext } from "../context/sizeConfig";
-import { DISPLAY_ZONE_ROW_START, MATRIX_PHASE } from "../utils/matrix";
+import { DISPLAY_ZONE_ROW_START, MATRIX_PHASE } from "../common/matrix";
 import {
   getLevelByLine,
   getScoreByTSpinAndLevelAndLine,
   getTetriminoFallingDelayByLevel,
-} from "../utils/game";
+} from "../common/game";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
-import { getToken } from "../utils/token";
+import { getToken } from "../common/token";
 import { usePlayerContext } from "../context/player";
 import { useSettingContext } from "../context/setting";
 import { useCallback, useState, useEffect, useMemo, useLayoutEffect, Fragment } from "react";

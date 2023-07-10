@@ -1,9 +1,9 @@
-import type { EventMap } from "../utils/socket";
-import type { AnyObject } from "../utils/common";
+import type { EventMap } from "../common/socket";
+import type { AnyObject } from "../common/utils";
 import useCustomRef from "./customRef";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Socket } from "socket.io-client";
-import { getSocketInstance } from "../utils/socket";
+import { getSocketInstance } from "../common/socket";
 
 enum CONNECT_STATE {
   CONNECTING = "connecting",
