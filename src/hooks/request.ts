@@ -1,69 +1,34 @@
-import type { AxiosResponse } from "axios";
-import axios from "axios";
 import useCustomRef from "./customRef";
-import { useNavigate } from "react-router-dom";
-import { usePlayerContext } from "../context/player";
-import { createAlertModal } from "../common/alert";
 import { useCallback, useState } from "react";
+import { PromiseFn, PromiseData } from "../common/utils";
 
-type PromiseFn = (...args: Array<any>) => Promise<any>;
-
-type PromiseData<Fn extends PromiseFn> = ReturnType<Fn> extends Promise<infer Data> ? Data : never;
-
-const useRequest = <AsyncFn extends PromiseFn>(
-  fn: AsyncFn
+const useRequest = <RequestFn extends PromiseFn>(
+  fn: RequestFn
 ): [
   boolean,
-  (...args: Parameters<AsyncFn>) => Promise<{
-    isStale: boolean;
-    data: PromiseData<AsyncFn>;
-  }>
+  PromiseFn<Parameters<RequestFn>, Promise<{ isStale: boolean; data: PromiseData<RequestFn> }>>
 ] => {
-  const { setPlayerRef } = usePlayerContext();
-  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [idRef, setIdRef] = useCustomRef(0);
   const request = useCallback(
-    async (...args: Parameters<AsyncFn>): Promise<{ isStale: boolean; data: PromiseData<AsyncFn> }> => {
+    async (...args: Parameters<RequestFn>): Promise<{ isStale: boolean; data: PromiseData<RequestFn> }> => {
       setIsProcessing(true);
       setIdRef(idRef.current + 1);
       const id = idRef.current;
       try {
         const data = await fn(...args);
-        const isStale = id !== idRef.current;
-        if (!isStale) {
-          setIsProcessing(false);
-        }
+        setIsProcessing(false);
         return {
-          isStale,
+          isStale: id !== idRef.current,
           data,
         };
       } catch (error) {
-        const isStale = id !== idRef.current;
-        if (!isStale) {
-          setIsProcessing(false);
-          const defaultErrorMessage = "OOPS! SOMETHING WENT WRONG!";
-          if (axios.isAxiosError(error) && error.response) {
-            const errorResponse = error.response as AxiosResponse<{ message?: string; code?: string }>;
-            if (errorResponse.status === 401) {
-              createAlertModal("YOUR PLAYER NAME IS EXPIRED", {
-                text: "CONFIRM",
-                onClick: () => {
-                  setPlayerRef({ name: "", id: "" });
-                  navigate("/");
-                },
-              });
-            } else {
-              createAlertModal(errorResponse.data.message ?? defaultErrorMessage);
-            }
-          } else {
-            createAlertModal(defaultErrorMessage);
-          }
-        }
-        return Promise.reject({ isStale, error });
+        setIsProcessing(false);
+        const customError = { isStale: id !== idRef.current, error };
+        return Promise.reject(customError);
       }
     },
-    [idRef, setPlayerRef, setIdRef, fn, navigate]
+    [idRef, setIdRef, fn]
   );
   return [isProcessing, request];
 };

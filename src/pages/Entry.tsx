@@ -2,7 +2,7 @@ import type { FC, FormEvent } from "react";
 import styled from "styled-components";
 import Modal from "../components/Modal";
 import Font from "../components/Font";
-import useRequest from "../hooks/request";
+import useAutoHandleErrorRequest from "../hooks/autoHandleErrorRequest";
 import * as http from "../common/http";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 import { useCallback, useState } from "react";
@@ -49,10 +49,10 @@ const Entry: FC = () => {
 
   const { open: openSettingModal } = useSettingModalVisibilityContext();
 
-  const [processingHandleCreatePlayer, handleCreatePlayer] = useRequest(http.createPlayer);
+  const [isProcessingHandleCreatePlayer, handleCreatePlayer] = useAutoHandleErrorRequest(http.createPlayer);
 
   const saveName = useCallback(async () => {
-    if (!processingHandleCreatePlayer) {
+    if (!isProcessingHandleCreatePlayer) {
       try {
         const {
           data: {
@@ -66,7 +66,7 @@ const Entry: FC = () => {
         console.log(error);
       }
     }
-  }, [processingHandleCreatePlayer, playerName, setPlayerRef, handleCreatePlayer, navigate]);
+  }, [isProcessingHandleCreatePlayer, playerName, setPlayerRef, handleCreatePlayer, navigate]);
 
   const toRooms = useCallback(
     (e: React.MouseEvent) => {
