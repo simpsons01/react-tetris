@@ -13,6 +13,7 @@ import { PlayerContext } from "./context/player";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import { parse } from "bowser";
 import { getScreenSize, MAX_PLAYABLE_RATIO } from "./common/size";
+import { isDev } from "./common/utils";
 
 const {
   platform: { type: platformType },
@@ -40,7 +41,7 @@ const App = () => {
   const { setting, setSetting, saveSetting } = useSetting();
 
   const isPlayable = useMemo(() => {
-    return isDesktop && screenRatio <= MAX_PLAYABLE_RATIO;
+    return isDev() || (isDesktop && screenRatio <= MAX_PLAYABLE_RATIO);
   }, [screenRatio]);
 
   useEffect(() => {
