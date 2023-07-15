@@ -6,13 +6,13 @@ import Font from "./components/Font";
 import Modal from "./components/Modal";
 import useSetting from "./hooks/setting";
 import { SettingContext } from "./context/setting";
-import useCustomRef from "./hooks/customRef";
-import { useState, useMemo, Fragment, useEffect } from "react";
+import { useState, useMemo, Fragment, useEffect, useReducer } from "react";
 import { SizeConfigContext } from "./context/sizeConfig";
 import { PlayerContext } from "./context/player";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import { parse } from "bowser";
 import { getScreenSize, MAX_PLAYABLE_RATIO } from "./common/size";
+import playerReducer from "./reducer/player";
 import { isDev } from "./common/utils";
 
 const {
@@ -36,7 +36,7 @@ const App = () => {
 
   const [screenRatio, setScreenRatio] = useState(0);
 
-  const [playerRef, setPlayerRef] = useCustomRef<IPlayer>(loaderData.player);
+  const [player, playerDispatch] = useReducer(playerReducer, loaderData.player);
 
   const { setting, setSetting, saveSetting } = useSetting();
 
@@ -61,9 +61,9 @@ const App = () => {
     <AppContainer>
       <PlayerContext.Provider
         value={{
-          playerRef,
-          setPlayerRef,
-          isPlayerNil: () => !playerRef.current.name || !playerRef.current.id,
+          player,
+          dispatch: playerDispatch,
+          isPlayerNil: () => !player.name || !player.id,
         }}
       >
         <SettingModalVisibilityContext.Provider

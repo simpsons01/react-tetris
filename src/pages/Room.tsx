@@ -231,7 +231,7 @@ const Room: FC = () => {
     setting: { control: controlSetting },
   } = useSettingContext();
 
-  const { playerRef } = usePlayerContext();
+  const { player } = usePlayerContext();
 
   const {
     open: openSettingModal,
@@ -264,8 +264,8 @@ const Room: FC = () => {
       }
     >(getToken() as string, {
       roomId,
-      playerId: playerRef.current.id,
-      playerName: playerRef.current.name,
+      playerId: player.id,
+      playerName: player.name,
     });
 
   // self state
@@ -949,11 +949,11 @@ const Room: FC = () => {
           setRoomState(ROOM_STATE.GAME_START);
           setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
         }
-        players.forEach((player) => {
-          if (player.id === playerRef.current.id) {
-            setSelfName(player.name);
+        players.forEach((_player) => {
+          if (_player.id === player.id) {
+            setSelfName(_player.name);
           } else {
-            setOpponentName(player.name);
+            setOpponentName(_player.name);
           }
         });
       });
@@ -966,7 +966,7 @@ const Room: FC = () => {
         if (isTie) {
           setResult(RESULT.TIE);
         } else {
-          if (playerRef.current.id === winnerId) {
+          if (player.id === winnerId) {
             setResult(RESULT.WIN);
           } else {
             setResult(RESULT.LOSE);
@@ -1028,7 +1028,7 @@ const Room: FC = () => {
     isConnected,
     isDisconnected,
     isConnectErrorOccur,
-    playerRef,
+    player,
     socketInstanceRef,
     roomState,
     handleRoomConfig,

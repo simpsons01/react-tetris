@@ -9,6 +9,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveToken } from "../common/token";
 import { usePlayerContext } from "../context/player";
+import { PLAYER_REDUCER_ACTION } from "../reducer/player";
 
 const EntryContainer = styled.div``;
 
@@ -41,7 +42,7 @@ const ListWrapper = styled.div`
 const Entry: FC = () => {
   const navigate = useNavigate();
 
-  const { setPlayerRef, isPlayerNil } = usePlayerContext();
+  const { dispatch: playerDispatch, isPlayerNil } = usePlayerContext();
 
   const [isCreatePlayerNameModalOpen, setIsCreatePlayerNameModalOpen] = useState(false);
 
@@ -60,13 +61,16 @@ const Entry: FC = () => {
           },
         } = await handleCreatePlayer({ name: playerName });
         saveToken(token);
-        setPlayerRef({ name: playerName, id: playerId });
-        navigate("/rooms");
+        playerDispatch({
+          type: PLAYER_REDUCER_ACTION.UPDATE,
+          player: { name: playerName, id: playerId },
+        });
+        setTimeout(() => navigate("/rooms"), 0);
       } catch (error) {
         console.log(error);
       }
     }
-  }, [isProcessingHandleCreatePlayer, playerName, setPlayerRef, handleCreatePlayer, navigate]);
+  }, [isProcessingHandleCreatePlayer, playerName, playerDispatch, handleCreatePlayer, navigate]);
 
   const toRooms = useCallback(
     (e: React.MouseEvent) => {
