@@ -241,32 +241,36 @@ const Room: FC = () => {
 
   const { id: roomId } = useParams();
 
-  const { socketInstanceRef, isConnected, isConnectErrorOccur, isDisconnected, isSocketInstanceNotNil } =
-    useSocket<
-      {
-        error_occur: () => void;
-        before_start_game: (leftsec: number) => void;
-        game_start: (players: Array<IRoomPlayer>) => void;
-        game_leftSec: (leftsec: number) => void;
-        game_over: (result: { isTie: boolean; winnerId: string; loserId: string }) => void;
-        room_participant_leave: () => void;
-        room_host_leave: () => void;
-        other_game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
-      },
-      {
-        room_config: (done: ClientToServerCallback<{ initialLevel: number }>) => void;
-        ready: (done: ClientToServerCallback<{}>) => void;
-        leave_room: (done: ClientToServerCallback<{}>) => void;
-        force_leave_room: (done: ClientToServerCallback<{}>) => void;
-        reset_room: (done: ClientToServerCallback<{}>) => void;
-        game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
-        ping: (done: ClientToServerCallback<{}>) => void;
-      }
-    >(getToken() as string, {
-      roomId,
-      playerId: player.id,
-      playerName: player.name,
-    });
+  const {
+    getSocketInstance,
+    isConnected: isSocketConnected,
+    isConnectErrorOccur: isSocketConnectErrorOccur,
+    isDisconnected: isSocketDisConnected,
+  } = useSocket<
+    {
+      error_occur: () => void;
+      before_start_game: (leftsec: number) => void;
+      game_start: (players: Array<IRoomPlayer>) => void;
+      game_leftSec: (leftsec: number) => void;
+      game_over: (result: { isTie: boolean; winnerId: string; loserId: string }) => void;
+      room_participant_leave: () => void;
+      room_host_leave: () => void;
+      other_game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
+    },
+    {
+      room_config: (done: ClientToServerCallback<{ initialLevel: number }>) => void;
+      ready: (done: ClientToServerCallback<{}>) => void;
+      leave_room: (done: ClientToServerCallback<{}>) => void;
+      force_leave_room: (done: ClientToServerCallback<{}>) => void;
+      reset_room: (done: ClientToServerCallback<{}>) => void;
+      game_data_updated: (updatedPayloads: GameDataUpdatedPayloads) => void;
+      ping: (done: ClientToServerCallback<{}>) => void;
+    }
+  >(getToken() as string, {
+    roomId,
+    playerId: player.id,
+    playerName: player.name,
+  });
 
   // self state
   const {
@@ -286,21 +290,21 @@ const Room: FC = () => {
     getSpawnTetrimino: getSelfSpawnTetrimino,
     moveTetrimino: moveSelfTetrimino,
     changeTetriminoShape: changeSelfTetriminoShape,
-    clearRowFilledWithCube: clearSelfRowFilledWithCube,
     getRowFilledWithCube: getSelfRowFilledWithCube,
     getEmptyRow: getSelfEmptyRow,
-    fillEmptyRow: fillSelfEmptyRow,
     getTetriminoIsCollideWithNearbyCube: getSelfTetriminoIsCollideWithNearbyCube,
     getCoordinatesIsCollideWithFilledCube: getSelfCoordinatesIsCollideWithFilledCube,
-    pauseClearRowAnimation: pauseSelfClearRowAnimation,
-    pauseFillRowAnimation: pauseSelfFillRowAnimation,
-    fillAllRow: fillSelfAllRow,
-    pauseFillAllRowAnimation: pauseSelfFillAllRowAnimation,
     getTetriminoPreviewCoordinates: getSelfTetriminoPreviewCoordinates,
     moveTetriminoToPreview: moveSelfTetriminoToPreview,
     getIsCoordinatesLockOut: getSelfIsCoordinatesLockOut,
     getTSpinType: getSelfTSpinType,
     setLastTetriminoRotateWallKickPositionRef: setSelfLastTetriminoRotateWallKickPositionRef,
+    startFillRowAnimation: startFillSelfRowAnimation,
+    stopFillRowAnimation: stopFillSelfRowAnimation,
+    startClearRowAnimation: startClearSelfRowAnimation,
+    stopClearRowAnimation: stopClearSelfRowAnimation,
+    startFillAllRowAnimation: startFillSelfAllRowAnimation,
+    stopFillAllRowAnimation: stopFillSelfAllRowAnimation,
   } = useMatrix();
 
   const freshMoveSelfTetrimino = useGetter(moveSelfTetrimino);
@@ -332,7 +336,7 @@ const Room: FC = () => {
     getTetriminoFallingDelayByLevel(selfLevel)
   );
 
-  const [selfMatrixPhase, setSelfMatrixPhase] = useState<MATRIX_PHASE | null>(null);
+  const [selfMatrixPhaseRef, setSelfMatrixPhaseRef] = useCustomRef<MATRIX_PHASE | null>(null);
 
   const [selfName, setSelfName] = useState("");
 
@@ -428,7 +432,7 @@ const Room: FC = () => {
     setSelfLine(0);
     setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(gameInitialLevelRef.current));
     setSelfHoldTetrimino(null);
-    setSelfMatrixPhase(null);
+    setSelfMatrixPhaseRef(null);
     setSelfLastTetriminoRotateWallKickPositionRef(0);
     setSelfTetriminoMoveTypeRecordRef([]);
     setIsSelfHardDropRef(false);
@@ -446,6 +450,7 @@ const Room: FC = () => {
     setSelfLastTetriminoRotateWallKickPositionRef,
     setSelfTetriminoMoveTypeRecordRef,
     setSelfNextTetriminoBag,
+    setSelfMatrixPhaseRef,
   ]);
 
   const handleResetAllOpponentState = useCallback(() => {
@@ -471,45 +476,36 @@ const Room: FC = () => {
   }, []);
 
   const handleSelfReady = useCallback(() => {
-    if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-      socketInstanceRef.current.emit("ready", ({ metadata: { status } }) => {
-        if (status === EVENT_OPERATION_STATUS.SUCCESS) {
-          setRoomState(ROOM_STATE.WAIT_OTHER_READY);
-        }
-      });
-    }
-  }, [socketInstanceRef, isSocketInstanceNotNil]);
+    const socketInstance = getSocketInstance();
+    socketInstance.emit("ready", ({ metadata: { status } }) => {
+      if (status === EVENT_OPERATION_STATUS.SUCCESS) {
+        setRoomState(ROOM_STATE.WAIT_OTHER_READY);
+      }
+    });
+  }, [getSocketInstance]);
 
   const handleSelfNextGame = useCallback(() => {
-    if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-      socketInstanceRef.current.emit("reset_room", ({ metadata: { status } }) => {
-        if (status === EVENT_OPERATION_STATUS.SUCCESS) {
-          handleResetAllSelfState();
-          handleResetAllOpponentState();
-          handleResetGameState();
-        }
-      });
-    }
-  }, [
-    socketInstanceRef,
-    handleResetAllSelfState,
-    handleResetAllOpponentState,
-    handleResetGameState,
-    isSocketInstanceNotNil,
-  ]);
+    const socketInstance = getSocketInstance();
+    socketInstance.emit("reset_room", ({ metadata: { status } }) => {
+      if (status === EVENT_OPERATION_STATUS.SUCCESS) {
+        handleResetAllSelfState();
+        handleResetAllOpponentState();
+        handleResetGameState();
+      }
+    });
+  }, [handleResetAllSelfState, handleResetAllOpponentState, handleResetGameState, getSocketInstance]);
 
   const handleRoomConfig = useCallback(() => {
-    if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-      socketInstanceRef.current.emit("room_config", ({ data: { initialLevel }, metadata: { status } }) => {
-        if (status === EVENT_OPERATION_STATUS.SUCCESS) {
-          setGameInitialLevelRef(initialLevel);
-          setOpponentLevel(initialLevel);
-          setSelfLevel(initialLevel);
-          setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(initialLevel));
-        }
-      });
-    }
-  }, [socketInstanceRef, setGameInitialLevelRef, isSocketInstanceNotNil]);
+    const socketInstance = getSocketInstance();
+    socketInstance.emit("room_config", ({ data: { initialLevel }, metadata: { status } }) => {
+      if (status === EVENT_OPERATION_STATUS.SUCCESS) {
+        setGameInitialLevelRef(initialLevel);
+        setOpponentLevel(initialLevel);
+        setSelfLevel(initialLevel);
+        setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(initialLevel));
+      }
+    });
+  }, [setGameInitialLevelRef, getSocketInstance]);
 
   const handleSelfLeaveRoom = useCallback(
     (path = "/rooms") => {
@@ -583,12 +579,12 @@ const Room: FC = () => {
   ]);
 
   const handlePauseSelfMatrixAnimation = useCallback(() => {
-    pauseSelfClearRowAnimation();
-    pauseSelfFillAllRowAnimation();
-    pauseSelfFillRowAnimation();
+    stopFillSelfRowAnimation();
+    stopClearSelfRowAnimation();
+    stopFillSelfAllRowAnimation();
     selfTetriminoFallingTimer.clear();
     selfTetriminoCollideBottomTimer.clear();
-  }, [pauseSelfClearRowAnimation, pauseSelfFillAllRowAnimation, pauseSelfFillRowAnimation]);
+  }, [stopFillSelfAllRowAnimation, stopClearSelfRowAnimation, stopFillSelfRowAnimation]);
 
   useLayoutEffect(() => {
     const updatedPayloads: GameDataUpdatedPayloads = [];
@@ -641,8 +637,9 @@ const Room: FC = () => {
         syncPrevRef();
       }
     });
-    if (isSocketInstanceNotNil(socketInstanceRef.current) && updatedPayloads.length > 0) {
-      socketInstanceRef.current.emit("game_data_updated", updatedPayloads);
+    if (updatedPayloads.length > 0) {
+      const socketInstance = getSocketInstance();
+      socketInstance.emit("game_data_updated", updatedPayloads);
     }
   }, [
     prevSelfRenderHoldTetriminoRef,
@@ -659,7 +656,6 @@ const Room: FC = () => {
     selfNextTetriminoBag,
     selfScore,
     selfTetrimino,
-    socketInstanceRef,
     isSelMatrixAnimationRunningRef,
     setPrevSelRenderHoldTetriminoRef,
     setPrevSelfRenderLevelRef,
@@ -668,11 +664,11 @@ const Room: FC = () => {
     setPrevSelfRenderNextTetriminoBagRef,
     setPrevSelfRenderScoreRef,
     setPrevSelfRenderTetriminoRef,
-    isSocketInstanceNotNil,
+    getSocketInstance,
   ]);
 
   const onKeyDown = useGetter((e: KeyboardEvent) => {
-    if (isGameStart && selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
+    if (isGameStart && selfMatrixPhaseRef.current === MATRIX_PHASE.TETRIMINO_FALLING) {
       if (e.key === controlSetting.moveLeft) {
         const isSuccess = freshMoveSelfTetrimino(DIRECTION.LEFT);
         if (isSuccess) {
@@ -725,7 +721,7 @@ const Room: FC = () => {
         }
       } else if (e.key === controlSetting.hold) {
         setSelfTetriminoMoveTypeRecordRef([]);
-        if (selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING && isSelfHoldableRef.current) {
+        if (selfMatrixPhaseRef.current === MATRIX_PHASE.TETRIMINO_FALLING && isSelfHoldableRef.current) {
           if (selfTetriminoFallingTimer.isPending()) {
             selfTetriminoFallingTimer.clear();
           }
@@ -740,14 +736,14 @@ const Room: FC = () => {
             isCreatedSuccess = handleSelfTetriminoCreate();
           }
           if (isCreatedSuccess) {
-            setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_FALLING);
+            setSelfMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
           } else {
-            setSelfMatrixPhase(null);
+            setSelfMatrixPhaseRef(null);
             setIsSelMatrixAnimationRunningRef(true);
-            fillSelfAllRow().then(() => {
+            startFillSelfAllRowAnimation(() => {
               setIsSelMatrixAnimationRunningRef(false);
               handleSelfMatrixNextCycle();
-              setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+              setSelfMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
             });
           }
         }
@@ -781,37 +777,44 @@ const Room: FC = () => {
   );
 
   useEffect(() => {
+    const handleTetriminoCreate = () => {
+      const isCreatedSuccess = handleSelfTetriminoCreate();
+      if (isCreatedSuccess) {
+        setSelfMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
+      } else {
+        setSelfMatrixPhaseRef(null);
+        setIsSelMatrixAnimationRunningRef(true);
+        startFillSelfAllRowAnimation(() => {
+          setIsSelMatrixAnimationRunningRef(false);
+          handleSelfMatrixNextCycle();
+          setSelfMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
+        });
+      }
+    };
     let effectCleaner = () => {};
-    if (selfMatrixPhase) {
-      switch (selfMatrixPhase) {
-        case MATRIX_PHASE.TETRIMINO_CREATE:
-          const isCreatedSuccess = handleSelfTetriminoCreate();
-          if (isCreatedSuccess) {
-            setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_FALLING);
-          } else {
-            setSelfMatrixPhase(null);
-            setIsSelMatrixAnimationRunningRef(true);
-            fillSelfAllRow().then(() => {
-              setIsSelMatrixAnimationRunningRef(false);
-              handleSelfMatrixNextCycle();
-              setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
-            });
-          }
-          break;
+    if (selfMatrixPhaseRef) {
+      switch (selfMatrixPhaseRef.current) {
         case MATRIX_PHASE.TETRIMINO_FALLING:
           const { isBottomCollide } = getSelfTetriminoIsCollideWithNearbyCube();
           if (isBottomCollide) {
             const _ = () => {
               if (getSelfIsCoordinatesLockOut(selfTetriminoCoordinates as Array<ICoordinate>)) {
-                setSelfMatrixPhase(null);
+                setSelfMatrixPhaseRef(null);
                 setIsSelMatrixAnimationRunningRef(true);
-                fillSelfAllRow().then(() => {
+                startFillSelfAllRowAnimation(() => {
                   setIsSelMatrixAnimationRunningRef(false);
                   handleSelfMatrixNextCycle();
-                  setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+                  setTimeout(() => {
+                    handleTetriminoCreate();
+                  }, 0);
                 });
               } else {
-                setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_LOCK);
+                setSelfPrevTetriminoRef(selfTetrimino);
+                setIsSelfHoldableRef(true);
+                setIsSelfHardDropRef(false);
+                setSelfTetriminoToMatrix();
+                resetSelfTetrimino();
+                setSelfMatrixPhaseRef(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
               }
             };
             if (isSelfHardDropRef.current) {
@@ -837,19 +840,11 @@ const Room: FC = () => {
             }
           };
           break;
-        case MATRIX_PHASE.TETRIMINO_LOCK:
-          setSelfPrevTetriminoRef(selfTetrimino);
-          setIsSelfHoldableRef(true);
-          setIsSelfHardDropRef(false);
-          setSelfTetriminoToMatrix();
-          resetSelfTetrimino();
-          setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
-          break;
         case MATRIX_PHASE.CHECK_IS_ROW_FILLED:
           const tSpinType = getSelfTSpinType();
           const filledRow = getSelfRowFilledWithCube();
           if (filledRow.length > 0) {
-            setSelfMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
+            setSelfMatrixPhaseRef(MATRIX_PHASE.ROW_FILLED_CLEARING);
             const nextLineValue = selfLine + filledRow.length;
             const nextLevel = getLevelByLine(nextLineValue, selfLevel);
             setSelfScore(
@@ -862,14 +857,14 @@ const Room: FC = () => {
             setSelfLastTetriminoRotateWallKickPositionRef(0);
             setSelfTetriminoMoveTypeRecordRef([]);
             setIsSelMatrixAnimationRunningRef(true);
-            clearSelfRowFilledWithCube(filledRow).then(() => {
+            startClearSelfRowAnimation(filledRow, () => {
               setIsSelMatrixAnimationRunningRef(false);
-              setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+              setSelfMatrixPhaseRef(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
             });
           } else {
             setSelfLastTetriminoRotateWallKickPositionRef(0);
             setSelfTetriminoMoveTypeRecordRef([]);
-            setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+            handleTetriminoCreate();
           }
           break;
         case MATRIX_PHASE.ROW_FILLED_CLEARING:
@@ -880,14 +875,14 @@ const Room: FC = () => {
             emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
           if (!isGapNotExist) {
             //console.log("fill empty row!");
-            setSelfMatrixPhase(MATRIX_PHASE.ROW_EMPTY_FILLING);
+            setSelfMatrixPhaseRef(MATRIX_PHASE.ROW_EMPTY_FILLING);
             setIsSelMatrixAnimationRunningRef(true);
-            fillSelfEmptyRow(emptyRowGap).then(() => {
+            startFillSelfRowAnimation(emptyRowGap, () => {
               setIsSelMatrixAnimationRunningRef(false);
-              setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+              setSelfMatrixPhaseRef(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
             });
           } else {
-            setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
+            handleTetriminoCreate();
           }
           break;
         case MATRIX_PHASE.ROW_EMPTY_FILLING:
@@ -901,17 +896,14 @@ const Room: FC = () => {
   }, [
     selfLevel,
     selfLine,
-    selfMatrixPhase,
+    selfMatrixPhaseRef,
     selfTetrimino,
     selfTetriminoCoordinates,
     selfTetriminoFallingDelay,
     isSelfHardDropRef,
     selfTetriminoMoveTypeRecordRef,
     selfTetriminoFallingTimerHandler,
-    clearSelfRowFilledWithCube,
     setIsSelMatrixAnimationRunningRef,
-    fillSelfAllRow,
-    fillSelfEmptyRow,
     getSelfEmptyRow,
     getSelfIsCoordinatesLockOut,
     getSelfRowFilledWithCube,
@@ -927,110 +919,107 @@ const Room: FC = () => {
     setSelfPrevTetriminoRef,
     setSelfTetriminoMoveTypeRecordRef,
     setSelfTetriminoToMatrix,
+    startClearSelfRowAnimation,
+    startFillSelfRowAnimation,
+    startFillSelfAllRowAnimation,
+    setSelfMatrixPhaseRef,
   ]);
 
   useEffect(() => {
-    if (isConnected && isSocketInstanceNotNil(socketInstanceRef.current)) {
-      if (roomState === ROOM_STATE.CONNECTING) {
-        setRoomState(ROOM_STATE.SELF_NOT_READY);
-        handleRoomConfig();
+    const socketInstance = getSocketInstance();
+    const beforeStartGameHandler = (leftSec: number) => {
+      if (roomState !== ROOM_STATE.BEFORE_GAME_START) {
+        initialOpponentNextTetriminoBag();
+        initialSelfNextTetriminoBag();
+        setRoomState(ROOM_STATE.BEFORE_GAME_START);
       }
-      socketInstanceRef.current.on("before_start_game", (leftSec) => {
-        if (roomState !== ROOM_STATE.BEFORE_GAME_START) {
-          initialOpponentNextTetriminoBag();
-          initialSelfNextTetriminoBag();
-          setRoomState(ROOM_STATE.BEFORE_GAME_START);
-        }
-        // console.log("before game start left sec is ", leftSec);
-        setBeforeStartCountDown(leftSec);
-      });
-      socketInstanceRef.current.on("game_start", (players) => {
-        if (roomState !== ROOM_STATE.GAME_START) {
-          setRoomState(ROOM_STATE.GAME_START);
-          setSelfMatrixPhase(MATRIX_PHASE.TETRIMINO_CREATE);
-        }
-        players.forEach((_player) => {
-          if (_player.id === player.id) {
-            setSelfName(_player.name);
-          } else {
-            setOpponentName(_player.name);
-          }
-        });
-      });
-      socketInstanceRef.current.on("game_leftSec", (leftSec: number) => {
-        setLeftSec(leftSec);
-      });
-      socketInstanceRef.current.on("game_over", ({ isTie, winnerId }) => {
-        setSelfMatrixPhase(null);
-        handlePauseSelfMatrixAnimation();
-        if (isTie) {
-          setResult(RESULT.TIE);
+      // console.log("before game start left sec is ", leftSec);
+      setBeforeStartCountDown(leftSec);
+    };
+    const gameStartHandler = (players: Array<IRoomPlayer>) => {
+      if (roomState !== ROOM_STATE.GAME_START) {
+        setRoomState(ROOM_STATE.GAME_START);
+        handleSelfTetriminoCreate();
+        setSelfMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
+      }
+      players.forEach((_player) => {
+        if (_player.id === player.id) {
+          setSelfName(_player.name);
         } else {
-          if (player.id === winnerId) {
-            setResult(RESULT.WIN);
-          } else {
-            setResult(RESULT.LOSE);
-          }
+          setOpponentName(_player.name);
         }
-        setRoomState(ROOM_STATE.GAME_END);
       });
-      socketInstanceRef.current.on("other_game_data_updated", (updatedPayloads: GameDataUpdatedPayloads) => {
-        updatedPayloads.forEach(({ type, data }) => {
-          if (type === GAME_STATE_TYPE.SCORE) {
-            setOpponentScore(data as number);
-          } else if (type === GAME_STATE_TYPE.MATRIX) {
-            setOpponentMatrix(data as IPlayFieldRenderer["matrix"]);
-          } else if (type === GAME_STATE_TYPE.NEXT_TETRIMINO_BAG) {
-            setOpponentNextTetriminoBag(data as Array<TETRIMINO_TYPE>);
-          } else if (type === GAME_STATE_TYPE.HOLD_TETRIMINO) {
-            setOpponentHoldTetrimino(data as TETRIMINO_TYPE | null);
-          } else if (type === GAME_STATE_TYPE.LEVEL) {
-            setOpponentLevel(data as number);
-          } else if (type === GAME_STATE_TYPE.LINE) {
-            setOpponentLine(data as number);
-          }
-        });
-      });
-      socketInstanceRef.current.on("room_participant_leave", () => {
-        setSelfMatrixPhase(null);
-        setRoomState(ROOM_STATE.PARTICIPANT_LEAVE);
-        handlePauseSelfMatrixAnimation();
-      });
-      socketInstanceRef.current.on("room_host_leave", () => {
-        setSelfMatrixPhase(null);
-        setRoomState(ROOM_STATE.HOST_LEAVE);
-        handlePauseSelfMatrixAnimation();
-      });
-      socketInstanceRef.current.on("error_occur", () => {
-        setSelfMatrixPhase(null);
-        setRoomState(ROOM_STATE.ERROR);
-        handlePauseSelfMatrixAnimation();
-      });
-    } else {
-      if (isConnectErrorOccur || isDisconnected) {
-        setRoomState(ROOM_STATE.ERROR);
+    };
+    const gameLeftSecHandler = (leftSec: number) => {
+      setLeftSec(leftSec);
+    };
+    const gameOverHandler = ({ isTie, winnerId }: { isTie: boolean; winnerId: string; loserId: string }) => {
+      setSelfMatrixPhaseRef(null);
+      handlePauseSelfMatrixAnimation();
+      if (isTie) {
+        setResult(RESULT.TIE);
       } else {
-        setRoomState(ROOM_STATE.CONNECTING);
+        if (player.id === winnerId) {
+          setResult(RESULT.WIN);
+        } else {
+          setResult(RESULT.LOSE);
+        }
       }
-    }
+      setRoomState(ROOM_STATE.GAME_END);
+    };
+    const otherGameDataUpdatedHandler = (updatedPayloads: GameDataUpdatedPayloads) => {
+      updatedPayloads.forEach(({ type, data }) => {
+        if (type === GAME_STATE_TYPE.SCORE) {
+          setOpponentScore(data as number);
+        } else if (type === GAME_STATE_TYPE.MATRIX) {
+          setOpponentMatrix(data as IPlayFieldRenderer["matrix"]);
+        } else if (type === GAME_STATE_TYPE.NEXT_TETRIMINO_BAG) {
+          setOpponentNextTetriminoBag(data as Array<TETRIMINO_TYPE>);
+        } else if (type === GAME_STATE_TYPE.HOLD_TETRIMINO) {
+          setOpponentHoldTetrimino(data as TETRIMINO_TYPE | null);
+        } else if (type === GAME_STATE_TYPE.LEVEL) {
+          setOpponentLevel(data as number);
+        } else if (type === GAME_STATE_TYPE.LINE) {
+          setOpponentLine(data as number);
+        }
+      });
+    };
+    const roomParticipantLeaveHandler = () => {
+      setSelfMatrixPhaseRef(null);
+      setRoomState(ROOM_STATE.PARTICIPANT_LEAVE);
+      handlePauseSelfMatrixAnimation();
+    };
+    const roomHostLeaveHandler = () => {
+      setSelfMatrixPhaseRef(null);
+      setRoomState(ROOM_STATE.HOST_LEAVE);
+      handlePauseSelfMatrixAnimation();
+    };
+    const errorOccurHandler = () => {
+      setSelfMatrixPhaseRef(null);
+      setRoomState(ROOM_STATE.ERROR);
+      handlePauseSelfMatrixAnimation();
+    };
+    socketInstance.on("before_start_game", beforeStartGameHandler);
+    socketInstance.on("game_start", gameStartHandler);
+    socketInstance.on("game_leftSec", gameLeftSecHandler);
+    socketInstance.on("game_over", gameOverHandler);
+    socketInstance.on("other_game_data_updated", otherGameDataUpdatedHandler);
+    socketInstance.on("room_participant_leave", roomParticipantLeaveHandler);
+    socketInstance.on("room_host_leave", roomHostLeaveHandler);
+    socketInstance.on("error_occur", errorOccurHandler);
     return () => {
-      if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-        socketInstanceRef.current.off("before_start_game");
-        socketInstanceRef.current.off("game_start");
-        socketInstanceRef.current.off("game_leftSec");
-        socketInstanceRef.current.off("game_over");
-        socketInstanceRef.current.off("other_game_data_updated");
-        socketInstanceRef.current.off("room_participant_leave");
-        socketInstanceRef.current.off("room_host_leave");
-      }
+      socketInstance.off("before_start_game", beforeStartGameHandler);
+      socketInstance.off("game_start", gameStartHandler);
+      socketInstance.off("game_leftSec", gameLeftSecHandler);
+      socketInstance.off("game_over", gameOverHandler);
+      socketInstance.off("other_game_data_updated", otherGameDataUpdatedHandler);
+      socketInstance.off("room_participant_leave", roomParticipantLeaveHandler);
+      socketInstance.off("room_host_leave", roomHostLeaveHandler);
+      socketInstance.off("error_occur", errorOccurHandler);
     };
   }, [
-    isConnected,
-    isDisconnected,
-    isConnectErrorOccur,
-    player,
-    socketInstanceRef,
     roomState,
+    player.id,
     handleRoomConfig,
     setRoomState,
     setOpponentMatrix,
@@ -1040,36 +1029,49 @@ const Room: FC = () => {
     initialOpponentNextTetriminoBag,
     initialSelfNextTetriminoBag,
     handlePauseSelfMatrixAnimation,
-    isSocketInstanceNotNil,
+    getSocketInstance,
+    handleSelfTetriminoCreate,
+    setSelfMatrixPhaseRef,
   ]);
 
   useEffect(() => {
-    if (!isPlayable) {
-      if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-        socketInstanceRef.current.offAny();
-        socketInstanceRef.current.disconnect();
+    if (isSocketConnected) {
+      if (roomState === ROOM_STATE.CONNECTING) {
+        setRoomState(ROOM_STATE.SELF_NOT_READY);
+        handleRoomConfig();
       }
-      setSelfMatrixPhase(null);
+    } else if (isSocketConnectErrorOccur || isSocketDisConnected) {
+      setRoomState(ROOM_STATE.ERROR);
+    } else {
+      setRoomState(ROOM_STATE.CONNECTING);
+    }
+  }, [handleRoomConfig, isSocketConnectErrorOccur, isSocketConnected, isSocketDisConnected, roomState]);
+
+  useEffect(() => {
+    if (!isPlayable) {
+      const socketInstance = getSocketInstance();
+      socketInstance.offAny();
+      socketInstance.disconnect();
+      setSelfMatrixPhaseRef(null);
       setRoomState(ROOM_STATE.ERROR);
       handlePauseSelfMatrixAnimation();
     }
-  }, [socketInstanceRef, isPlayable, handlePauseSelfMatrixAnimation, isSocketInstanceNotNil]);
+  }, [isPlayable, handlePauseSelfMatrixAnimation, getSocketInstance, setSelfMatrixPhaseRef]);
 
   useEffect(() => {
     const checkSocketLatencyInterval = 5 * 1000;
     const timer = setInterval(() => {
-      if (isSocketInstanceNotNil(socketInstanceRef.current)) {
-        const prev = performance.now();
-        socketInstanceRef.current.emit("ping", () => {
-          console.log(`socket latency is ${performance.now() - prev} ms`);
-        });
-      }
+      const prev = performance.now();
+      const socketInstance = getSocketInstance();
+      socketInstance.emit("ping", () => {
+        console.log(`socket latency is ${performance.now() - prev} ms`);
+      });
     }, checkSocketLatencyInterval);
     return () => {
       clearInterval(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getSocketInstance]);
 
   return (
     <Fragment>
