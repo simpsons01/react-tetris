@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import styled, { css } from "styled-components";
-import GRID from "../utils/grid";
-import { getKeys } from "../utils/common";
+import GRID from "../common/grid";
+import { getKeys } from "../common/utils";
 
 const createFontStyle = () => {
   let styled = "";
