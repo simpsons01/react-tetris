@@ -1,4 +1,4 @@
-import type { IPlayer } from "./common/player";
+import type { IPlayer } from "./utils/player";
 import { Outlet, useLoaderData } from "react-router-dom";
 import styled from "styled-components";
 import Overlay from "./components/Overlay";
@@ -6,14 +6,13 @@ import Font from "./components/Font";
 import Modal from "./components/Modal";
 import useSetting from "./hooks/setting";
 import { SettingContext } from "./context/setting";
-import { useState, useMemo, Fragment, useEffect, useReducer } from "react";
+import useCustomRef from "./hooks/customRef";
+import { useState, useMemo, Fragment, useEffect } from "react";
 import { SizeConfigContext } from "./context/sizeConfig";
 import { PlayerContext } from "./context/player";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
 import { parse } from "bowser";
-import { getScreenSize, MAX_PLAYABLE_RATIO } from "./common/size";
-import playerReducer from "./reducer/player";
-import { isDev } from "./common/utils";
+import { getScreenSize, MAX_PLAYABLE_RATIO } from "./utils/size";
 
 const {
   platform: { type: platformType },
@@ -36,12 +35,12 @@ const App = () => {
 
   const [screenRatio, setScreenRatio] = useState(0);
 
-  const [player, playerDispatch] = useReducer(playerReducer, loaderData.player);
+  const [playerRef, setPlayerRef] = useCustomRef<IPlayer>(loaderData.player);
 
   const { setting, setSetting, saveSetting } = useSetting();
 
   const isPlayable = useMemo(() => {
-    return isDev() || (isDesktop && screenRatio <= MAX_PLAYABLE_RATIO);
+    return isDesktop && screenRatio <= MAX_PLAYABLE_RATIO;
   }, [screenRatio]);
 
   useEffect(() => {
@@ -61,9 +60,9 @@ const App = () => {
     <AppContainer>
       <PlayerContext.Provider
         value={{
-          player,
-          dispatch: playerDispatch,
-          isPlayerNil: () => !player.name || !player.id,
+          playerRef,
+          setPlayerRef,
+          isPlayerNil: () => !playerRef.current.name || !playerRef.current.id,
         }}
       >
         <SettingModalVisibilityContext.Provider

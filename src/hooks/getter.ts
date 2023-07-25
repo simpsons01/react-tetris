@@ -1,4 +1,4 @@
-import type { AnyFunction } from "../common/utils";
+import type { AnyFunction } from "../utils/common";
 import { useCallback, useLayoutEffect } from "react";
 import useCustomRef from "./customRef";
 

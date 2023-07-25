@@ -1,6 +1,6 @@
 import useCustomRef from "./customRef";
 import { useState, useCallback } from "react";
-import { TETRIMINO_TYPE } from "../common/tetrimino";
+import { TETRIMINO_TYPE } from "../utils/tetrimino";
 
 const useHoldTetrimino = () => {
   const [isHoldableRef, setIsHoldableRef] = useCustomRef(true);

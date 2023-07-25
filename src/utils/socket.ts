@@ -1,4 +1,4 @@
-import type { AnyObject } from "./utils";
+import type { AnyObject } from "./common";
 import { io, Socket } from "socket.io-client";
 
 export interface EventMap {

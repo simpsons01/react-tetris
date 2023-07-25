@@ -1,4 +1,4 @@
-import type { AnyFunction } from "../../../common/utils";
+import type { AnyFunction } from "../../../utils/common";
 import type { FC } from "react";
 import type { IBaseModal } from "../Base";
 import styled from "styled-components";

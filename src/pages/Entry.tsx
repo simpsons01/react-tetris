@@ -2,14 +2,13 @@ import type { FC, FormEvent } from "react";
 import styled from "styled-components";
 import Modal from "../components/Modal";
 import Font from "../components/Font";
-import useAutoHandleErrorRequest from "../hooks/autoHandleErrorRequest";
-import * as http from "../common/http";
+import useRequest from "../hooks/request";
+import * as http from "../utils/http";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { saveToken } from "../common/token";
+import { saveToken } from "../utils/token";
 import { usePlayerContext } from "../context/player";
-import { PLAYER_REDUCER_ACTION } from "../reducer/player";
 
 const EntryContainer = styled.div``;
 
@@ -42,7 +41,7 @@ const ListWrapper = styled.div`
 const Entry: FC = () => {
   const navigate = useNavigate();
 
-  const { dispatch: playerDispatch, isPlayerNil } = usePlayerContext();
+  const { setPlayerRef, isPlayerNil } = usePlayerContext();
 
   const [isCreatePlayerNameModalOpen, setIsCreatePlayerNameModalOpen] = useState(false);
 
@@ -50,10 +49,10 @@ const Entry: FC = () => {
 
   const { open: openSettingModal } = useSettingModalVisibilityContext();
 
-  const [isProcessingHandleCreatePlayer, handleCreatePlayer] = useAutoHandleErrorRequest(http.createPlayer);
+  const [processingHandleCreatePlayer, handleCreatePlayer] = useRequest(http.createPlayer);
 
   const saveName = useCallback(async () => {
-    if (!isProcessingHandleCreatePlayer) {
+    if (!processingHandleCreatePlayer) {
       try {
         const {
           data: {
@@ -61,16 +60,13 @@ const Entry: FC = () => {
           },
         } = await handleCreatePlayer({ name: playerName });
         saveToken(token);
-        playerDispatch({
-          type: PLAYER_REDUCER_ACTION.UPDATE,
-          player: { name: playerName, id: playerId },
-        });
-        setTimeout(() => navigate("/rooms"), 0);
+        setPlayerRef({ name: playerName, id: playerId });
+        navigate("/rooms");
       } catch (error) {
         console.log(error);
       }
     }
-  }, [isProcessingHandleCreatePlayer, playerName, playerDispatch, handleCreatePlayer, navigate]);
+  }, [processingHandleCreatePlayer, playerName, setPlayerRef, handleCreatePlayer, navigate]);
 
   const toRooms = useCallback(
     (e: React.MouseEvent) => {

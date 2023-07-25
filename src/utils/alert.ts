@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Modal from "../components/Modal";
-import { AnyFunction } from "./utils";
+import { AnyFunction } from "./common";
 
 let modalId = 0;
 export const createAlertModal = (
