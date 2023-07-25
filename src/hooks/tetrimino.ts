@@ -1,7 +1,7 @@
-import type { ITetrimino, ICoordinate } from "../utils/tetrimino";
+import type { ITetrimino, ICoordinate } from "../common/tetrimino";
 import useCustomRef from "./customRef";
 import { useState, useMemo, useCallback } from "react";
-import { DEFAULT_TETRIMINO_SHAPE, getCoordinateByAnchorAndShapeAndType } from "../utils/tetrimino";
+import { DEFAULT_TETRIMINO_SHAPE, getCoordinateByAnchorAndShapeAndType } from "../common/tetrimino";
 
 const createInitialTetriminoState = (): ITetrimino => ({
   anchor: { x: -1, y: -1 },

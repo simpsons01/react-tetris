@@ -1,4 +1,4 @@
-import type { ISetting } from "../utils/setting";
+import type { ISetting } from "../common/setting";
 import { createContext, useContext, SetStateAction, Dispatch } from "react";
 
 export interface ISettingContext {

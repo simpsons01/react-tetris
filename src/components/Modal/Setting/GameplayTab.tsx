@@ -1,8 +1,8 @@
 import type { FC } from "react";
-import type { ISetting } from "../../../utils/setting";
+import type { ISetting } from "../../../common/setting";
 import styled from "styled-components";
 import Font from "../../Font";
-import { TOTAL_LEVEL } from "../../../utils/matrix";
+import { TOTAL_LEVEL } from "../../../common/matrix";
 
 const Wrapper = styled.div``;
 

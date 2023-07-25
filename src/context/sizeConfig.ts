@@ -1,4 +1,4 @@
-import type { ISizeConfig } from "../utils/size";
+import type { ISizeConfig } from "../common/size";
 import { useContext, createContext } from "react";
 
 export const SizeConfigContext = createContext<ISizeConfig>({} as ISizeConfig);

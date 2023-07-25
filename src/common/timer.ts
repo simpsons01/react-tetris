@@ -1,4 +1,4 @@
-import type { AnyFunction } from "./common";
+import type { AnyFunction } from "./utils";
 
 export const createCountDownTimer = ({ autoClear }: { autoClear: boolean } = { autoClear: false }) => {
   let timer: number | null = null;

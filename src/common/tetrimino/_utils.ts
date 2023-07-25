@@ -12,7 +12,7 @@ import { O } from "./O";
 import { S } from "./S";
 import { T } from "./T";
 import { Z } from "./Z";
-import { getRandomMixMax } from "../common";
+import { getRandomMixMax } from "../utils";
 
 export const getTetriminoConfig = (type: TETRIMINO_TYPE): Readonly<ITetriminoConfig> => {
   const _ = {

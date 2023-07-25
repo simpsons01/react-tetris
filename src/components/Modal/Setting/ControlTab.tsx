@@ -1,14 +1,14 @@
 import type { FC, KeyboardEvent } from "react";
-import type { ISetting } from "../../../utils/setting";
+import type { ISetting } from "../../../common/setting";
 import styled from "styled-components";
 import Font from "../../Font";
 import useCustomRef from "../../../hooks/customRef";
 import BaseModal from "../Base";
 import * as KEYCODE from "keycode-js";
 import { useCallback, useMemo, useState } from "react";
-import { getKeys } from "../../../utils/common";
-import { convertKeyboardEvtKeyToDisplayText } from "../../../utils/keyboard";
-import { createAlertModal } from "../../../utils/alert";
+import { getKeys } from "../../../common/utils";
+import { convertKeyboardEvtKeyToDisplayText } from "../../../common/keyboard";
+import { createAlertModal } from "../../../common/alert";
 
 const Wrapper = styled.div`
   table {

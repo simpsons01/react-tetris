@@ -1,6 +1,6 @@
 import { json } from "react-router-dom";
 import axios from "axios";
-import * as http from "../../utils/http";
+import * as http from "../../common/http";
 
 const initialLoader = async () => {
   const initialData = {
