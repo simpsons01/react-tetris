@@ -1,4 +1,4 @@
-import type { ICoordinate } from "../utils/tetrimino";
+import type { ICoordinate } from "../common/tetrimino";
 import styled from "styled-components";
 
 const CUBE_WIDTH = 3.5;

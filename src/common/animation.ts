@@ -1,4 +1,4 @@
-import { minMax, AnyFunction } from "./common";
+import { minMax, AnyFunction } from "./utils";
 
 const ms = 1000;
 

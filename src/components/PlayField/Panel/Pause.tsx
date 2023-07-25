@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import type { IPanel } from "./Base";
-import type { AnyFunction } from "../../../utils/common";
+import type { AnyFunction } from "../../../common/utils";
 import Font from "../../Font";
 import styled from "styled-components";
 import { BasePanel } from "./Base";

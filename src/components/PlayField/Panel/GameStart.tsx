@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import type { AnyFunction } from "../../../utils/common";
+import type { AnyFunction } from "../../../common/utils";
 import type { IPanel } from "./Base";
 import styled from "styled-components";
 import Font from "../../Font";

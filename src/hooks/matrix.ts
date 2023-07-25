@@ -1,17 +1,19 @@
 import type { IPlayFieldRenderer } from "../components/PlayField/Renderer";
-import type { ICoordinate, ICube, ITetriminoConfig } from "../utils/tetrimino";
-import type { ITetrimino } from "../utils/tetrimino";
+import type { ICoordinate, ICube, ITetriminoConfig } from "../common/tetrimino";
+import type { ITetrimino } from "../common/tetrimino";
+import type { AnyFunction } from "../common/utils";
 import useTetrimino from "./tetrimino";
 import useCustomRef from "./customRef";
-import { getKeys, minMax } from "../utils/common";
-import { createAnimation } from "../utils/animation";
+import { getKeys, minMax } from "../common/utils";
+import { createAnimation } from "../common/animation";
+import useAnimationFrame from "../hooks/animationFrame";
 import { nanoid } from "nanoid";
 import {
   PER_ROW_CUBE_NUM,
   PER_COL_CUBE_NUM,
   DISPLAY_ZONE_ROW_START,
   DISPLAY_ZONE_ROW_END,
-} from "../utils/matrix";
+} from "../common/matrix";
 import {
   CUBE_STATE,
   DEFAULT_TETRIMINO_SHAPE,
@@ -27,7 +29,7 @@ import {
   getAnchorByCoordinatesAndTypeAndShape,
   TETRIMINO_MOVE_TYPE,
   T_SPIN_TYPE,
-} from "../utils/tetrimino";
+} from "../common/tetrimino";
 import { useCallback, useState, useMemo } from "react";
 
 const condition = (index: number, col: number) => false;
@@ -56,6 +58,103 @@ const useMatrix = () => {
   } = useTetrimino();
 
   const [matrix, setMatrix] = useState<IPlayFieldRenderer["matrix"]>(createMatrix());
+
+  const {
+    getIsAnimating: getClearRowAnimationIsAnimating,
+    startAnimate: startClearRowAnimation,
+    stopAnimate: stopClearRowAnimation,
+    resetAnimate: resetClearRowAnimation,
+    continueAnimate: continueClearRowAnimation,
+  } = useAnimationFrame<[Array<number>, AnyFunction | undefined]>(
+    ({ time, isComplete }, filledRow, onCompleteFn) => {
+      const removeIndex = [
+        [4, 5],
+        [3, 6],
+        [2, 7],
+        [1, 8],
+        [0, 9],
+      ];
+      const index = time / 0.06 - 1;
+      if (index > -1) {
+        setMatrix((prevMatrix) => {
+          return prevMatrix.map((cube) => {
+            if (filledRow.indexOf(cube.y) > -1 && removeIndex[index].indexOf(cube.x) > -1) {
+              return {
+                ...cube,
+                state: CUBE_STATE.UNFILLED,
+              };
+            }
+            return cube;
+          });
+        });
+      }
+      if (isComplete && onCompleteFn) onCompleteFn();
+    },
+    { duration: 0.3, interval: 0.06 }
+  );
+
+  const {
+    getIsAnimating: getFillRowAnimationIsAnimating,
+    startAnimate: startFillRowAnimation,
+    stopAnimate: stopFillRowAnimation,
+    resetAnimate: resetFillRowAnimation,
+    continueAnimate: continueFillRowAnimation,
+  } = useAnimationFrame<[Array<{ not_empty: Array<number>; empty: Array<number> }>, AnyFunction | undefined]>(
+    ({ time, isComplete }, emptyRowGap, onCompleteFn) => {
+      const zzzzzzzzz = emptyRowGap.reduce((acc, { empty, not_empty }) => {
+        const bottommostEmptyRow = Math.max(...empty);
+        const bottommostNotEmptyRow = Math.max(...not_empty);
+        const distance = bottommostEmptyRow - bottommostNotEmptyRow;
+        not_empty.forEach((row) => {
+          acc.push({
+            start: row,
+            end: row + distance,
+          });
+        });
+        return acc;
+      }, [] as Array<{ start: number; end: number }>);
+      // console.log("animation start!");
+      const start = 0;
+      const end = 1;
+      const progress = minMax(time / 0.1, start, end);
+      // console.log("progress is " + progress);
+      setMatrix((prevMatrix) =>
+        prevMatrix.map((cube, cubeIndex) => {
+          const cubeRow = Math.floor(cubeIndex / PER_COL_CUBE_NUM);
+          if (progress === end) {
+            const eeeeeeee = zzzzzzzzz.find(({ end }) => end === cubeRow);
+            const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+            if (eeeeeeee !== undefined) {
+              const index = eeeeeeee.start * PER_COL_CUBE_NUM + (cubeIndex % PER_COL_CUBE_NUM);
+              return {
+                ...cube,
+                state: prevMatrix[index].state,
+                y: cubeRow,
+              };
+            } else if (ddddddd !== undefined) {
+              return {
+                ...cube,
+                state: CUBE_STATE.UNFILLED,
+                y: cubeRow,
+              };
+            }
+          } else {
+            const ddddddd = zzzzzzzzz.find(({ start }) => start === cubeRow);
+            if (ddddddd !== undefined) {
+              const y = cubeRow + (ddddddd.end - ddddddd.start) * progress;
+              return {
+                ...cube,
+                y,
+              };
+            }
+          }
+          return cube;
+        })
+      );
+      if (isComplete && onCompleteFn) onCompleteFn();
+    },
+    { duration: 0.1 }
+  );
 
   const [fillAllRowAnimationRef, setFillAllRowAnimationRef] = useCustomRef<createAnimationReturnVal | null>(
     null
@@ -324,7 +423,7 @@ const useMatrix = () => {
           y = isTopCollide ? 0 : -1;
           isSuccess = !isTopCollide;
         },
-      }[direction]());
+      })[direction]();
       if (isSuccess) {
         setTetrimino((prevTetrimino) => ({
           ...prevTetrimino,
@@ -659,21 +758,9 @@ const useMatrix = () => {
     }
   }, [clearRowAnimationRef]);
 
-  const continueClearRowAnimation = useCallback((): void => {
-    if (clearRowAnimationRef.current !== null && !clearRowAnimationRef.current.isStart()) {
-      window.requestAnimationFrame(clearRowAnimationRef.current.start);
-    }
-  }, [clearRowAnimationRef]);
-
   const pauseFillRowAnimation = useCallback((): void => {
     if (fillRowAnimationRef.current !== null && fillRowAnimationRef.current.isStart()) {
       fillRowAnimationRef.current.pause();
-    }
-  }, [fillRowAnimationRef]);
-
-  const continueFillRowAnimation = useCallback((): void => {
-    if (fillRowAnimationRef.current !== null && !fillRowAnimationRef.current.isStart()) {
-      window.requestAnimationFrame(fillRowAnimationRef.current.start);
     }
   }, [fillRowAnimationRef]);
 
@@ -724,13 +811,21 @@ const useMatrix = () => {
     getEmptyRow,
     fillEmptyRow,
     pauseClearRowAnimation,
-    continueClearRowAnimation,
     pauseFillRowAnimation,
-    continueFillRowAnimation,
     pauseFillAllRowAnimation,
     continueFillAllRowAnimation,
     getTSpinType,
     resetPrevTetriminoRef,
+    startFillRowAnimation,
+    stopFillRowAnimation,
+    resetFillRowAnimation,
+    continueFillRowAnimation,
+    getFillRowAnimationIsAnimating,
+    startClearRowAnimation,
+    stopClearRowAnimation,
+    resetClearRowAnimation,
+    continueClearRowAnimation,
+    getClearRowAnimationIsAnimating,
   };
 };
 
