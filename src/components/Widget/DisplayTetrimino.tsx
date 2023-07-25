@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import type { ICoordinate } from "../../common/tetrimino";
+import type { ICoordinate } from "../../utils/tetrimino";
 import { useRef, useMemo } from "react";
 import styled from "styled-components";
 import Font from "../Font";
@@ -11,7 +11,7 @@ import {
   TETRIMINO_SHAPE,
   TETRIMINO_TYPE,
   getRangeByCoordinates,
-} from "../../common/tetrimino";
+} from "../../utils/tetrimino";
 import { nanoid } from "nanoid";
 
 const Wrapper = styled.div``;

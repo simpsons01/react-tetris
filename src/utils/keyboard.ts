@@ -1,6 +1,6 @@
 import * as KEYCODE from "keycode-js";
 import { parse } from "bowser";
-import { hasKey } from "./utils";
+import { hasKey } from "./common";
 
 const {
   os: { name: osName },

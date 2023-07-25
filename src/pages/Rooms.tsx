@@ -1,18 +1,18 @@
-import type { IRoom } from "../common/rooms";
+import type { IRoom } from "../utils/rooms";
 import type { FC } from "react";
 import styled from "styled-components";
 import Modal from "../components/Modal";
 import Font from "../components/Font";
 import Overlay from "../components/Overlay";
-import useAutoHandleAuthErrorRequest from "../hooks/autoHandleAuthErrorRequest";
+import useRequest from "../hooks/request";
 import Loading from "../components/Loading";
-import * as http from "../common/http";
+import * as http from "../utils/http";
 import { Fragment, useCallback, useState, useEffect } from "react";
-import { ROOM_STATE } from "../common/rooms";
+import { ROOM_STATE } from "../utils/rooms";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { VALUE_ESCAPE } from "keycode-js";
-import { TOTAL_LEVEL } from "../common/matrix";
+import { TOTAL_LEVEL } from "../utils/matrix";
 
 const RoomsContainer = styled.div`
   width: 100%;
@@ -181,14 +181,14 @@ const Rooms: FC = () => {
     sec: 60,
   });
 
-  const [isProcessingGetRooms, getRooms] = useAutoHandleAuthErrorRequest(http.getRooms);
+  const [processingGetRooms, getRooms] = useRequest(http.getRooms);
 
-  const [isProcessingCreateRoom, createRoom] = useAutoHandleAuthErrorRequest(http.createRoom);
+  const [processingCreateRoom, createRoom] = useRequest(http.createRoom);
 
-  const [isProcessingJoinRoom, joinRoom] = useAutoHandleAuthErrorRequest(http.joinRoom);
+  const [processingJoinRoom, joinRoom] = useRequest(http.joinRoom);
 
   const handleGetRooms = useCallback(async () => {
-    if (!isProcessingGetRooms) {
+    if (!processingGetRooms) {
       try {
         const {
           data: {
@@ -200,28 +200,24 @@ const Rooms: FC = () => {
             return room.state === ROOM_STATE.CREATED && room.players.length < room.config.playerLimitNum;
           })
         );
-      } catch (error) {
-        console.log(error);
-      }
+      } catch (error) {}
     }
-  }, [getRooms, isProcessingGetRooms]);
+  }, [getRooms, processingGetRooms]);
 
   const handleJoinRoom = useCallback(
     async (roomId: string) => {
-      if (!isProcessingJoinRoom) {
+      if (!processingJoinRoom) {
         try {
           await joinRoom(roomId);
           navigate(`/room/${roomId}`);
-        } catch (error) {
-          console.log(error);
-        }
+        } catch (error) {}
       }
     },
-    [joinRoom, isProcessingJoinRoom, navigate]
+    [joinRoom, processingJoinRoom, navigate]
   );
 
   const handleCreateRoom = useCallback(async () => {
-    if (!isProcessingCreateRoom) {
+    if (!processingCreateRoom) {
       try {
         const {
           data: {
@@ -235,11 +231,9 @@ const Rooms: FC = () => {
           },
         });
         navigate(`/room/${roomId}`);
-      } catch (error) {
-        console.log(error);
-      }
+      } catch (error) {}
     }
-  }, [createRoom, navigate, isProcessingCreateRoom, roomConfig, roomName]);
+  }, [createRoom, navigate, processingCreateRoom, roomConfig, roomName]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -262,7 +256,7 @@ const Rooms: FC = () => {
     <Fragment>
       <RoomsContainer>
         <RoomsLeftPanel>
-          {isProcessingGetRooms ? (
+          {processingGetRooms ? (
             <RoomsLoading>
               <Font level="three">
                 <Loading.Dot>FETCHING ROOMS</Loading.Dot>

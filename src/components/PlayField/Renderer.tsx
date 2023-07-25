@@ -1,8 +1,8 @@
 import type { ReactElement, FC } from "react";
-import type { ICube } from "../../common/tetrimino";
+import type { ICube } from "../../utils/tetrimino";
 import styled from "styled-components";
 import Cube from "../Cube";
-import { CUBE_STATE } from "../../common/tetrimino";
+import { CUBE_STATE } from "../../utils/tetrimino";
 import { cloneElement } from "react";
 
 const Wrapper = styled.div`

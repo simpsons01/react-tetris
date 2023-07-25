@@ -1,6 +1,6 @@
 import useCustomRef from "./customRef";
 import { useState, useCallback } from "react";
-import { TETRIMINO_TYPE, getRandomTetriminoBag } from "../common/tetrimino";
+import { TETRIMINO_TYPE, getRandomTetriminoBag } from "../utils/tetrimino";
 
 const useNextTetriminoBag = (createAtInitial: boolean = true) => {
   const [nextTetriminoBagStoreRef, setNextTetriminoBagStoreRef] = useCustomRef<Array<TETRIMINO_TYPE>>(
