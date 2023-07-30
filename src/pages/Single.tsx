@@ -189,9 +189,9 @@ const Single: FC = () => {
     isOpen: isSettingModalOpen,
   } = useSettingModalVisibilityContext();
 
-  const [matrixPhaseRef, setMatrixPhaseRef] = useCustomRef<MATRIX_PHASE | null>(null);
+  const [matrixPhase, setMatrixPhase] = useState<MATRIX_PHASE | null>(null);
 
-  const [prevMatrixPhaseRef, setPrevMatrixPhaseRef] = useCustomRef<MATRIX_PHASE | null>(null);
+  const [prevMatrixPhase, setPrevMatrixPhase] = useCustomRef<MATRIX_PHASE | null>(null);
 
   const [gameState, setGameState] = useState<GAME_STATE | null>(null);
 
@@ -267,8 +267,8 @@ const Single: FC = () => {
     // console.log("game start!");
     setGameState(GAME_STATE.START);
     handleTetriminoCreate();
-    setMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
-  }, [handleTetriminoCreate, setMatrixPhaseRef]);
+    setMatrixPhase(MATRIX_PHASE.TETRIMINO_FALLING);
+  }, [handleTetriminoCreate, setMatrixPhase]);
 
   const handleGameOver = useCallback(() => {
     // console.log("game over!");
@@ -289,18 +289,18 @@ const Single: FC = () => {
       setGameState(GAME_STATE.PAUSE);
       stopFillRowAnimation();
       stopClearRowAnimation();
-      setPrevMatrixPhaseRef(matrixPhaseRef.current);
-      setMatrixPhaseRef(null);
+      setPrevMatrixPhase(matrixPhase);
+      setMatrixPhase(null);
       clearTetriminoFallingTimer();
       clearTetriminoCollideBottomTimer();
     }
   }, [
     isGameStart,
-    matrixPhaseRef,
+    matrixPhase,
     clearTetriminoCollideBottomTimer,
     clearTetriminoFallingTimer,
-    setMatrixPhaseRef,
-    setPrevMatrixPhaseRef,
+    setMatrixPhase,
+    setPrevMatrixPhase,
     stopClearRowAnimation,
     stopFillRowAnimation,
   ]);
@@ -311,18 +311,18 @@ const Single: FC = () => {
       setGameState(GAME_STATE.START);
       continueClearRowAnimation();
       continueFillRowAnimation();
-      setMatrixPhaseRef(prevMatrixPhaseRef.current);
-      setPrevMatrixPhaseRef(null);
+      setMatrixPhase(prevMatrixPhase.current);
+      setPrevMatrixPhase(null);
       clearTetriminoFallingTimer();
       clearTetriminoCollideBottomTimer();
     }
   }, [
     isPausing,
-    prevMatrixPhaseRef,
+    prevMatrixPhase,
     continueClearRowAnimation,
     continueFillRowAnimation,
-    setMatrixPhaseRef,
-    setPrevMatrixPhaseRef,
+    setMatrixPhase,
+    setPrevMatrixPhase,
     clearTetriminoFallingTimer,
     clearTetriminoCollideBottomTimer,
   ]);
@@ -337,7 +337,7 @@ const Single: FC = () => {
     setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(defaultStartLevelRef.current));
     setGameState(null);
     setHoldTetrimino(null);
-    setMatrixPhaseRef(null);
+    setMatrixPhase(null);
     setLastTetriminoRotateWallKickPositionRef(0);
     setTetriminoMoveTypeRecordRef([]);
     setIsHardDropRef(false);
@@ -355,7 +355,7 @@ const Single: FC = () => {
     resetTetrimino,
     setDefaultStartLevelRef,
     setHoldTetrimino,
-    setMatrixPhaseRef,
+    setMatrixPhase,
     setLastTetriminoRotateWallKickPositionRef,
     setTetriminoMoveTypeRecordRef,
     setIsHardDropRef,
@@ -390,7 +390,7 @@ const Single: FC = () => {
       }
     }
     if (isGameOver) return;
-    if (!isPausing && matrixPhaseRef.current === MATRIX_PHASE.TETRIMINO_FALLING) {
+    if (!isPausing && matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
       if (e.key === controlSetting.moveLeft) {
         const isSuccess = freshMoveTetrimino(DIRECTION.LEFT);
         if (isSuccess) {
@@ -443,7 +443,7 @@ const Single: FC = () => {
         }
       } else if (e.key === controlSetting.hold) {
         setTetriminoMoveTypeRecordRef([]);
-        if (matrixPhaseRef.current === MATRIX_PHASE.TETRIMINO_FALLING && isHoldableRef.current) {
+        if (matrixPhase === MATRIX_PHASE.TETRIMINO_FALLING && isHoldableRef.current) {
           if (isTetriminoFallingTimerPending()) {
             clearTetriminoFallingTimer();
           }
@@ -458,11 +458,11 @@ const Single: FC = () => {
             isCreatedSuccess = handleTetriminoCreate();
           }
           if (isCreatedSuccess) {
-            setMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
+            setMatrixPhase(MATRIX_PHASE.TETRIMINO_FALLING);
           } else {
             setGameState(GAME_STATE.OVER);
             handleGameOver();
-            setMatrixPhaseRef(null);
+            setMatrixPhase(null);
           }
         }
       }
@@ -485,26 +485,32 @@ const Single: FC = () => {
   );
 
   useEffect(() => {
-    if (!isGameStart) return;
+    if (!isGameStart) {
+      clearTetriminoCollideBottomTimer();
+      clearTetriminoFallingTimer();
+      resetClearRowAnimation();
+      resetFillRowAnimation();
+      return;
+    }
     const tetriminoCreateFn = () => {
       const isCreatedSuccess = handleTetriminoCreate();
       if (isCreatedSuccess) {
-        setMatrixPhaseRef(MATRIX_PHASE.TETRIMINO_FALLING);
+        setMatrixPhase(MATRIX_PHASE.TETRIMINO_FALLING);
       } else {
         setGameState(GAME_STATE.OVER);
-        setMatrixPhaseRef(null);
+        setMatrixPhase(null);
         handleGameOver();
       }
     };
     let effectCleaner = () => {};
-    switch (matrixPhaseRef.current) {
+    switch (matrixPhase) {
       case MATRIX_PHASE.TETRIMINO_FALLING:
         const { isBottomCollide } = getTetriminoIsCollideWithNearbyCube();
         if (isBottomCollide) {
-          const _ = () => {
+          const tetriminoCollideBottomFn = () => {
             if (getIsCoordinatesLockOut(tetriminoCoordinates as Array<ICoordinate>)) {
               setGameState(GAME_STATE.OVER);
-              setMatrixPhaseRef(null);
+              setMatrixPhase(null);
               handleGameOver();
             } else {
               setPrevTetriminoRef(tetrimino);
@@ -512,14 +518,14 @@ const Single: FC = () => {
               setIsHardDropRef(false);
               setTetriminoToMatrix();
               resetTetrimino();
-              setMatrixPhaseRef(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
+              setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_FILLED);
             }
           };
           if (isHardDropRef.current) {
-            _();
+            tetriminoCollideBottomFn();
           } else {
             starTetriminoCollideBottomTimer(() => {
-              _();
+              tetriminoCollideBottomFn();
             }, 500);
           }
         } else {
@@ -552,9 +558,9 @@ const Single: FC = () => {
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
           setLastTetriminoRotateWallKickPositionRef(0);
           setTetriminoMoveTypeRecordRef([]);
-          setMatrixPhaseRef(MATRIX_PHASE.ROW_FILLED_CLEARING);
+          setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
           startClearRowAnimation(filledRow, () => {
-            setMatrixPhaseRef(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+            setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
         } else {
           setLastTetriminoRotateWallKickPositionRef(0);
@@ -570,9 +576,9 @@ const Single: FC = () => {
           emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
         if (!isGapNotExist) {
           //console.log("fill empty row!");
-          setMatrixPhaseRef(MATRIX_PHASE.ROW_EMPTY_FILLING);
+          setMatrixPhase(MATRIX_PHASE.ROW_EMPTY_FILLING);
           startFillRowAnimation(emptyRowGap, () => {
-            setMatrixPhaseRef(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
+            setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
         } else {
           tetriminoCreateFn();
@@ -591,7 +597,7 @@ const Single: FC = () => {
     tetriminoFallingDelay,
     tetriminoCoordinates,
     isGameStart,
-    matrixPhaseRef,
+    matrixPhase,
     tetrimino,
     isHardDropRef,
     tetriminoMoveTypeRecordRef,
@@ -615,21 +621,25 @@ const Single: FC = () => {
     setTetriminoMoveTypeRecordRef,
     startClearRowAnimation,
     startFillRowAnimation,
-    setMatrixPhaseRef,
+    setMatrixPhase,
     starTetriminoCollideBottomTimer,
     isTetriminoFallingTimerPending,
     starTetriminoFallingTimer,
     clearTetriminoCollideBottomTimer,
     clearTetriminoFallingTimer,
+    stopClearRowAnimation,
+    stopFillRowAnimation,
+    resetClearRowAnimation,
+    resetFillRowAnimation,
   ]);
 
   useEffect(() => {
     if (!isPlayable) {
       setGameState(GAME_STATE.OVER);
-      setMatrixPhaseRef(null);
+      setMatrixPhase(null);
       handleGameOver();
     }
-  }, [isPlayable, handleGameOver, setMatrixPhaseRef]);
+  }, [isPlayable, handleGameOver, setMatrixPhase]);
 
   return (
     <Fragment>

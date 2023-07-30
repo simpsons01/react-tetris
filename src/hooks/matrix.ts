@@ -161,11 +161,12 @@ const useMatrix = () => {
     resetAnimate: resetFillAllRowAnimation,
     continueAnimate: continueFillAllRowAnimation,
   } = useAnimationFrame<[AnyFunction | undefined]>(
-    ({ isComplete }, onCompleteFn) => {
+    ({ isComplete, time }, onCompleteFn) => {
       const duration = 2;
       const interval = 0.05;
-      let executedTime = 0;
-      let fillRowIndex = PER_ROW_CUBE_NUM;
+      time = parseFloat(time.toFixed(2));
+      const executedTime = time === 0 ? 0 : Math.ceil(time / interval);
+      const fillRowIndex = PER_ROW_CUBE_NUM - executedTime;
       if (executedTime <= PER_ROW_CUBE_NUM && executedTime * interval < duration) {
         const fillIndex = fillRowIndex;
         setMatrix((prevMatrix) => {
@@ -180,12 +181,10 @@ const useMatrix = () => {
             }
           });
         });
-        executedTime += 1;
-        fillRowIndex -= 1;
       }
       if (isComplete && onCompleteFn) onCompleteFn();
     },
-    { duration: 2, interval: 0.05 }
+    { duration: 3, interval: 0.05 }
   );
 
   const [tetriminoMoveTypeRecordRef, setTetriminoMoveTypeRecordRef] = useCustomRef<
@@ -449,17 +448,17 @@ const useMatrix = () => {
         },
       })[direction]();
       if (isSuccess) {
-        setTetrimino((prevTetrimino) => ({
-          ...prevTetrimino,
+        setTetrimino({
+          ...tetrimino,
           anchor: {
-            x: prevTetrimino.anchor.x + x,
-            y: prevTetrimino.anchor.y + y,
+            x: tetrimino.anchor.x + x,
+            y: tetrimino.anchor.y + y,
           },
-        }));
+        });
       }
       return isSuccess;
     },
-    [setTetrimino, getTetriminoIsCollideWithNearbyCube]
+    [tetrimino, setTetrimino, getTetriminoIsCollideWithNearbyCube]
   );
 
   const moveTetriminoToPreview = useCallback(() => {
@@ -472,23 +471,17 @@ const useMatrix = () => {
         const { anchorIndex } = (getTetriminoConfig(tetrimino.type) as ITetriminoConfig).config[
           tetrimino.shape
         ].shape;
-        setTetrimino((prevTetriminoState) => ({
-          ...prevTetriminoState,
+        setTetrimino({
+          ...tetrimino,
           anchor: {
             x: previewCoordinate[anchorIndex].x,
             y: previewCoordinate[anchorIndex].y,
           },
-        }));
+        });
       }
     }
     return isSuccess;
-  }, [
-    getTetriminoPreviewCoordinates,
-    setTetrimino,
-    getTetriminoIsCollideWithNearbyCube,
-    tetrimino.shape,
-    tetrimino.type,
-  ]);
+  }, [getTetriminoPreviewCoordinates, setTetrimino, getTetriminoIsCollideWithNearbyCube, tetrimino]);
 
   const changeTetriminoShape = useCallback(
     (rotation: TETRIMINO_ROTATION_DIRECTION, shape?: TETRIMINO_SHAPE): boolean => {
@@ -505,11 +498,11 @@ const useMatrix = () => {
       // console.log(nextCoordinate);
       const isNextCoordinateCollide = getCoordinatesIsCollideWithFilledCube(nextCoordinates);
       if (!isNextCoordinateCollide) {
-        setTetrimino((prevTetrimino) => ({
-          ...prevTetrimino,
+        setTetrimino({
+          ...tetrimino,
           shape: nextShape,
           anchor: nextAnchor,
-        }));
+        });
         isSuccess = true;
         return isSuccess;
       } else {
@@ -530,11 +523,11 @@ const useMatrix = () => {
             getCoordinatesIsCollideWithFilledCube(wallKickNextCoordinates);
           if (!isWallKickNextCoordinatesCollide) {
             setLastTetriminoRotateWallKickPositionRef(i);
-            setTetrimino((prevTetrimino) => ({
-              ...prevTetrimino,
+            setTetrimino({
+              ...tetrimino,
               shape: nextShape,
               anchor: wallKickNextAnchor,
-            }));
+            });
             isSuccess = true;
             return isSuccess;
           }
@@ -544,8 +537,7 @@ const useMatrix = () => {
       }
     },
     [
-      tetrimino.type,
-      tetrimino.shape,
+      tetrimino,
       tetriminoCoordinates,
       getCoordinatesIsCollideWithFilledCube,
       setTetrimino,
