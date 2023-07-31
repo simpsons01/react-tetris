@@ -142,7 +142,7 @@ export const I = {
     ],
   },
   spawnStartLocation: {
-    x: 6,
+    x: 5,
     y: 19,
   },
 };
