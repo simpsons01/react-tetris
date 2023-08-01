@@ -2,6 +2,7 @@ import type { FC } from "react";
 import type { IPlayFieldRenderer } from "../components/PlayField/Renderer";
 import type { IRoomPlayer } from "../common/rooms";
 import type { ICube, ICoordinate } from "../common/tetrimino";
+import type { AnyFunction } from "../common/utils";
 import {
   DIRECTION,
   TETRIMINO_TYPE,
@@ -23,7 +24,8 @@ import useHoldTetrimino from "../hooks/holdTetrimino";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import useSocket from "../hooks/socket";
 import useGetter from "../hooks/getter";
-import useTimer from "../hooks/timer";
+import useTimeout from "../hooks/timeout";
+import useInterval from "../hooks/interval";
 import * as KEYCODE from "keycode-js";
 import { useNavigate, useParams } from "react-router-dom";
 import { ClientToServerCallback, EVENT_OPERATION_STATUS } from "../common/socket";
@@ -304,16 +306,22 @@ const Room: FC = () => {
   } = useMatrix();
 
   const {
-    clear: clearSelfTetriminoFallingTimer,
-    isPending: isSelfTetriminoFallingTimerPending,
-    start: starSelfTetriminoFallingTimer,
-  } = useTimer();
+    clear: clearSelfTetriminoFallingTimeout,
+    isPending: isSelfTetriminoFallingTimeoutPending,
+    start: starSelfTetriminoFallingTimeout,
+  } = useTimeout();
 
   const {
-    clear: clearSelfTetriminoCollideBottomTimer,
-    isPending: isSelfTetriminoCollideBottomTimerPending,
-    start: starSelfTetriminoCollideBottomTimer,
-  } = useTimer();
+    clear: clearSelfTetriminoCollideBottomTimeout,
+    isPending: isSelfTetriminoCollideBottomTimeoutPending,
+    start: starSelfTetriminoCollideBottomTimeout,
+  } = useTimeout();
+
+  const {
+    clear: clearSelfAutoRepeat,
+    isInInterval: isSelfAutoRepeating,
+    start: starSelfAutoRepeat,
+  } = useInterval({ autoClear: true });
 
   const freshMoveSelfTetrimino = useGetter(moveSelfTetrimino);
 
@@ -361,6 +369,12 @@ const Room: FC = () => {
   const [prevSelfRenderLineRef, setPrevSelfRenderLineRef] = useCustomRef(selfLine);
 
   const [prevSelfRenderLevelRef, setPrevSelfRenderLevelRef] = useCustomRef(selfLevel);
+
+  const [selfLastKeyDownKeyRef, setSelfLastKeyDownKeyRef] = useCustomRef<undefined | string>(undefined);
+
+  const [selfLastKeyUpKeyRef, setSelfLastKeyUpKeyRef] = useCustomRef<undefined | string>(undefined);
+
+  const [isSelfDasRef, setIsSelfDasRef] = useCustomRef(false);
 
   const [prevSelfRenderNextTetriminoBagRef, setPrevSelfRenderNextTetriminoBagRef] =
     useCustomRef(selfNextTetriminoBag);
@@ -607,14 +621,14 @@ const Room: FC = () => {
     resetFillSelfRowAnimation();
     resetClearSelfRowAnimation();
     resetFillSelfAllRowAnimation();
-    clearSelfTetriminoFallingTimer();
-    clearSelfTetriminoCollideBottomTimer();
+    clearSelfTetriminoFallingTimeout();
+    clearSelfTetriminoCollideBottomTimeout();
   }, [
     resetFillSelfAllRowAnimation,
     resetClearSelfRowAnimation,
     resetFillSelfRowAnimation,
-    clearSelfTetriminoCollideBottomTimer,
-    clearSelfTetriminoFallingTimer,
+    clearSelfTetriminoCollideBottomTimeout,
+    clearSelfTetriminoFallingTimeout,
   ]);
 
   useLayoutEffect(() => {
@@ -698,6 +712,21 @@ const Room: FC = () => {
     getSocketInstance,
   ]);
 
+  const autoRepeatMove = useGetter((moveType: TETRIMINO_MOVE_TYPE) => {
+    if (isGameStart && selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
+      const direction =
+        moveType === TETRIMINO_MOVE_TYPE.LEFT_MOVE
+          ? DIRECTION.LEFT
+          : moveType === TETRIMINO_MOVE_TYPE.RIGHT_MOVE
+          ? DIRECTION.RIGHT
+          : DIRECTION.DOWN;
+      const isSuccess = freshMoveSelfTetrimino(direction);
+      if (isSuccess) {
+        setSelfTetriminoMoveTypeRecordRef([...selfTetriminoMoveTypeRecordRef.current, moveType]);
+      }
+    }
+  });
+
   const onKeyDown = useGetter((e: KeyboardEvent) => {
     if (isGameStart && selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING) {
       if (e.key === controlSetting.moveLeft) {
@@ -741,7 +770,7 @@ const Room: FC = () => {
           ]);
         }
       } else if (e.key === controlSetting.hardDrop) {
-        clearSelfTetriminoFallingTimer();
+        clearSelfTetriminoFallingTimeout();
         setIsSelfHardDropRef(true);
         const isSuccess = moveSelfTetriminoToPreview();
         if (isSuccess) {
@@ -753,11 +782,11 @@ const Room: FC = () => {
       } else if (e.key === controlSetting.hold) {
         setSelfTetriminoMoveTypeRecordRef([]);
         if (selfMatrixPhase === MATRIX_PHASE.TETRIMINO_FALLING && isSelfHoldableRef.current) {
-          if (isSelfTetriminoFallingTimerPending()) {
-            clearSelfTetriminoFallingTimer();
+          if (isSelfTetriminoFallingTimeoutPending()) {
+            clearSelfTetriminoFallingTimeout();
           }
-          if (isSelfTetriminoCollideBottomTimerPending()) {
-            clearSelfTetriminoCollideBottomTimer();
+          if (isSelfTetriminoCollideBottomTimeoutPending()) {
+            clearSelfTetriminoCollideBottomTimeout();
           }
           const prevHoldTetrimino = changeSelfHoldTetrimino(selfTetrimino.type as TETRIMINO_TYPE);
           let isCreatedSuccess = false;
@@ -784,9 +813,50 @@ const Room: FC = () => {
         setIsToolOverlayOpen(true);
       }
     }
+    const repeatFn = [
+      {
+        condition:
+          e.key !== controlSetting.moveRight &&
+          selfLastKeyDownKeyRef.current === controlSetting.moveRight &&
+          selfLastKeyUpKeyRef.current !== controlSetting.moveRight,
+        fn: () => autoRepeatMove(TETRIMINO_MOVE_TYPE.RIGHT_MOVE),
+      },
+      {
+        condition:
+          e.key !== controlSetting.moveLeft &&
+          selfLastKeyDownKeyRef.current === controlSetting.moveLeft &&
+          selfLastKeyUpKeyRef.current !== controlSetting.moveLeft,
+        fn: () => autoRepeatMove(TETRIMINO_MOVE_TYPE.LEFT_MOVE),
+      },
+      {
+        condition:
+          e.key !== controlSetting.softDrop &&
+          selfLastKeyDownKeyRef.current === controlSetting.softDrop &&
+          selfLastKeyUpKeyRef.current !== controlSetting.softDrop,
+        fn: () => autoRepeatMove(TETRIMINO_MOVE_TYPE.SOFT_DROP),
+      },
+    ].reduce<null | AnyFunction>((repeatFn, { condition, fn }) => {
+      return repeatFn ? repeatFn : condition ? fn : null;
+    }, null);
+    if (repeatFn) {
+      setIsSelfDasRef(true);
+      starSelfAutoRepeat(repeatFn, 33);
+    }
+    setSelfLastKeyDownKeyRef(e.key);
   });
 
-  const selfTetriminoFallingTimerHandler = useGetter(() => {
+  const onKeyUp = useGetter((e: KeyboardEvent) => {
+    const isDasKeyUp =
+      e.key === controlSetting.moveRight ||
+      e.key === controlSetting.moveLeft ||
+      e.key === controlSetting.softDrop;
+    if (isDasKeyUp && isSelfDasRef.current && isSelfAutoRepeating()) {
+      clearSelfAutoRepeat();
+    }
+    setSelfLastKeyUpKeyRef(e.key);
+  });
+
+  const selfTetriminoFallingTimeoutHandler = useGetter(() => {
     const isSuccess = freshMoveSelfTetrimino(DIRECTION.DOWN);
     if (isSuccess) {
       setSelfTetriminoMoveTypeRecordRef([
@@ -800,6 +870,13 @@ const Room: FC = () => {
     [controlSetting.moveRight, controlSetting.moveLeft, controlSetting.softDrop],
     onKeyDown
   );
+
+  useEffect(() => {
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  });
 
   useEffect(() => {
     if (!isGameStart) {
@@ -835,23 +912,23 @@ const Room: FC = () => {
             if (isSelfHardDropRef.current) {
               tetriminoCollideBottomFn();
             } else {
-              starSelfTetriminoCollideBottomTimer(() => {
+              starSelfTetriminoCollideBottomTimeout(() => {
                 tetriminoCollideBottomFn();
               }, 500);
             }
           } else {
-            if (!isSelfTetriminoFallingTimerPending()) {
-              starSelfTetriminoFallingTimer(() => {
-                selfTetriminoFallingTimerHandler();
+            if (!isSelfTetriminoFallingTimeoutPending()) {
+              starSelfTetriminoFallingTimeout(() => {
+                selfTetriminoFallingTimeoutHandler();
               }, selfTetriminoFallingDelay);
             }
           }
           effectCleaner = () => {
             if (isBottomCollide) {
-              clearSelfTetriminoFallingTimer();
-              clearSelfTetriminoCollideBottomTimer();
+              clearSelfTetriminoFallingTimeout();
+              clearSelfTetriminoCollideBottomTimeout();
             } else {
-              clearSelfTetriminoCollideBottomTimer();
+              clearSelfTetriminoCollideBottomTimeout();
             }
           };
           break;
@@ -917,7 +994,7 @@ const Room: FC = () => {
     selfTetriminoFallingDelay,
     isSelfHardDropRef,
     selfTetriminoMoveTypeRecordRef,
-    selfTetriminoFallingTimerHandler,
+    selfTetriminoFallingTimeoutHandler,
     setIsSelMatrixAnimationRunningRef,
     getSelfEmptyRow,
     getSelfIsCoordinatesLockOut,
@@ -939,11 +1016,11 @@ const Room: FC = () => {
     startFillSelfAllRowAnimation,
     setSelfMatrixPhase,
     handleResetSelfMatrixEffect,
-    starSelfTetriminoCollideBottomTimer,
-    isSelfTetriminoFallingTimerPending,
-    starSelfTetriminoFallingTimer,
-    clearSelfTetriminoFallingTimer,
-    clearSelfTetriminoCollideBottomTimer,
+    starSelfTetriminoCollideBottomTimeout,
+    isSelfTetriminoFallingTimeoutPending,
+    starSelfTetriminoFallingTimeout,
+    clearSelfTetriminoFallingTimeout,
+    clearSelfTetriminoCollideBottomTimeout,
     handleStartSelfFillAllRowAnimation,
     freshHandleSelfTetriminoCreate,
   ]);
@@ -1082,7 +1159,7 @@ const Room: FC = () => {
 
   useEffect(() => {
     const checkSocketLatencyInterval = 5 * 1000;
-    const timer = setInterval(() => {
+    const timeout = setInterval(() => {
       const prev = performance.now();
       const socketInstance = getSocketInstance();
       socketInstance.emit("ping", () => {
@@ -1090,7 +1167,7 @@ const Room: FC = () => {
       });
     }, checkSocketLatencyInterval);
     return () => {
-      clearInterval(timer);
+      clearInterval(timeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getSocketInstance]);

@@ -2,21 +2,20 @@ import { AnyFunction } from "../common/utils";
 import { useCallback } from "react";
 import useCustomRef from "./customRef";
 
-const useTimer = ({ autoClear }: { autoClear: boolean } = { autoClear: false }) => {
-  const [timerRef, setTimerRef] = useCustomRef<number | null>(null);
+const useInterval = ({ autoClear }: { autoClear: boolean } = { autoClear: false }) => {
+  const [intervalRef, setIntervalRef] = useCustomRef<number | null>(null);
 
-  const isPending = useCallback(() => {
-    return timerRef.current !== null;
+  const isInInterval = useCallback(() => {
+    return intervalRef.current !== null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = useCallback(
     (fn: AnyFunction, leftsec: number) => {
       if (autoClear) clear();
-      setTimerRef(
-        window.setTimeout(() => {
+      setIntervalRef(
+        window.setInterval(() => {
           fn();
-          setTimerRef(null);
         }, leftsec)
       );
     },
@@ -25,18 +24,18 @@ const useTimer = ({ autoClear }: { autoClear: boolean } = { autoClear: false }) 
   );
 
   const clear = useCallback(() => {
-    if (timerRef.current) {
-      window.clearTimeout(timerRef.current);
-      setTimerRef(null);
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current);
+      setIntervalRef(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
-    isPending,
+    isInInterval,
     start,
     clear,
   };
 };
 
-export default useTimer;
+export default useInterval;
