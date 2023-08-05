@@ -27,10 +27,12 @@ import {
 } from "../common/tetrimino";
 import { MATRIX_PHASE, DISPLAY_ZONE_ROW_START } from "../common/matrix";
 import {
-  getLevelByLine,
+  getLevel,
   getTetriminoFallingDelayByLevel,
-  getScoreByTSpinAndLevelAndLine,
-  getScoreTextByTSpinAndLine,
+  getScore,
+  getScoreTypeIsDifficult,
+  getScoreType,
+  getScoreTextByScoreType,
 } from "../common/game";
 import { Link } from "react-router-dom";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
@@ -215,6 +217,10 @@ const Single: FC = () => {
   const [score, setScore] = useState(0);
 
   const [scoreText, setScoreText] = useState({ enter: false, text: "", coordinate: { y: 0 } });
+
+  const [combo, setCombo] = useState(-1);
+
+  const [isLastScoreDifficultRef, setIsLastScoreDifficultRef] = useCustomRef(false);
 
   const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
 
@@ -639,19 +645,24 @@ const Single: FC = () => {
         const filledRow = getRowFilledWithCube();
         if (filledRow.length > 0) {
           const nextLineValue = line + filledRow.length;
-          const nextLevel = getLevelByLine(nextLineValue, level);
+          const nextLevel = getLevel(nextLineValue, level);
+          const nextCombo = combo + 1;
+          const scoreType = getScoreType(tSpinType, filledRow.length);
+          const isScoreDifficult = getScoreTypeIsDifficult(scoreType);
+          const isBackToBack = isScoreDifficult && isLastScoreDifficultRef.current;
+          const score = getScore(tSpinType, level, filledRow.length, nextCombo, isBackToBack);
           const bottommostEmptyRow = getBottommostDisplayEmptyRow();
-          const score = getScoreByTSpinAndLevelAndLine(tSpinType, level, filledRow.length);
           setScore((prevScore) => prevScore + score);
           setLine(nextLineValue);
           setLevel(nextLevel);
+          setIsLastScoreDifficultRef(isScoreDifficult);
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
           setLastTetriminoRotateWallKickPositionRef(0);
           setTetriminoMoveTypeRecordRef([]);
-          setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
+          setCombo(nextCombo);
           setScoreText({
             enter: true,
-            text: `${getScoreTextByTSpinAndLine(tSpinType, filledRow.length)}+${score}`,
+            text: (isBackToBack ? "B2B " : "") + getScoreTextByScoreType(scoreType) + `+${score}`,
             coordinate: {
               y: bottommostEmptyRow === -1 ? 0 : bottommostEmptyRow,
             },
@@ -659,12 +670,15 @@ const Single: FC = () => {
           startHideScoreTextTimeout(() => {
             setScoreText({ enter: false, text: "", coordinate: { y: 0 } });
           }, 500);
+          setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
           startClearRowAnimation(filledRow, () => {
             setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
         } else {
           setLastTetriminoRotateWallKickPositionRef(0);
           setTetriminoMoveTypeRecordRef([]);
+          setCombo(-1);
+          setIsLastScoreDifficultRef(false);
           tetriminoCreateFn();
         }
         break;
@@ -702,6 +716,8 @@ const Single: FC = () => {
     isHardDropRef,
     tetriminoMoveTypeRecordRef,
     score,
+    combo,
+    isLastScoreDifficultRef,
     tetriminoFallingTimeoutHandler,
     handleTetriminoCreate,
     handleGameOver,
@@ -734,6 +750,7 @@ const Single: FC = () => {
     resetFillRowAnimation,
     startHideScoreTextTimeout,
     getBottommostDisplayEmptyRow,
+    setIsLastScoreDifficultRef,
   ]);
 
   useEffect(() => {
@@ -793,12 +810,19 @@ const Single: FC = () => {
           </PlayField.Wrapper>
         </Column>
         <Column>
-          <Widget.DisplayTetrimino
-            title={"NEXT"}
-            fontLevel={"three"}
-            displayTetriminoNum={5}
-            tetriminoBag={nextTetriminoBag.length === 0 ? null : nextTetriminoBag}
-          />
+          <div
+            style={{
+              marginBottom: "2vh",
+            }}
+          >
+            <Widget.DisplayTetrimino
+              title={"NEXT"}
+              fontLevel={"three"}
+              displayTetriminoNum={5}
+              tetriminoBag={nextTetriminoBag.length === 0 ? null : nextTetriminoBag}
+            />
+          </div>
+          <div>{combo > 0 ? <Font level={"four"}>COMBO {combo}</Font> : null}</div>
         </Column>
         <Settings>
           <button onClick={openToolOverlay}>

@@ -1,6 +1,19 @@
 import { T_SPIN_TYPE } from "./tetrimino";
 
-export const getLevelByLine = (line: number, level: number): number => {
+export enum SCORE_TYPE {
+  SINGLE,
+  DOUBLE,
+  TRIPLE,
+  TETRIS,
+  MINI_T_SPIN,
+  T_SPIN,
+  MINI_T_SPIN_SINGLE,
+  T_SPIN_SINGLE,
+  MINI_T_SPIN_DOUBLE,
+  T_SPIN_DOUBLE,
+}
+
+export const getLevel = (line: number, level: number): number => {
   const calcLevel = 1 + Math.floor(line / 10);
   return level > calcLevel ? level : calcLevel;
 };
@@ -26,44 +39,70 @@ export const getTetriminoFallingDelayByLevel = (level: number) => {
   return sec ?? 7;
 };
 
-export const getScoreTextByTSpinAndLine = (tSpin: null | T_SPIN_TYPE, line: number): string => {
-  let text = "";
+export const getScoreTypeIsDifficult = (scoreType: SCORE_TYPE) => {
+  return (
+    scoreType === SCORE_TYPE.TETRIS ||
+    scoreType === SCORE_TYPE.T_SPIN_SINGLE ||
+    scoreType === SCORE_TYPE.T_SPIN_DOUBLE ||
+    scoreType === SCORE_TYPE.MINI_T_SPIN_SINGLE ||
+    scoreType === SCORE_TYPE.MINI_T_SPIN_DOUBLE
+  );
+};
+
+export const getScoreType = (tSpin: null | T_SPIN_TYPE, line: number): SCORE_TYPE => {
+  let scoreType: SCORE_TYPE;
   if (tSpin) {
     if (tSpin === T_SPIN_TYPE.NORMAL) {
       if (line === 0) {
-        text = "T-SPIN";
+        scoreType = SCORE_TYPE.T_SPIN;
       } else if (line === 1) {
-        text = "T-SPIN SINGLE";
-      } else if (line === 2) {
-        text = "T-SPIN DOUBLE!";
-      } else if (line === 3) {
-        text = "T-SPIN TRIPLE!";
+        scoreType = SCORE_TYPE.T_SPIN_SINGLE;
+      } else {
+        scoreType = SCORE_TYPE.T_SPIN_DOUBLE;
       }
     } else {
       if (line === 1) {
-        text = "MINI T-SPIN SINGLE";
+        scoreType = SCORE_TYPE.MINI_T_SPIN_SINGLE;
       } else {
-        text = "MINI T-SPIN";
+        scoreType = SCORE_TYPE.MINI_T_SPIN;
       }
     }
   } else {
     if (line === 1) {
-      text = "SINGLE";
+      scoreType = SCORE_TYPE.SINGLE;
     } else if (line === 2) {
-      text = "DOUBLE";
+      scoreType = SCORE_TYPE.DOUBLE;
     } else if (line === 3) {
-      text = "TRIPLE!";
-    } else if (line === 4) {
-      text = "TETRIS!";
+      scoreType = SCORE_TYPE.TRIPLE;
+    } else {
+      scoreType = SCORE_TYPE.TETRIS;
     }
   }
-  return text;
+  return scoreType;
 };
 
-export const getScoreByTSpinAndLevelAndLine = (
+export const getScoreTextByScoreType = (scoreType: SCORE_TYPE): string => {
+  const scoreText = {
+    [SCORE_TYPE.SINGLE]: "SINGLE",
+    [SCORE_TYPE.DOUBLE]: "DOUBLE",
+    [SCORE_TYPE.TRIPLE]: "TRIPLE",
+    [SCORE_TYPE.TETRIS]: "TETRIS!",
+    [SCORE_TYPE.MINI_T_SPIN]: "MINI T-SPIN",
+    [SCORE_TYPE.T_SPIN]: "T-SPIN",
+    [SCORE_TYPE.MINI_T_SPIN_SINGLE]: "MINI T-SPIN SINGLE!",
+    [SCORE_TYPE.T_SPIN_SINGLE]: "T-SPIN SINGLE!",
+    [SCORE_TYPE.MINI_T_SPIN_DOUBLE]: "MINI T-SPIN DOUBLE!",
+    [SCORE_TYPE.T_SPIN_DOUBLE]: "T-SPIN TRIPLE!",
+  };
+  return scoreText[scoreType];
+};
+
+export const getScore = (
   tSpin: null | T_SPIN_TYPE,
   level: number,
-  line: number
+  line: number,
+  combo: number,
+  isBackToBack: boolean
 ): number => {
   let base = 0;
   if (tSpin) {
@@ -95,5 +134,7 @@ export const getScoreByTSpinAndLevelAndLine = (
       base = 800;
     }
   }
-  return base * level;
+  const actionScore = base * level * (isBackToBack ? 1.5 : 1);
+  const comboScore = 50 * (combo === -1 ? 0 : combo) * level;
+  return actionScore + comboScore;
 };

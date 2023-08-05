@@ -33,10 +33,12 @@ import { ClientToServerCallback, EVENT_OPERATION_STATUS } from "../common/socket
 import { useSizeConfigContext } from "../context/sizeConfig";
 import { DISPLAY_ZONE_ROW_START, MATRIX_PHASE } from "../common/matrix";
 import {
-  getLevelByLine,
-  getScoreByTSpinAndLevelAndLine,
+  getLevel,
   getTetriminoFallingDelayByLevel,
-  getScoreTextByTSpinAndLine,
+  getScore,
+  getScoreTypeIsDifficult,
+  getScoreType,
+  getScoreTextByScoreType,
 } from "../common/game";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 import { getToken } from "../common/token";
@@ -362,6 +364,10 @@ const Room: FC = () => {
   const [selfMatrixPhase, setSelfMatrixPhase] = useState<MATRIX_PHASE | null>(null);
 
   const [selfName, setSelfName] = useState("");
+
+  const [selfCombo, setSelfCombo] = useState(-1);
+
+  const [isSelfLastScoreDifficultRef, setIsSelfLastScoreDifficultRef] = useCustomRef(false);
 
   const [isSelMatrixAnimationRunningRef, setIsSelMatrixAnimationRunningRef] = useCustomRef(false);
 
@@ -943,33 +949,41 @@ const Room: FC = () => {
           const tSpinType = getSelfTSpinType();
           const filledRow = getSelfRowFilledWithCube();
           if (filledRow.length > 0) {
-            setSelfMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
             const nextLineValue = selfLine + filledRow.length;
-            const nextLevel = getLevelByLine(nextLineValue, selfLevel);
+            const nextLevel = getLevel(nextLineValue, selfLevel);
+            const nextCombo = selfCombo + 1;
+            const scoreType = getScoreType(tSpinType, filledRow.length);
+            const isScoreDifficult = getScoreTypeIsDifficult(scoreType);
+            const isBackToBack = isScoreDifficult && isSelfLastScoreDifficultRef.current;
+            const score = getScore(tSpinType, selfLevel, filledRow.length, nextCombo, isBackToBack);
             const bottommostEmptyRow = getSelfBottommostDisplayEmptyRow();
-            const score = getScoreByTSpinAndLevelAndLine(tSpinType, selfLevel, filledRow.length);
             setSelfScore((prevSelfScore) => prevSelfScore + score);
             setSelfLine(nextLineValue);
             setSelfLevel(nextLevel);
+            setSelfCombo(nextCombo);
+            setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
+            setSelfLastTetriminoRotateWallKickPositionRef(0);
+            setSelfTetriminoMoveTypeRecordRef([]);
+            setIsSelfLastScoreDifficultRef(isScoreDifficult);
+            startHideSelfScoreTextTimeout(() => {
+              setSelfScoreText({ enter: false, text: "", coordinate: { y: 0 } });
+            }, 500);
             setSelfScoreText({
               enter: true,
-              text: `${getScoreTextByTSpinAndLine(tSpinType, filledRow.length)}+${score}`,
+              text: (isBackToBack ? "B2B " : "") + getScoreTextByScoreType(scoreType) + `+${score}`,
               coordinate: {
                 y: bottommostEmptyRow === -1 ? 0 : bottommostEmptyRow,
               },
             });
-            startHideSelfScoreTextTimeout(() => {
-              setSelfScoreText({ enter: false, text: "", coordinate: { y: 0 } });
-            }, 500);
-            setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
-            setSelfLastTetriminoRotateWallKickPositionRef(0);
-            setSelfTetriminoMoveTypeRecordRef([]);
+            setSelfMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
             setIsSelMatrixAnimationRunningRef(true);
             startClearSelfRowAnimation(filledRow, () => {
               setIsSelMatrixAnimationRunningRef(false);
               setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
             });
           } else {
+            setSelfCombo(-1);
+            setIsSelfLastScoreDifficultRef(false);
             setSelfLastTetriminoRotateWallKickPositionRef(0);
             setSelfTetriminoMoveTypeRecordRef([]);
             handleTetriminoCreate();
@@ -1010,6 +1024,8 @@ const Room: FC = () => {
     selfTetriminoFallingDelay,
     isSelfHardDropRef,
     selfTetriminoMoveTypeRecordRef,
+    selfCombo,
+    isSelfLastScoreDifficultRef,
     selfTetriminoFallingTimeoutHandler,
     setIsSelMatrixAnimationRunningRef,
     getSelfEmptyRow,
@@ -1039,6 +1055,9 @@ const Room: FC = () => {
     clearSelfTetriminoCollideBottomTimeout,
     handleStartSelfFillAllRowAnimation,
     freshHandleSelfTetriminoCreate,
+    getSelfBottommostDisplayEmptyRow,
+    setIsSelfLastScoreDifficultRef,
+    startHideSelfScoreTextTimeout,
   ]);
 
   useEffect(() => {
@@ -1237,12 +1256,19 @@ const Room: FC = () => {
             </PlayField.Wrapper>
           </Column>
           <Column>
-            <Widget.DisplayTetrimino
-              title="NEXT"
-              fontLevel={"three"}
-              displayTetriminoNum={5}
-              tetriminoBag={selfNextTetriminoBag.length === 0 ? null : selfNextTetriminoBag}
-            />
+            <div
+              style={{
+                marginBottom: "2vh",
+              }}
+            >
+              <Widget.DisplayTetrimino
+                title="NEXT"
+                fontLevel={"three"}
+                displayTetriminoNum={5}
+                tetriminoBag={selfNextTetriminoBag.length === 0 ? null : selfNextTetriminoBag}
+              />
+            </div>
+            <div>{selfCombo > 0 ? <Font level={"four"}>COMBO {selfCombo}</Font> : null}</div>
           </Column>
         </Wrapper>
       </SelfGame>
