@@ -300,7 +300,6 @@ const Room: FC = () => {
     moveTetriminoToPreview: moveSelfTetriminoToPreview,
     getIsCoordinatesLockOut: getSelfIsCoordinatesLockOut,
     getTSpinType: getSelfTSpinType,
-    setLastTetriminoRotateWallKickPositionRef: setSelfLastTetriminoRotateWallKickPositionRef,
     startFillRowAnimation: startFillSelfRowAnimation,
     resetFillRowAnimation: resetFillSelfRowAnimation,
     startClearRowAnimation: startClearSelfRowAnimation,
@@ -308,6 +307,7 @@ const Room: FC = () => {
     startFillAllRowAnimation: startFillSelfAllRowAnimation,
     resetFillAllRowAnimation: resetFillSelfAllRowAnimation,
     getBottommostDisplayEmptyRow: getSelfBottommostDisplayEmptyRow,
+    setPrevAnchorAtShapeChangeRef: setSelfPrevAnchorAtShapeChangeRef,
   } = useMatrix();
 
   const {
@@ -465,12 +465,12 @@ const Room: FC = () => {
     setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(gameInitialLevelRef.current));
     setSelfHoldTetrimino(null);
     setSelfMatrixPhase(null);
-    setSelfLastTetriminoRotateWallKickPositionRef(0);
-    setSelfTetriminoMoveTypeRecordRef([]);
     setIsSelfHardDropRef(false);
     setIsSelfHoldableRef(false);
-    resetSelfPrevTetriminoRef();
     setSelfNextTetriminoBag([]);
+    setSelfTetriminoMoveTypeRecordRef([]);
+    resetSelfPrevTetriminoRef();
+    setSelfPrevAnchorAtShapeChangeRef(null);
   }, [
     gameInitialLevelRef,
     resetSelfMatrix,
@@ -479,10 +479,10 @@ const Room: FC = () => {
     setIsSelfHardDropRef,
     setIsSelfHoldableRef,
     setSelfHoldTetrimino,
-    setSelfLastTetriminoRotateWallKickPositionRef,
     setSelfTetriminoMoveTypeRecordRef,
     setSelfNextTetriminoBag,
     setSelfMatrixPhase,
+    setSelfPrevAnchorAtShapeChangeRef,
   ]);
 
   const handleResetAllOpponentState = useCallback(() => {
@@ -595,11 +595,11 @@ const Room: FC = () => {
     resetSelfTetrimino();
     setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(gameInitialLevelRef.current));
     setSelfHoldTetrimino(null);
-    setSelfLastTetriminoRotateWallKickPositionRef(0);
-    setSelfTetriminoMoveTypeRecordRef([]);
     setIsSelfHardDropRef(false);
     setIsSelfHoldableRef(false);
+    setSelfTetriminoMoveTypeRecordRef([]);
     resetSelfPrevTetriminoRef();
+    setSelfPrevAnchorAtShapeChangeRef(null);
   }, [
     gameInitialLevelRef,
     resetSelfMatrix,
@@ -608,8 +608,8 @@ const Room: FC = () => {
     setIsSelfHardDropRef,
     setIsSelfHoldableRef,
     setSelfHoldTetrimino,
-    setSelfLastTetriminoRotateWallKickPositionRef,
     setSelfTetriminoMoveTypeRecordRef,
+    setSelfPrevAnchorAtShapeChangeRef,
   ]);
 
   const handleStartSelfFillAllRowAnimation = useCallback(() => {
@@ -962,12 +962,7 @@ const Room: FC = () => {
             setSelfLevel(nextLevel);
             setSelfCombo(nextCombo);
             setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
-            setSelfLastTetriminoRotateWallKickPositionRef(0);
-            setSelfTetriminoMoveTypeRecordRef([]);
             setIsSelfLastScoreDifficultRef(isScoreDifficult);
-            startHideSelfScoreTextTimeout(() => {
-              setSelfScoreText({ enter: false, text: "", coordinate: { y: 0 } });
-            }, 500);
             setSelfScoreText({
               enter: true,
               text: (isBackToBack ? "B2B " : "") + getScoreTextByScoreType(scoreType) + `+${score}`,
@@ -975,6 +970,9 @@ const Room: FC = () => {
                 y: bottommostEmptyRow === -1 ? 0 : bottommostEmptyRow,
               },
             });
+            startHideSelfScoreTextTimeout(() => {
+              setSelfScoreText({ enter: false, text: "", coordinate: { y: 0 } });
+            }, 500);
             setSelfMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
             setIsSelMatrixAnimationRunningRef(true);
             startClearSelfRowAnimation(filledRow, () => {
@@ -982,12 +980,15 @@ const Room: FC = () => {
               setSelfMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
             });
           } else {
+            const score = getScore(tSpinType, selfLevel, 0, -1, false);
+            setSelfScore((prevScore) => prevScore + score);
             setSelfCombo(-1);
             setIsSelfLastScoreDifficultRef(false);
-            setSelfLastTetriminoRotateWallKickPositionRef(0);
-            setSelfTetriminoMoveTypeRecordRef([]);
             handleTetriminoCreate();
           }
+          setSelfTetriminoMoveTypeRecordRef([]);
+          resetSelfPrevTetriminoRef();
+          setSelfPrevAnchorAtShapeChangeRef(null);
           break;
         case MATRIX_PHASE.ROW_FILLED_CLEARING:
           break;
@@ -1039,7 +1040,6 @@ const Room: FC = () => {
     resetSelfTetrimino,
     setIsSelfHardDropRef,
     setIsSelfHoldableRef,
-    setSelfLastTetriminoRotateWallKickPositionRef,
     setSelfPrevTetriminoRef,
     setSelfTetriminoMoveTypeRecordRef,
     setSelfTetriminoToMatrix,
@@ -1058,6 +1058,8 @@ const Room: FC = () => {
     getSelfBottommostDisplayEmptyRow,
     setIsSelfLastScoreDifficultRef,
     startHideSelfScoreTextTimeout,
+    resetSelfPrevTetriminoRef,
+    setSelfPrevAnchorAtShapeChangeRef,
   ]);
 
   useEffect(() => {

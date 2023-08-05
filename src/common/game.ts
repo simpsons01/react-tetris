@@ -92,7 +92,7 @@ export const getScoreTextByScoreType = (scoreType: SCORE_TYPE): string => {
     [SCORE_TYPE.MINI_T_SPIN_SINGLE]: "MINI T-SPIN SINGLE!",
     [SCORE_TYPE.T_SPIN_SINGLE]: "T-SPIN SINGLE!",
     [SCORE_TYPE.MINI_T_SPIN_DOUBLE]: "MINI T-SPIN DOUBLE!",
-    [SCORE_TYPE.T_SPIN_DOUBLE]: "T-SPIN TRIPLE!",
+    [SCORE_TYPE.T_SPIN_DOUBLE]: "T-SPIN DOUBLE!",
   };
   return scoreText[scoreType];
 };

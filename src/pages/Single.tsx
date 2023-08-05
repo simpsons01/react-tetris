@@ -139,7 +139,6 @@ const Single: FC = () => {
     tetriminoMoveTypeRecordRef,
     setPrevTetriminoRef,
     setTetriminoMoveTypeRecordRef,
-    setLastTetriminoRotateWallKickPositionRef,
     setTetriminoToMatrix,
     getSpawnTetrimino,
     moveTetrimino,
@@ -165,6 +164,7 @@ const Single: FC = () => {
     resetClearRowAnimation,
     continueClearRowAnimation,
     getBottommostDisplayEmptyRow,
+    setPrevAnchorAtShapeChangeRef,
   } = useMatrix();
 
   const {
@@ -365,14 +365,14 @@ const Single: FC = () => {
     setGameState(null);
     setHoldTetrimino(null);
     setMatrixPhase(null);
-    setLastTetriminoRotateWallKickPositionRef(0);
+    setPrevAnchorAtShapeChangeRef(null);
+    resetPrevTetriminoRef();
     setTetriminoMoveTypeRecordRef([]);
     setIsHardDropRef(false);
     setIsHoldableRef(false);
     setLastKeyDownKeyRef(undefined);
     setLastKeyUpKeyRef(undefined);
     setIsDasRef(false);
-    resetPrevTetriminoRef();
     initialNextTetriminoBag();
     resetFillRowAnimation();
     resetClearRowAnimation();
@@ -386,7 +386,6 @@ const Single: FC = () => {
     setDefaultStartLevelRef,
     setHoldTetrimino,
     setMatrixPhase,
-    setLastTetriminoRotateWallKickPositionRef,
     setTetriminoMoveTypeRecordRef,
     setIsHardDropRef,
     setIsHoldableRef,
@@ -399,6 +398,7 @@ const Single: FC = () => {
     setLastKeyDownKeyRef,
     setLastKeyUpKeyRef,
     setIsDasRef,
+    setPrevAnchorAtShapeChangeRef,
   ]);
 
   const openToolOverlay = useCallback(() => {
@@ -657,8 +657,6 @@ const Single: FC = () => {
           setLevel(nextLevel);
           setIsLastScoreDifficultRef(isScoreDifficult);
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
-          setLastTetriminoRotateWallKickPositionRef(0);
-          setTetriminoMoveTypeRecordRef([]);
           setCombo(nextCombo);
           setScoreText({
             enter: true,
@@ -675,12 +673,15 @@ const Single: FC = () => {
             setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
         } else {
-          setLastTetriminoRotateWallKickPositionRef(0);
-          setTetriminoMoveTypeRecordRef([]);
+          const score = getScore(tSpinType, level, 0, -1, false);
+          setScore((prevScore) => prevScore + score);
           setCombo(-1);
           setIsLastScoreDifficultRef(false);
           tetriminoCreateFn();
         }
+        setTetriminoMoveTypeRecordRef([]);
+        resetPrevTetriminoRef();
+        setPrevAnchorAtShapeChangeRef(null);
         break;
       case MATRIX_PHASE.ROW_FILLED_CLEARING:
         break;
@@ -734,7 +735,6 @@ const Single: FC = () => {
     setPrevTetriminoRef,
     resetTetrimino,
     setIsHardDropRef,
-    setLastTetriminoRotateWallKickPositionRef,
     setTetriminoMoveTypeRecordRef,
     startClearRowAnimation,
     startFillRowAnimation,
@@ -751,6 +751,8 @@ const Single: FC = () => {
     startHideScoreTextTimeout,
     getBottommostDisplayEmptyRow,
     setIsLastScoreDifficultRef,
+    resetPrevTetriminoRef,
+    setPrevAnchorAtShapeChangeRef,
   ]);
 
   useEffect(() => {

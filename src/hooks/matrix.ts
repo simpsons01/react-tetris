@@ -32,7 +32,7 @@ import {
 
 import { useCallback, useState, useMemo } from "react";
 
-const condition = (index: number, col: number) => false;
+const condition = (index: number) => false;
 
 const createMatrix = () =>
   new Array(PER_ROW_CUBE_NUM * PER_COL_CUBE_NUM).fill(null).map((_, index) => {
@@ -40,7 +40,7 @@ const createMatrix = () =>
       x: index % PER_COL_CUBE_NUM,
       y: Math.floor(index / PER_COL_CUBE_NUM),
       id: nanoid(),
-      state: condition(index, PER_COL_CUBE_NUM) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
+      state: condition(index) ? CUBE_STATE.FILLED : CUBE_STATE.UNFILLED,
     };
   });
 
@@ -191,7 +191,9 @@ const useMatrix = () => {
     Array<TETRIMINO_MOVE_TYPE>
   >([]);
 
-  const [lastTetriminoRotateWallKickPositionRef, setLastTetriminoRotateWallKickPositionRef] = useCustomRef(0);
+  const [previousAnchorAtShapeChangeRef, setPrevAnchorAtShapeChangeRef] = useCustomRef<ICoordinate | null>(
+    null
+  );
 
   const displayMatrix = useMemo(
     () =>
@@ -244,7 +246,7 @@ const useMatrix = () => {
   const getTSpinType = useCallback(() => {
     // console.log(prevTetriminoRef.current);
     let type = null;
-    if (!prevTetriminoRef.current) {
+    if (!prevTetriminoRef.current || !previousAnchorAtShapeChangeRef.current) {
       return type;
     }
     const _prevTetrimino = prevTetriminoRef.current as ITetrimino;
@@ -293,17 +295,20 @@ const useMatrix = () => {
       lastTetriminoMoveType === TETRIMINO_MOVE_TYPE.COUNTER_CLOCK_WISE_ROTATE ||
       lastTetriminoMoveType === TETRIMINO_MOVE_TYPE.CLOCK_WISE_ROTATE;
     if (isLastTetriminoMoveTypeRotate && filledCubeCoordinates.length > 2) {
+      const tetriminoAnchorYMoveDistance = Math.abs(
+        prevTetriminoRef.current.anchor.y - previousAnchorAtShapeChangeRef.current.y
+      );
       if (
-        filledCubeCoordinates.filter(({ front }) => front).length === 1 &&
-        lastTetriminoRotateWallKickPositionRef.current !== 4
+        filledCubeCoordinates.filter(({ front }) => front).length === 2 ||
+        tetriminoAnchorYMoveDistance > 1
       ) {
-        type = T_SPIN_TYPE.MINI;
-      } else {
         type = T_SPIN_TYPE.NORMAL;
+      } else {
+        type = T_SPIN_TYPE.MINI;
       }
     }
     return type;
-  }, [findCube, lastTetriminoRotateWallKickPositionRef, prevTetriminoRef, tetriminoMoveTypeRecordRef]);
+  }, [prevTetriminoRef, tetriminoMoveTypeRecordRef, previousAnchorAtShapeChangeRef, findCube]);
 
   const getIsCoordinatesLockOut = useCallback(
     (coordinates: Array<ICoordinate>) =>
@@ -525,6 +530,7 @@ const useMatrix = () => {
           shape: nextShape,
           anchor: nextAnchor,
         });
+        setPrevAnchorAtShapeChangeRef(tetrimino.anchor);
         isSuccess = true;
         return isSuccess;
       } else {
@@ -544,14 +550,14 @@ const useMatrix = () => {
           const isWallKickNextCoordinatesCollide =
             getCoordinatesIsCollideWithFilledCube(wallKickNextCoordinates);
           if (!isWallKickNextCoordinatesCollide) {
-            setLastTetriminoRotateWallKickPositionRef(i);
             setTetrimino({
               ...tetrimino,
               shape: nextShape,
               anchor: wallKickNextAnchor,
             });
+            setPrevAnchorAtShapeChangeRef(tetrimino.anchor);
             isSuccess = true;
-            return isSuccess;
+            break;
           }
         }
 
@@ -563,7 +569,7 @@ const useMatrix = () => {
       tetriminoCoordinates,
       getCoordinatesIsCollideWithFilledCube,
       setTetrimino,
-      setLastTetriminoRotateWallKickPositionRef,
+      setPrevAnchorAtShapeChangeRef,
     ]
   );
 
@@ -632,11 +638,10 @@ const useMatrix = () => {
     displayMatrix,
     displayTetriminoCoordinates,
     tetriminoMoveTypeRecordRef,
-    lastTetriminoRotateWallKickPositionRef,
     prevTetriminoRef,
+    previousAnchorAtShapeChangeRef,
     setPrevTetriminoRef,
     setTetriminoMoveTypeRecordRef,
-    setLastTetriminoRotateWallKickPositionRef,
     setTetrimino,
     setMatrix,
     resetTetrimino,
@@ -670,6 +675,7 @@ const useMatrix = () => {
     continueFillAllRowAnimation,
     getIsFillAllRowAnimationAnimating,
     getBottommostDisplayEmptyRow,
+    setPrevAnchorAtShapeChangeRef,
   };
 };
 
