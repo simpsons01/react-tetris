@@ -14,6 +14,7 @@ import {
 import styled from "styled-components";
 import Overlay from "../components/Overlay";
 import Loading from "../components/Loading";
+import ScoreText from "../components/ScoreText";
 import useMatrix from "../hooks/matrix";
 import useNextTetriminoBag from "../hooks/nextTetriminoBag";
 import Widget from "../components/Widget";
@@ -35,6 +36,7 @@ import {
   getLevelByLine,
   getScoreByTSpinAndLevelAndLine,
   getTetriminoFallingDelayByLevel,
+  getScoreTextByTSpinAndLine,
 } from "../common/game";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
 import { getToken } from "../common/token";
@@ -303,6 +305,7 @@ const Room: FC = () => {
     resetClearRowAnimation: resetClearSelfRowAnimation,
     startFillAllRowAnimation: startFillSelfAllRowAnimation,
     resetFillAllRowAnimation: resetFillSelfAllRowAnimation,
+    getBottommostDisplayEmptyRow: getSelfBottommostDisplayEmptyRow,
   } = useMatrix();
 
   const {
@@ -322,6 +325,8 @@ const Room: FC = () => {
     isInInterval: isSelfAutoRepeating,
     start: starSelfAutoRepeat,
   } = useInterval({ autoClear: true });
+
+  const { start: startHideSelfScoreTextTimeout } = useTimeout({ autoClear: true });
 
   const freshMoveSelfTetrimino = useGetter(moveSelfTetrimino);
 
@@ -347,6 +352,8 @@ const Room: FC = () => {
   const [selfLine, setSelfLine] = useState(0);
 
   const [selfLevel, setSelfLevel] = useState(1);
+
+  const [selfScoreText, setSelfScoreText] = useState({ enter: false, text: "", coordinate: { y: 0 } });
 
   const [selfTetriminoFallingDelay, setSelfTetriminoFallingDelay] = useState(
     getTetriminoFallingDelayByLevel(selfLevel)
@@ -939,12 +946,21 @@ const Room: FC = () => {
             setSelfMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
             const nextLineValue = selfLine + filledRow.length;
             const nextLevel = getLevelByLine(nextLineValue, selfLevel);
-            setSelfScore(
-              (prevSelfScore) =>
-                prevSelfScore + getScoreByTSpinAndLevelAndLine(tSpinType, selfLevel, filledRow.length)
-            );
+            const bottommostEmptyRow = getSelfBottommostDisplayEmptyRow();
+            const score = getScoreByTSpinAndLevelAndLine(tSpinType, selfLevel, filledRow.length);
+            setSelfScore((prevSelfScore) => prevSelfScore + score);
             setSelfLine(nextLineValue);
             setSelfLevel(nextLevel);
+            setSelfScoreText({
+              enter: true,
+              text: `${getScoreTextByTSpinAndLine(tSpinType, filledRow.length)}+${score}`,
+              coordinate: {
+                y: bottommostEmptyRow === -1 ? 0 : bottommostEmptyRow,
+              },
+            });
+            startHideSelfScoreTextTimeout(() => {
+              setSelfScoreText({ enter: false, text: "", coordinate: { y: 0 } });
+            }, 500);
             setSelfTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
             setSelfLastTetriminoRotateWallKickPositionRef(0);
             setSelfTetriminoMoveTypeRecordRef([]);
@@ -1217,6 +1233,7 @@ const Room: FC = () => {
                 tetrimino={selfDisplayTetriminoCoordinates}
                 previewTetrimino={selfPreviewTetrimino}
               />
+              <ScoreText {...selfScoreText} />
             </PlayField.Wrapper>
           </Column>
           <Column>

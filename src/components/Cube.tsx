@@ -1,7 +1,7 @@
 import type { ICoordinate } from "../common/tetrimino";
 import styled from "styled-components";
 
-const CUBE_WIDTH = 3.5;
+export const CUBE_WIDTH = 3.5;
 
 export interface ICubeBlock extends ICoordinate {
   isFilled: boolean;

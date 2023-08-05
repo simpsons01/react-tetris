@@ -6,6 +6,7 @@ import useNextTetriminoBag from "../hooks/nextTetriminoBag";
 import styled from "styled-components";
 import Widget from "../components/Widget";
 import PlayField from "../components/PlayField";
+import ScoreText from "../components/ScoreText";
 import useKeydownAutoRepeat from "../hooks/keydownAutoRepeat";
 import useHoldTetrimino from "../hooks/holdTetrimino";
 import Font from "../components/Font";
@@ -24,11 +25,12 @@ import {
   TETRIMINO_TYPE,
   TETRIMINO_MOVE_TYPE,
 } from "../common/tetrimino";
-import { DISPLAY_ZONE_ROW_START, MATRIX_PHASE } from "../common/matrix";
+import { MATRIX_PHASE, DISPLAY_ZONE_ROW_START } from "../common/matrix";
 import {
   getLevelByLine,
   getTetriminoFallingDelayByLevel,
   getScoreByTSpinAndLevelAndLine,
+  getScoreTextByTSpinAndLine,
 } from "../common/game";
 import { Link } from "react-router-dom";
 import { useSettingModalVisibilityContext } from "../context/settingModalVisibility";
@@ -160,6 +162,7 @@ const Single: FC = () => {
     stopClearRowAnimation,
     resetClearRowAnimation,
     continueClearRowAnimation,
+    getBottommostDisplayEmptyRow,
   } = useMatrix();
 
   const {
@@ -173,6 +176,8 @@ const Single: FC = () => {
     isPending: isTetriminoCollideBottomTimeoutPending,
     start: starTetriminoCollideBottomTimeout,
   } = useTimeout();
+
+  const { start: startHideScoreTextTimeout } = useTimeout({ autoClear: true });
 
   const {
     clear: clearAutoRepeat,
@@ -208,6 +213,8 @@ const Single: FC = () => {
   const [level, setLevel] = useState(defaultStartLevelRef.current);
 
   const [score, setScore] = useState(0);
+
+  const [scoreText, setScoreText] = useState({ enter: false, text: "", coordinate: { y: 0 } });
 
   const [isToolOverlayOpen, setIsToolOverlayOpen] = useState(false);
 
@@ -633,15 +640,25 @@ const Single: FC = () => {
         if (filledRow.length > 0) {
           const nextLineValue = line + filledRow.length;
           const nextLevel = getLevelByLine(nextLineValue, level);
-          setScore(
-            (prevScore) => prevScore + getScoreByTSpinAndLevelAndLine(tSpinType, level, filledRow.length)
-          );
+          const bottommostEmptyRow = getBottommostDisplayEmptyRow();
+          const score = getScoreByTSpinAndLevelAndLine(tSpinType, level, filledRow.length);
+          setScore((prevScore) => prevScore + score);
           setLine(nextLineValue);
           setLevel(nextLevel);
           setTetriminoFallingDelay(getTetriminoFallingDelayByLevel(nextLevel));
           setLastTetriminoRotateWallKickPositionRef(0);
           setTetriminoMoveTypeRecordRef([]);
           setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
+          setScoreText({
+            enter: true,
+            text: `${getScoreTextByTSpinAndLine(tSpinType, filledRow.length)}+${score}`,
+            coordinate: {
+              y: bottommostEmptyRow === -1 ? 0 : bottommostEmptyRow,
+            },
+          });
+          startHideScoreTextTimeout(() => {
+            setScoreText({ enter: false, text: "", coordinate: { y: 0 } });
+          }, 500);
           startClearRowAnimation(filledRow, () => {
             setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
@@ -684,6 +701,7 @@ const Single: FC = () => {
     tetrimino,
     isHardDropRef,
     tetriminoMoveTypeRecordRef,
+    score,
     tetriminoFallingTimeoutHandler,
     handleTetriminoCreate,
     handleGameOver,
@@ -714,6 +732,8 @@ const Single: FC = () => {
     stopFillRowAnimation,
     resetClearRowAnimation,
     resetFillRowAnimation,
+    startHideScoreTextTimeout,
+    getBottommostDisplayEmptyRow,
   ]);
 
   useEffect(() => {
@@ -769,6 +789,7 @@ const Single: FC = () => {
             />
             <PlayField.GameOverPanel isGameOver={isGameOver} onGameOverBtnClick={handleNextGame} />
             <PlayField.GameStartPanel onGameStart={handleGameStart} isGameStart={gameState == null} />
+            <ScoreText {...scoreText} />
           </PlayField.Wrapper>
         </Column>
         <Column>

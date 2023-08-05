@@ -312,7 +312,7 @@ const useMatrix = () => {
   );
 
   const getRowFilledWithCube = useCallback((): Array<number> => {
-    let _row = 20,
+    let _row = DISPLAY_ZONE_ROW_START,
       filledRow = [];
     while (_row < DISPLAY_ZONE_ROW_END + 1) {
       let _col = 0,
@@ -329,6 +329,28 @@ const useMatrix = () => {
     }
     return filledRow;
   }, [findCube]);
+
+  const getBottommostDisplayEmptyRow = useCallback((): number => {
+    let _row = DISPLAY_ZONE_ROW_END - 1,
+      bottommostEmptyRow = -1;
+    while (bottommostEmptyRow === -1 && _row > DISPLAY_ZONE_ROW_START - 1) {
+      let _col = 0,
+        isAllNotFilled = true;
+      while (_col < PER_COL_CUBE_NUM) {
+        const cube = findCube({ x: _col, y: _row });
+        if (cube !== null && cube.state === CUBE_STATE.FILLED) {
+          isAllNotFilled = false;
+        }
+        if (tetriminoCoordinates) {
+          isAllNotFilled = !tetriminoCoordinates.some(({ x, y }) => x === _col && y === _row);
+        }
+        _col += 1;
+      }
+      if (isAllNotFilled) bottommostEmptyRow = _row;
+      _row -= 1;
+    }
+    return bottommostEmptyRow === -1 ? bottommostEmptyRow : bottommostEmptyRow - DISPLAY_ZONE_ROW_START;
+  }, [findCube, tetriminoCoordinates]);
 
   const getSpawnTetrimino = useCallback((nextTetriminoType: TETRIMINO_TYPE) => {
     const tetriminoConfig = getTetriminoConfig(nextTetriminoType);
@@ -647,6 +669,7 @@ const useMatrix = () => {
     resetFillAllRowAnimation,
     continueFillAllRowAnimation,
     getIsFillAllRowAnimationAnimating,
+    getBottommostDisplayEmptyRow,
   };
 };
 
