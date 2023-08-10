@@ -824,7 +824,7 @@ const Single: FC = () => {
               tetriminoBag={nextTetriminoBag.length === 0 ? null : nextTetriminoBag}
             />
           </div>
-          <div>{combo > 0 ? <Font level={"four"}>COMBO {combo}</Font> : null}</div>
+          {/* <div>{combo > 0 ? <Font level={"four"}>COMBO {combo}</Font> : null}</div> */}
         </Column>
         <Settings>
           <button onClick={openToolOverlay}>

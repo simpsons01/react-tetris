@@ -1270,7 +1270,7 @@ const Room: FC = () => {
                 tetriminoBag={selfNextTetriminoBag.length === 0 ? null : selfNextTetriminoBag}
               />
             </div>
-            <div>{selfCombo > 0 ? <Font level={"four"}>COMBO {selfCombo}</Font> : null}</div>
+            {/* <div>{selfCombo > 0 ? <Font level={"four"}>COMBO {selfCombo}</Font> : null}</div> */}
           </Column>
         </Wrapper>
       </SelfGame>
