@@ -195,6 +195,11 @@ const Settings = styled.div`
   }
 `;
 
+const Combo = styled.div`
+  max-width: calc(14vh + 16px);
+  word-break: break-all;
+`;
+
 enum ROOM_STATE {
   CONNECTING = "CONNECTING",
   SELF_NOT_READY = "SELF_NOT_READY",
@@ -973,7 +978,7 @@ const Room: FC = () => {
             startHideSelfScoreTextTimeout(() => {
               setSelfScoreText({ enter: false, text: "", coordinate: { y: 0 } });
             }, 500);
-            setSelfMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
+            setSelfMatrixPhase(null);
             setIsSelMatrixAnimationRunningRef(true);
             startClearSelfRowAnimation(filledRow, () => {
               setIsSelMatrixAnimationRunningRef(false);
@@ -990,15 +995,13 @@ const Room: FC = () => {
           resetSelfPrevTetriminoRef();
           setSelfPrevAnchorAtShapeChangeRef(null);
           break;
-        case MATRIX_PHASE.ROW_FILLED_CLEARING:
-          break;
         case MATRIX_PHASE.CHECK_IS_ROW_EMPTY:
           const emptyRowGap = getSelfEmptyRow();
           const isGapNotExist =
             emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
           if (!isGapNotExist) {
             //console.log("fill empty row!");
-            setSelfMatrixPhase(MATRIX_PHASE.ROW_EMPTY_FILLING);
+            setSelfMatrixPhase(null);
             setIsSelMatrixAnimationRunningRef(true);
             startFillSelfRowAnimation(emptyRowGap, () => {
               setIsSelMatrixAnimationRunningRef(false);
@@ -1007,8 +1010,6 @@ const Room: FC = () => {
           } else {
             handleTetriminoCreate();
           }
-          break;
-        case MATRIX_PHASE.ROW_EMPTY_FILLING:
           break;
         default:
           break;
@@ -1270,7 +1271,7 @@ const Room: FC = () => {
                 tetriminoBag={selfNextTetriminoBag.length === 0 ? null : selfNextTetriminoBag}
               />
             </div>
-            {/* <div>{selfCombo > 0 ? <Font level={"four"}>COMBO {selfCombo}</Font> : null}</div> */}
+            <Combo>{selfCombo > 0 ? <Font level={"five"}>COMBOx{selfCombo}</Font> : null}</Combo>
           </Column>
         </Wrapper>
       </SelfGame>

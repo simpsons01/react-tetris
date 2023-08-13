@@ -118,6 +118,11 @@ const CloseBtn = styled.button`
   }
 `;
 
+const Combo = styled.div`
+  max-width: calc(14vh + 16px);
+  word-break: break-all;
+`;
+
 enum GAME_STATE {
   START = "START",
   PAUSE = "PAUSE",
@@ -668,7 +673,7 @@ const Single: FC = () => {
           startHideScoreTextTimeout(() => {
             setScoreText({ enter: false, text: "", coordinate: { y: 0 } });
           }, 500);
-          setMatrixPhase(MATRIX_PHASE.ROW_FILLED_CLEARING);
+          setMatrixPhase(null);
           startClearRowAnimation(filledRow, () => {
             setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
@@ -683,23 +688,19 @@ const Single: FC = () => {
         resetPrevTetriminoRef();
         setPrevAnchorAtShapeChangeRef(null);
         break;
-      case MATRIX_PHASE.ROW_FILLED_CLEARING:
-        break;
       case MATRIX_PHASE.CHECK_IS_ROW_EMPTY:
         const emptyRowGap = getEmptyRow();
         const isGapNotExist =
           emptyRowGap.length === 0 || (emptyRowGap.length === 1 && emptyRowGap[0].empty.length === 0);
         if (!isGapNotExist) {
           //console.log("fill empty row!");
-          setMatrixPhase(MATRIX_PHASE.ROW_EMPTY_FILLING);
+          setMatrixPhase(null);
           startFillRowAnimation(emptyRowGap, () => {
             setMatrixPhase(MATRIX_PHASE.CHECK_IS_ROW_EMPTY);
           });
         } else {
           tetriminoCreateFn();
         }
-        break;
-      case MATRIX_PHASE.ROW_EMPTY_FILLING:
         break;
       default:
         break;
@@ -824,7 +825,7 @@ const Single: FC = () => {
               tetriminoBag={nextTetriminoBag.length === 0 ? null : nextTetriminoBag}
             />
           </div>
-          {/* <div>{combo > 0 ? <Font level={"four"}>COMBO {combo}</Font> : null}</div> */}
+          <Combo>{combo > 0 ? <Font level={"five"}>COMBOx{combo}</Font> : null}</Combo>
         </Column>
         <Settings>
           <button onClick={openToolOverlay}>
