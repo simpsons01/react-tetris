@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { getToken } from "../token";
 
 const http = axios.create({
-  baseURL: process.env.REACT_APP_AJAX_URL,
+  baseURL: `${process.env.REACT_APP_BACKEND_URL}`,
   headers: {
     "Content-Type": "application/json",
   },

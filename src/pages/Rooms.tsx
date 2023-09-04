@@ -402,7 +402,7 @@ const Rooms: FC = () => {
       </RoomsContainer>
       <Settings>
         <button onClick={() => setIsToolOverlayOpen(true)}>
-          <img src={`${process.env.REACT_APP_STATIC_URL}/settings.png`} alt="setting" />
+          <img src={"/settings.png"} alt="setting" />
         </button>
       </Settings>
       {isToolOverlayOpen ? (
