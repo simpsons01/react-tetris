@@ -22,8 +22,7 @@ export const getSocketInstance = <S extends EventMap, C extends EventMap>(
   token: string,
   query: AnyObject
 ): Socket<S, C> =>
-  io(process.env.REACT_APP_SOCKET_URL as string, {
-    path: "/api/socket.io",
+  io(process.env.REACT_APP_BACKEND_URL as string, {
     auth: {
       token,
     },
