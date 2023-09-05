@@ -1,23 +1,19 @@
-import { json } from "react-router-dom";
-import axios from "axios";
+import { defer } from "react-router-dom";
 import * as http from "../../common/http";
 
 const initialLoader = async () => {
-  const initialData = {
-    player: { name: "", id: "" },
-  };
-  try {
-    const {
-      data: { player },
-    } = await http.getPlayer();
-    initialData.player = player;
-    return json(initialData);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      return json(initialData);
+  const promise = http.getPlayer().catch(error => {
+    if(error.response.status === 401) {
+      return {
+        data: { player: { name: "", id: "" }  }
+      }
+    }else {
+      return Promise.reject(error)
     }
-    throw json({ message: "something went wrong" });
-  }
+  });
+  return defer({
+    player: promise
+  });
 };
 
 export default initialLoader;

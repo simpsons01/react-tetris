@@ -1,12 +1,14 @@
 import type { IPlayer } from "./common/player";
-import { Outlet, useLoaderData } from "react-router-dom";
+import type { AxiosResponse } from "axios";
 import styled from "styled-components";
 import Overlay from "./components/Overlay";
 import Font from "./components/Font";
 import Modal from "./components/Modal";
+import Loading from "./components/Loading";
 import useSetting from "./hooks/setting";
 import { SettingContext } from "./context/setting";
-import { useState, useMemo, Fragment, useEffect, useReducer } from "react";
+import { useState, useMemo, Fragment, useEffect, useReducer, Suspense } from "react";
+import { Outlet, useLoaderData, Await, useAsyncValue } from "react-router-dom";
 import { SizeConfigContext } from "./context/sizeConfig";
 import { PlayerContext } from "./context/player";
 import { SettingModalVisibilityContext } from "./context/settingModalVisibility";
@@ -21,7 +23,7 @@ const {
 
 const isDesktop = platformType === "desktop";
 
-const AppContainer = styled.div`
+const Container = styled.div`
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -29,14 +31,14 @@ const AppContainer = styled.div`
   justify-content: center;
 `;
 
-const App = () => {
-  const loaderData = useLoaderData() as { player: IPlayer };
+const Main = () => {
+  const response = useAsyncValue() as AxiosResponse<{ player: IPlayer }>;
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
 
   const [screenRatio, setScreenRatio] = useState(0);
 
-  const [player, playerDispatch] = useReducer(playerReducer, loaderData.player);
+  const [player, playerDispatch] = useReducer(playerReducer, response.data.player);
 
   const { setting, setSetting, saveSetting } = useSetting();
 
@@ -58,49 +60,74 @@ const App = () => {
   }, []);
 
   return (
-    <AppContainer>
-      <PlayerContext.Provider
+    <PlayerContext.Provider
+      value={{
+        player,
+        dispatch: playerDispatch,
+        isPlayerNil: () => !player.name || !player.id,
+      }}
+    >
+      <SettingModalVisibilityContext.Provider
         value={{
-          player,
-          dispatch: playerDispatch,
-          isPlayerNil: () => !player.name || !player.id,
+          isOpen: () => isSettingModalOpen,
+          open: () => setIsSettingModalOpen(true),
+          close: () => setIsSettingModalOpen(false),
         }}
       >
-        <SettingModalVisibilityContext.Provider
+        <SettingContext.Provider
           value={{
-            isOpen: () => isSettingModalOpen,
-            open: () => setIsSettingModalOpen(true),
-            close: () => setIsSettingModalOpen(false),
+            setting,
+            setSetting,
+            saveSetting,
           }}
         >
-          <SettingContext.Provider
+          <SizeConfigContext.Provider
             value={{
-              setting,
-              setSetting,
-              saveSetting,
+              playable: isPlayable,
             }}
           >
-            <SizeConfigContext.Provider
-              value={{
-                playable: isPlayable,
-              }}
-            >
-              <Fragment>
-                <Outlet />
-                <Modal.Setting isOpen={isSettingModalOpen} />
-                {!isPlayable ? (
-                  <Overlay background="#fff">
-                    <Font align="center" color="#292929" level={"one"}>
-                      OOPS! THE SIZE OR DEVICE IS NOT SUPPORTED
-                    </Font>
-                  </Overlay>
-                ) : null}
-              </Fragment>
-            </SizeConfigContext.Provider>
-          </SettingContext.Provider>
-        </SettingModalVisibilityContext.Provider>
-      </PlayerContext.Provider>
-    </AppContainer>
+            <Fragment>
+              <Outlet />
+              <Modal.Setting isOpen={isSettingModalOpen} />
+              {!isPlayable ? (
+                <Overlay background="#fff">
+                  <Font align="center" color="#292929" level={"one"}>
+                    OOPS! THE SIZE OR DEVICE IS NOT SUPPORTED
+                  </Font>
+                </Overlay>
+              ) : null}
+            </Fragment>
+          </SizeConfigContext.Provider>
+        </SettingContext.Provider>
+      </SettingModalVisibilityContext.Provider>
+    </PlayerContext.Provider>
+  );
+};
+
+const App = () => {
+  const loaderData = useLoaderData() as { player: Promise<IPlayer> };
+
+  return (
+    <Container>
+      <Suspense
+        fallback={
+          <Font level={"one"} >
+            <Loading.Dot>BOOTING UP</Loading.Dot>
+          </Font>
+        }
+      >
+        <Await
+          resolve={loaderData.player}
+          errorElement={
+            <Font level={"one"}>
+              SOMETHING WENT WRONG!
+            </Font>
+          }
+        >
+          <Main />
+        </Await>
+      </Suspense>
+    </Container>
   );
 };
 
